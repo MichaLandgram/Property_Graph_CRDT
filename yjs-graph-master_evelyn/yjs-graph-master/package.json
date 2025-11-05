@@ -14,7 +14,6 @@
     "@types/react-dom": "^18.3.1",
     "@xyflow/react": "^12.3.2",
     "console-browserify": "^1.2.0",
-    "craco": "^0.0.3",
     "craco-wasm": "^0.0.1",
     "crypto": "^1.0.1",
     "crypto-browserify": "^3.12.1",
@@ -34,7 +33,9 @@
     "uuid": "^10.0.0",
     "uuidv4": "^6.2.13",
     "web-vitals": "^2.1.4",
-    "y-webrtc": "^10.3.0"
+    "with": "^7.0.2",
+    "y-webrtc": "^10.3.0",
+    "yjs": "^13.6.20"
   },
   "scripts": {
     "start": "craco start",
@@ -63,6 +64,7 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "@fast-check/jest": "^2.0.3",
     "@types/assert": "^1.5.11",
     "@types/node": "^22.10.5",
@@ -70,5 +72,12 @@
     "fast-check": "^3.23.2",
     "jest-environment-jsdom": "^29.7.0",
     "vitest": "^3.0.5"
+  },
+  "overrides": {
+    "@pmmmwh/react-refresh-webpack-plugin": "0.5.7",
+    "schema-utils@3.x": {
+      "ajv": "6.12.6",
+      "ajv-keywords": "3.5.2"
+    }
   }
 }
