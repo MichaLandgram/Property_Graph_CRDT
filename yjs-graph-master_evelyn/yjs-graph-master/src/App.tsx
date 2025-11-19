@@ -3,8 +3,7 @@ import Graph from './components/Graph'
 import { useEffect } from 'react'
 import { type Graph as GraphApi } from './graphs/Graph'
 import '@xyflow/react/dist/style.css'
-import { useAdjacencyMapAutomerge, useAdjacencyListAutomerge, useAdjacencyMapWithFasterNodeDeletionAutomerge } from './hooks/useAutomergeGraph'
-import { useAdjacencyListYjs, useAdjacencyMapWithFasterNodeDeletionYjs, useAdjacencyMapYjs } from './hooks/useYjsGraph'
+import { useAdjacencyMapWithFasterNodeDeletionYjs, useAdjacencyMapYjs } from './hooks/useYjsGraph'
 
 
 function populateMatrix(graphApi: GraphApi) {  
@@ -22,7 +21,7 @@ function populateMatrix(graphApi: GraphApi) {
 function App() {
 
 
-  const { graph1, graph2, sync1to2, sync2to1, syncBoth } = useAdjacencyMapWithFasterNodeDeletionAutomerge()
+  const { graph1, graph2, sync1to2, sync2to1, syncBoth } = useAdjacencyMapWithFasterNodeDeletionYjs()
   
   useEffect(() => {
     populateMatrix(graph1)

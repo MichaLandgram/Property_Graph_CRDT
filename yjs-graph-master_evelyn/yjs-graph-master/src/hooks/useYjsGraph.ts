@@ -1,7 +1,6 @@
 import * as Y from 'yjs';
 import { useRef, useCallback, useState, useEffect } from "react";
 import { Graph, AppGraphData } from "../graphs/Graph";
-import { AdjacencyList } from "../graphs/AdjacencyList";
 import { EventEmitter } from '../Types';
 import { AdjacencyMap } from '../graphs/AdjacencyMap';
 import { AdjacencyMapWithFasterNodeDeletion } from '../graphs/AdjacencyMapWithFasterNodeDeletion';
@@ -44,10 +43,6 @@ function useYjsGraph<T extends Graph & { makeGraphValid: () => void; observe: (u
     return { graph1: graph1.current, graph2: graph2.current, sync1to2, sync2to1, syncBoth }
 }
 
-
-export function useAdjacencyListYjs(): AppGraphData {
-  return useYjsGraph((doc, ee) => new AdjacencyList(doc, ee))
-}
 
 export function useAdjacencyMapYjs(): AppGraphData {
   return useYjsGraph((doc, ee) => new AdjacencyMap(doc, ee))
