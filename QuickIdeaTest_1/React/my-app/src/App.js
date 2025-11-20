@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { test } from './Version1/V1_idea/SimpleGraph';
+import { test, runHybridPolicyTest } from './Version1/V1_idea/SimpleGraph';
 
 function App() {
   return (
@@ -9,7 +9,8 @@ function App() {
         <img src={logo} className="App-logo" alt="logo" />
         <p>
           Edit <code>src/App.js</code> and save to reload.
-          <button onClick={() => test()}>Click Me</button>
+          {/* <button onClick={() => test()}>Click Me</button> */}
+          <button onClick={() => runHybridPolicyTest()}>Run Test</button>
         </p>
         <a
           className="App-link"
