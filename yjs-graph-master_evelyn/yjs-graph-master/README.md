@@ -6,3 +6,14 @@ to circumvent: delete package-lock files, change node_modules/react-scripts/pack
 repeat for other packages (jest-watch-typeahead) \
 npm install should not produce errors, also required to restore lock files \
 better: use patch-package to automate this process
+
+
+```
+
+
+npm install --legacy-peer-deps
+
+
+
+
+```
