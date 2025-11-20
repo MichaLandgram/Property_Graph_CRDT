@@ -1,4 +1,4 @@
-Structure
+Structure:
 
 QuickIdeaTest_1
       React

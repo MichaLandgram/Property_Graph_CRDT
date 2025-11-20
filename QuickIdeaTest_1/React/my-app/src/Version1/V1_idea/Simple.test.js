@@ -2,16 +2,16 @@ import { addNode, deleteNode, getVisibleNodes, updateNode } from './SimpleGraph'
 import { syncDocs } from '../../Helper/sync';
 import { getDoc } from '../../Helper/creator';
 
-test('adds 1 + 2 to equal 3', () => {
-  expect(1 + 2).toBe(3);
-});
+// TEST TEST CASE Lol
+// test('adds 1 + 2 to equal 3', () => {
+//   expect(1 + 2).toBe(3);
+// });
 
 describe('Hybrid Policy Test for Conflict Resolution (REMOVE_WINS vs. ADD_WINS) NO CONCURRENCY', () => {
     let graph;
     const rwId = 'rw-config-1';
     const awId = 'aw-user-2';
 
-    // Graph V1 init
     beforeEach(() => {
         graph = getDoc();
         graph.getMap('nodes');
