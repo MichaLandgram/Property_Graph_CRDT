@@ -1,12 +1,8 @@
-import { addNode, deleteNode, getVisibleNodes, updateNode } from './SimpleGraph';
+import { addNode, deleteNode, getVisibleNodes, updateNode, getNodeProps } from './SimpleGraph';
 import { syncDocs } from '../../Helper/sync';
 import { getDoc } from '../../Helper/creator';
 
-// test('adds 1 + 2 to equal 3', () => {
-//   expect(1 + 2).toBe(3);
-// });
-
-describe.skip('Test for Conflict Resolution (REMOVE_WINS vs. ADD_WINS) NO CONCURRENCY', () => {
+describe('Hybrid Policy Test for Conflict Resolution (REMOVE_WINS vs. ADD_WINS) NO CONCURRENCY', () => {
     let graph;
     const rwId = 'rw-config-1';
     const awId = 'aw-user-2';
@@ -15,6 +11,7 @@ describe.skip('Test for Conflict Resolution (REMOVE_WINS vs. ADD_WINS) NO CONCUR
     beforeEach(() => {
         graph = getDoc();
         graph.getMap('nodes');
+        graph.getMap('properties');
         graph.getMap('removedNodes');
         graph.getMap('edges');
         // add Node with remove wins policy
@@ -37,7 +34,9 @@ describe.skip('Test for Conflict Resolution (REMOVE_WINS vs. ADD_WINS) NO CONCUR
         
         expect(graph.getMap('nodes').has(rwId)).toBe(true);
         expect(graph.getMap('nodes').has(awId)).toBe(true);
+        console.log('Initial Nodes:', initialNodes);
         expect(initialNodes).toHaveLength(2);
+
         expect(initialNodes.map(n => n.id)).toEqual(expect.arrayContaining([rwId, awId]));
     });
 
@@ -51,7 +50,7 @@ describe.skip('Test for Conflict Resolution (REMOVE_WINS vs. ADD_WINS) NO CONCUR
         const nodesMap = graph.getMap('nodes');
         const rwNodeMap = nodesMap.get(rwId);
         // Simuliere ein Update auf den gelöschten Knoten
-        rwNodeMap.set('name', 'Konfiguration (UPDATE)');
+        updateNode({ id: rwId, props: { name: 'Konfiguration (UPDATE)' }, graph });
 
         const afterRwDelete = getVisibleNodes({ graph });
         expect(afterRwDelete).toHaveLength(1);
@@ -73,11 +72,11 @@ describe.skip('Test for Conflict Resolution (REMOVE_WINS vs. ADD_WINS) NO CONCUR
     });
 });
 
-describe.skip('Hybrid Policy Sync Tests (Concurreny and Revival)', () => {
+describe('Hybrid Policy Sync Tests (Concurreny and Revival)', () => {
     let docA;
     let docB;
-    const rwId = 'rw-config-1';
-    const awId = 'aw-user-2';
+    const rwId = 'rw-config-1'; // REMOVE_WINS
+    const awId = 'aw-user-2';  // ADD_WINS
 
     beforeEach(() => {
 
@@ -99,7 +98,7 @@ describe.skip('Hybrid Policy Sync Tests (Concurreny and Revival)', () => {
         deleteNode({ id: rwId, graph: docA }); 
         
         const rwNodeB = docB.getMap('nodes').get(rwId);
-        rwNodeB.set('name', 'RW Konkurrenz-Update'); 
+        updateNode({ id: rwId, props: { name: 'RW Konkurrenz-Update' }, graph: docB });
 
         syncDocs(docA, docB);
         syncDocs(docB, docA);
@@ -110,7 +109,7 @@ describe.skip('Hybrid Policy Sync Tests (Concurreny and Revival)', () => {
         expect(getVisibleNodes({ graph: docA })).toHaveLength(1);
         expect(getVisibleNodes({ graph: docB })).toHaveLength(1);
         
-        expect(docA.getMap('nodes').get(rwId).get('name')).toBe('RW Konkurrenz-Update');
+        expect(docA.getMap('properties').get(rwId) === undefined).toBe(true);
     });
     
     test('AW-Knoten muss nach Delete vs. Update wiederbelebt werden (Revival)', () => {
@@ -152,22 +151,25 @@ describe.skip('Hybrid Policy Sync Tests (Concurreny and Revival)', () => {
         
         console.log(`\n✅ Blacklist Merge Test erfolgreich: Zwei konkurrierende Löschungen mergen zu einem einzelnen Grabstein.`);
     });
-    // in this solution that is failing.
-    test.skip('AW-Knoten soll beide Update Informationen nach konkurrierenden Updates behalten', () => {
 
-        updateNode({ id: awId, props: { data: 'AW Update', policy: 'ADD_WINS', data2: 'AW Update 1' }, graph: docB });
-        updateNode({ id: awId, props: { data: 'AW Update', policy: 'ADD_WINS', data3: 'AW Update 2' }, graph: docA });
+    test('AW-Knoten soll beide Update Informationen nach konkurrierenden Updates behalten', () => {
 
-        expect(docA.getMap('nodes').get(awId).get('data2')).toBe('AW Update 1');
-        expect(docB.getMap('nodes').get(awId).get('data3')).toBe('AW Update 2');
+        updateNode({ id: awId, props: { data: 'AW Update', policy: 'ADD_WINS', data2: 'AW Update 1' }, graph: docA });
+        updateNode({ id: awId, props: { data: 'AW Update', policy: 'ADD_WINS', data3: 'AW Update 2' }, graph: docB });
+        console.log(getNodeProps(docA, awId));
+        console.log(getNodeProps(docB, awId));
+
+        expect(getNodeProps(docA, awId).data2).toBe('AW Update 1');
+        expect(getNodeProps(docB, awId).data3).toBe('AW Update 2');
 
         syncDocs(docA, docB);
         syncDocs(docB, docA);
 
-        expect(docA.getMap('nodes').get(awId).get('data2')).toBe('AW Update 1');
-        expect(docA.getMap('nodes').get(awId).get('data3')).toBe('AW Update 2');
-        expect(docB.getMap('nodes').get(awId).get('data3')).toBe('AW Update 2');
-        expect(docB.getMap('nodes').get(awId).get('data2')).toBe('AW Update 1');
+        expect(getNodeProps(docA, awId).data2).toBe('AW Update 1');
+        expect(getNodeProps(docA, awId).data3).toBe('AW Update 2');
+        expect(getNodeProps(docB, awId).data3).toBe('AW Update 2');
+        expect(getNodeProps(docB, awId).data2).toBe('AW Update 1');
 
+        console.log(`\n✅ AW Concurrent Update Merge Test erfolgreich: Beide Updates wurden beibehalten.`);
     });
 });

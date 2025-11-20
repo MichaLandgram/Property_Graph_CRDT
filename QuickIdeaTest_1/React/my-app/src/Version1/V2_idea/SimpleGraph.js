@@ -1,80 +1,103 @@
 import * as Y from 'yjs'
 
 
-const ydoc = new Y.Doc()
+// const ydoc = new Y.Doc()
+
+// const ydoc = new Y.Doc() // Represents the collaborative graph
+// const nodesMap = ydoc.getMap('nodes') // Map of nodeId to touch timestamps
+// const propertiesMap = ydoc.getMap('properties') // Map of nodeId to node properties
+// const tombNodes = ydoc.getMap('removedNodes') // Map of removed nodeIds (tombstones)
+// const edgesMap = ydoc.getMap('edges') // Map of edgeId to edge properties [not used here]
 
 
-const nodesMap = ydoc.getMap('nodes')
-const tombNodes = ydoc.getMap('removedNodes')
-const edgesMap = ydoc.getMap('edges')
+const minimalInitialProps = {
+  policy: 'ADD_WINS',
+  label: 'Node',
+};
 
-function addNode(id, initialProps = {}) {
+export function addNode({ id, initialProps = minimalInitialProps, graph }) {
+  const nodesMap = graph.getMap('nodes')
+  const propertiesMap = graph.getMap('properties')
   const nodeProps = new Y.Map()
 
   for (const [key, value] of Object.entries(initialProps)) {
     nodeProps.set(key, value)
   }
   
-
-  ydoc.transact(() => {
-    nodesMap.set(id, nodeProps)
+  graph.transact(() => {
+    nodesMap.set(id, Date.now())
+    propertiesMap.set(id, nodeProps)
   })
 }
 
-function updateNode(id, props) {
-  // User B macht ein Update (würde bei nativem Yjs ein "Delete" überschreiben)
-  const node = nodesMap.get(id) || new Y.Map();
-  for (const [k, v] of Object.entries(props)) node.set(k, v);
-  nodesMap.set(id, node);
-}
+export function updateNode({ id, props, graph }) {
+  const nodesMap = graph.getMap('nodes');
+  const propertiesMap = graph.getMap('properties');
+  const nodeProps = propertiesMap.get(id) || new Y.Map();
 
-function deleteNode(id) {
-  // WICHTIG: Wir löschen nicht aus 'nodesMap'!
-  // Wir setzen einen Eintrag in die Blacklist.
-  tombNodes.set(id, Date.now()); 
-}
+  graph.transact(() => {
+    for (const [k, v] of Object.entries(props)) {
+    nodeProps.set(k, v);
+    nodesMap.set(id, Date.now());
+  }
+  });
 
-function getVisibleNodes() {
-  const visible = [];
-  nodesMap.forEach((node, id) => {
-    // REMOVE WINS CHECK:
-    // Selbst wenn User B gerade 100 Updates auf 'nodesMap' gemacht hat:
-    // Wenn die ID in 'tombNodes' ist, ignorieren wir den Knoten.
-    if (!tombNodes.has(id)) {
-      visible.push(node.toJSON());
+}
+export function deleteNode({ id, graph }) {
+  const nodesMap = graph.getMap('nodes')
+  const tombNodes = graph.getMap('removedNodes')
+  const propertiesMap = graph.getMap('properties')
+  const node = propertiesMap.get(id);
+
+  if (!node) return;
+
+  const policy = node.get('policy');
+  
+  graph.transact(() => {
+    if (policy === 'REMOVE_WINS') {
+
+      tombNodes.set(id, Date.now());
+      propertiesMap.delete(id);
+      nodesMap.delete(id);
+      
+    } else if (policy === 'ADD_WINS') {
+
+      nodesMap.delete(id);
+      tombNodes.delete(id);
     }
   });
+}
+
+export function getVisibleNodes({ graph }) {
+  const nodesMap = graph.getMap('nodes')
+  const tombNodes = graph.getMap('removedNodes')
+  const propertiesMap = graph.getMap('properties')
+  const visible = [];
+  
+  nodesMap.forEach((node, id) => {
+    if (!propertiesMap.has(id) && !tombNodes.has(id)) {
+      console.error(`Node properties missing for node id: ${id}`);
+      return;
+    }
+    if (tombNodes.has(id)) {
+      return;
+    }
+    const props = propertiesMap.get(id);
+    const policy = props.get('policy');
+    if (!node) return; 
+
+    if (policy === 'REMOVE_WINS') {
+      if (tombNodes.has(id)) {
+        return;
+      }
+    }
+      visible.push({ id, ...props.toJSON(), policy });
+  });
+  
   return visible;
 }
 
-function addEdge(id, sourceId, targetId, initialProps = {}) {
-  const edgeProps = new Y.Map()
-
-  edgeProps.set('source', sourceId)
-  edgeProps.set('target', targetId)
-  
-
-  for (const [key, value] of Object.entries(initialProps)) {
-    edgeProps.set(key, value)
-  }
-
-  ydoc.transact(() => {
-    edgesMap.set(id, edgeProps)
-  })
-}
-
-export function test () {
-  addNode('node-1', { label: 'Person', name: 'Alice' })
-  addNode('node-2', { label: 'Person', name: 'Bob' })
-  addEdge('edge-1', 'node-1', 'node-2', { label: 'KNOWS', since: 2023 })
-  const alice = nodesMap.get('node-1')
-  console.log(alice.toJSON()) // { label: 'Person', name: 'Alice' }
-  const connection = edgesMap.get('edge-1')
-  console.log(connection.toJSON()) // { source: 'node-1', target: 'node-2', label: 'KNOWS', since: 2023 }
-}
-
-export function test2 () {
-  addNode('node-3', { label: 'City', name: 'Wonderland' })
-
-
+export function getNodeProps(graph, id) {
+  const propertiesMap = graph.getMap('properties');
+  return propertiesMap.get(id).toJSON();
 }
