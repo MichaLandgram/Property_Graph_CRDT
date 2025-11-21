@@ -1,4 +1,4 @@
-import { addNode, deleteNode, getVisibleNodes, updateNode, getNodeProps } from './SimpleGraph';
+import { addNode, deleteNode, updateNode, getNodeProps, getVisibleNodes, addEdge, getEdges } from './SimpleGraph';
 import { syncDocs } from '../../Helper/sync';
 import { getDoc } from '../../Helper/creator';
 
@@ -171,5 +171,57 @@ describe('Hybrid Policy Sync Tests (Concurreny and Revival)', () => {
         expect(getNodeProps(docB, awId).data2).toBe('AW Update 1');
 
         console.log(`\n✅ AW Concurrent Update Merge Test erfolgreich: Beide Updates wurden beibehalten.`);
+    });
+});
+
+describe('Sync the adding of edges between two docs', () => {
+    let graphA;
+    let graphB;
+    const node1Id = 'node-1';
+    const node2Id = 'node-2';
+    const node3Id = 'node-3';
+    const node4Id = 'node-4';
+
+    beforeEach(() => {
+        graphA = getDoc();
+        graphB = getDoc();
+
+        ['nodes', 'removedNodes', 'edges', 'properties'].forEach(mapName => {
+            graphA.getMap(mapName);
+            graphB.getMap(mapName);
+        });
+        addNode({ id: node1Id, initialProps: { policy: 'ADD_WINS', name: 'Node 1' }, graph: graphA });
+        addNode({ id: node2Id, initialProps: { policy: 'ADD_WINS', name: 'Node 2' }, graph: graphA });
+        addNode({ id: node3Id, initialProps: { policy: 'ADD_WINS', name: 'Node 3' }, graph: graphB });
+        addNode({ id: node4Id, initialProps: { policy: 'ADD_WINS', name: 'Node 4' }, graph: graphB });
+        syncDocs(graphA, graphB);
+        syncDocs(graphB, graphA);
+    });
+
+    test('Edges should sync correctly between two docs', () => {
+        const edgesA = [
+            { sourceId: node1Id, targetId: node2Id, initialProps: { label: 'Edge 1-2' } },
+            { sourceId: node2Id, targetId: node1Id, initialProps: { label: 'Edge 2-1' } },
+        ];
+        edgesA.forEach(edge => {
+            addEdge({ sourceId: edge.sourceId, targetId: edge.targetId, initialProps: edge.initialProps, graph: graphA });
+        });
+        syncDocs(graphA, graphB);
+        syncDocs(graphB, graphA);
+        const edgesB = [
+            { sourceId: node3Id, targetId: node4Id, initialProps: { label: 'Edge 3-4' } },
+            { sourceId: node4Id, targetId: node3Id, initialProps: { label: 'Edge 4-3' } },
+        ];
+        edgesB.forEach(edge => {
+            addEdge({ sourceId: edge.sourceId, targetId: edge.targetId, initialProps: edge.initialProps, graph: graphB });
+        });
+        syncDocs(graphA, graphB);
+        syncDocs(graphB, graphA);
+        const finalEdgesA = getEdges({ graph: graphA });
+        const finalEdgesB = getEdges({ graph: graphB });
+        expect(finalEdgesA).toHaveLength(4);
+        expect(finalEdgesB).toHaveLength(4);
+        const edgeLabels = finalEdgesA.map(e => e.label);
+        expect(edgeLabels).toEqual(expect.arrayContaining(['Edge 1-2', 'Edge 2-1', 'Edge 3-4', 'Edge 4-3']));
     });
 });

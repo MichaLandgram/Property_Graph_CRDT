@@ -47,7 +47,6 @@ export function useYjsGraph(graph) {
     const tombNodes = graph.getMap('removedNodes');
     const edgesMap = graph.getMap('edges');
 
-
     syncNodes();
     syncEdges();
 
