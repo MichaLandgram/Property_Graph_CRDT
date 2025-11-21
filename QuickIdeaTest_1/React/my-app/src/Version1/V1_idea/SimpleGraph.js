@@ -82,3 +82,18 @@ export function getNodeProps(graph, id) {
   const nodesMap = graph.getMap('nodes');
   return nodesMap.get(id).toJSON();
 }
+
+export function addEdge({ sourceId, targetId, initialProps = {}, graph }) {
+ // TODO
+ console.log("Not implemented");
+}
+
+export function updateEdge({ sourceId, targetId, props, graph }) {
+ // TODO
+ console.log("Not implemented");
+}
+
+export function removeEdge({ sourceId, targetId, graph }) {
+ // TODO
+ console.log("Not implemented");
+}

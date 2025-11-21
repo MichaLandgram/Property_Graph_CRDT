@@ -7,7 +7,7 @@ import * as Y from 'yjs'
 // const nodesMap = ydoc.getMap('nodes') // Map of nodeId to touch timestamps
 // const propertiesMap = ydoc.getMap('properties') // Map of nodeId to node properties
 // const tombNodes = ydoc.getMap('removedNodes') // Map of removed nodeIds (tombstones)
-// const edgesMap = ydoc.getMap('edges') // Map of edgeId to edge properties [not used here]
+// const edgesMap = ydoc.getMap('edges') // Map of nodeEdgeConnectId to EdgeYJSMap [target maps to Properties] [not used here]
 
 
 const minimalInitialProps = {
@@ -16,18 +16,20 @@ const minimalInitialProps = {
 };
 
 export function addNode({ id, initialProps = minimalInitialProps, graph }) {
-  const nodesMap = graph.getMap('nodes')
-  const propertiesMap = graph.getMap('properties')
-  const nodeProps = new Y.Map()
+  console.log("hi");
+  const nodesMap = graph.getMap('nodes');
+  const propertiesMap = graph.getMap('properties');
+  
+  const nodeProps = new Y.Map();
 
   for (const [key, value] of Object.entries(initialProps)) {
-    nodeProps.set(key, value)
+    nodeProps.set(key, value);
   }
   
   graph.transact(() => {
-    nodesMap.set(id, Date.now())
-    propertiesMap.set(id, nodeProps)
-  })
+    nodesMap.set(id, Date.now());
+    propertiesMap.set(id, nodeProps);
+  });
 }
 
 export function updateNode({ id, props, graph }) {
@@ -39,10 +41,9 @@ export function updateNode({ id, props, graph }) {
     for (const [k, v] of Object.entries(props)) {
     nodeProps.set(k, v);
     nodesMap.set(id, Date.now());
-  }
-  });
-
+  }});
 }
+
 export function deleteNode({ id, graph }) {
   const nodesMap = graph.getMap('nodes')
   const tombNodes = graph.getMap('removedNodes')
@@ -66,6 +67,38 @@ export function deleteNode({ id, graph }) {
       tombNodes.delete(id);
     }
   });
+}
+
+export function addEdge({ sourceId, targetId, initialProps = {}, graph }) {
+  const edgesMap = graph.getMap('edges')
+  let edgeMap = edgesMap.get(sourceId);
+  
+  graph.transact(() => {
+    if (!edgeMap) {
+      edgeMap = new Y.Map();
+      edgesMap.set(sourceId, edgeMap);
+    }
+    
+    const edgeProps = new Y.Map();
+    for (const [key, value] of Object.entries(initialProps)) {
+      edgeProps.set(key, value);
+    }
+    edgeMap.set(targetId, edgeProps);
+  });
+}
+
+export function updateEdge({ sourceId, targetId, props, graph }) {
+  // TODO
+}
+
+export function removeEdge({ sourceId, targetId, graph }) {
+  const edgesMap = graph.getMap('edges')
+  const edgeMap = edgesMap.get(sourceId);
+  if (!edgeMap) {
+    console.error(`Edge map for sourceId ${sourceId} does not exist.`);
+    return;
+  }
+  edgeMap.delete(targetId);
 }
 
 export function getVisibleNodes({ graph }) {
@@ -102,18 +135,20 @@ export function getNodeProps(graph, id) {
   return propertiesMap.get(id).toJSON();
 }
 
-
-export function addEdge({ sourceId, targetId, initialProps = {}, graph }) {
- // TODO
- console.log("Not implemented");
-}
-
-export function updateEdge({ sourceId, targetId, props, graph }) {
- // TODO
- console.log("Not implemented");
-}
-
-export function removeEdge({ sourceId, targetId, graph }) {
- // TODO
- console.log("Not implemented");
+export function getEdges({ graph }) {
+  const edgesMap = graph.getMap('edges');
+  const nodes = graph.getMap('nodes');
+  const edges = [];
+  for (let sourceId of nodes.keys()) {
+    const edgeMap = edgesMap.get(sourceId);
+    if (!edgeMap) {
+      console.log("No edge map for sourceId:", sourceId);
+      edges.push(...[]);
+      continue;
+    }
+    edgeMap.forEach((props, targetId) => {
+      edges.push({ sourceId, targetId, ...props.toJSON() });
+    });
+  }
+  return edges;
 }

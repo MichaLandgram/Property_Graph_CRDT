@@ -1,9 +1,25 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import ReactFlow, { Background, Controls, Handle, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
 import * as Y from 'yjs';
 import { useYjsGraph } from '../../Helper/Hook/YJS_hook_V1';
 import { addNode, updateNode, deleteNode } from '../../Version1/V2_idea/SimpleGraph';
+
+// Suppress ResizeObserver loop error
+const originalError = console.error;
+console.error = (...args) => {
+  if (/ResizeObserver loop/.test(args[0])) {
+    return;
+  }
+  originalError.call(console, ...args);
+};
+
+window.addEventListener('error', (e) => {
+  if (e.message === 'ResizeObserver loop completed with undelivered notifications.' || 
+      e.message === 'ResizeObserver loop limit exceeded') {
+    e.stopImmediatePropagation();
+  }
+}, true);
 
 const DatabaseNode = ({ data, id, color }) => {
   return (
@@ -31,9 +47,10 @@ const DatabaseNode = ({ data, id, color }) => {
 
 
 const GraphEditor = ({ ydoc }) => { 
-  const { nodes, onNodesChange } = useYjsGraph(ydoc);
+  const { nodes, onNodesChange, edges, onEdgesChange } = useYjsGraph(ydoc);
   const [selectedNode, setSelectedNode] = useState(null);
   const [formData, setFormData] = useState({});
+  const [isLocked, setIsLocked] = useState(false);
 
   const selectNode = (node) => {
     if (!node) {
@@ -75,6 +92,7 @@ const GraphEditor = ({ ydoc }) => {
       graph: ydoc
     });
   };
+
   const handleUpdateFormChange = (key, value) => {
       setFormData((prev) => ({
       ...prev,
@@ -96,29 +114,55 @@ const GraphEditor = ({ ydoc }) => {
       selectNode(null);
   }
 
+
+const onEdgeAdd = useCallback((params) => {
+    const newEdge = {
+      ...params,
+      id: `rf-${params.source}-${params.target}-${Date.now()}`, 
+      animated: true,
+      type: 'default',
+      data: {
+        label: 'New Edge'
+      }
+    };
+
+    onEdgesChange([{ 
+        type: 'add', 
+        item: newEdge 
+    }]);
+
+  }, [onEdgesChange]);
+
+
   return (
+    console.log("Rendering GraphEditor", ydoc.getMap('edges').toJSON()),
     <div style={{ display: 'flex', height: '100vh', width: '100%' }}>
       
-      {/* Der Graph Bereich */}
       <div style={{ flex: 1 }}>
         <ReactFlow
           nodes={nodes}
           nodeTypes={nodeTypes}
+          edges={edges}
           onNodesChange={onNodesChange}
           onNodeClick={handleNodeClick}
           onPaneClick={handlePaneClick}
+          onEdgesChange={onEdgesChange}
+          onConnect={onEdgeAdd}
+          nodesDraggable={!isLocked}
           fitView
         >
           <Background />
           <Controls />
         </ReactFlow>
         
-        <button 
-            onClick={handleAddNode} 
-            style={{ position: 'absolute', top: 10, left: 10, zIndex: 5 }}
-        >
-            + Node hinzufügen
-        </button>
+        <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 5, display: 'flex', gap: '10px' }}>
+          <button onClick={handleAddNode}>
+              + Node hinzufügen
+          </button>
+          <button onClick={() => setIsLocked(!isLocked)} style={{ background: isLocked ? '#ffcccc' : '#ccffcc' }}>
+            {isLocked ? 'Unlock Layout' : 'Lock Layout'}
+          </button>
+        </div>
       </div>
 
       {selectedNode && (
