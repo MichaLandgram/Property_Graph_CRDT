@@ -16,7 +16,6 @@ const minimalInitialProps = {
 };
 
 export function addNode({ id, initialProps = minimalInitialProps, graph }) {
-  console.log("hi");
   const nodesMap = graph.getMap('nodes');
   const propertiesMap = graph.getMap('properties');
   
@@ -70,7 +69,8 @@ export function deleteNode({ id, graph }) {
 }
 
 export function addEdge({ sourceId, targetId, initialProps = {}, graph }) {
-  const edgesMap = graph.getMap('edges')
+  const edgesMap = graph.getMap('edges');
+  const nodesMap = graph.getMap('nodes');
   let edgeMap = edgesMap.get(sourceId);
   
   graph.transact(() => {
@@ -84,6 +84,8 @@ export function addEdge({ sourceId, targetId, initialProps = {}, graph }) {
       edgeProps.set(key, value);
     }
     edgeMap.set(targetId, edgeProps);
+    nodesMap.set(sourceId, Date.now());
+    nodesMap.set(targetId, Date.now());
   });
 }
 
