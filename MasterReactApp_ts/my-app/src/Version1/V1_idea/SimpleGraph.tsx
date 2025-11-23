@@ -2,24 +2,15 @@ import * as Y from 'yjs'
 
 
 // const ydoc = new Y.Doc() // Represents the collaborative graph
-// const nodesMap = ydoc.getMap('nodes') // Map of nodeId to node properties AND EdgeYJSMap [target maps to Properties]
+// const nodesMap = ydoc.getMap('nodes') // Map of nodeId to node properties
+// const tombNodes = ydoc.getMap('removedNodes') // Map of removed nodeIds (tombstones)
+// const edgesMap = ydoc.getMap('edges') // Map of edgeId to edge properties [not used here]
 
-export function addNode({ id, initialProps = {
-  policy: 'ADD_WINS',
-  label: 'Node',
-  position: { x: 0, y: 0 }
-}, graph }) {
-
-  const props = {
-    policy: initialProps.policy || 'ADD_WINS',
-    label: initialProps.label || 'Node',
-    position: initialProps.position || { x: 0, y: 0 },
-    edges: new Y.Map<string, Y.Map<any>>()
-  }  
+export function addNode({ id, initialProps = {}, graph }) {
   const nodesMap = graph.getMap('nodes')
   const nodeProps = new Y.Map()
 
-  for (const [key, value] of Object.entries(props)) {
+  for (const [key, value] of Object.entries(initialProps)) {
     nodeProps.set(key, value)
   }
   
