@@ -4,7 +4,6 @@ import * as Y from 'yjs'
 // const ydoc = new Y.Doc() // Represents the collaborative graph
 // const nodesMap = ydoc.getMap('nodes') // Map of nodeId to node properties
 // const tombNodes = ydoc.getMap('removedNodes') // Map of removed nodeIds (tombstones)
-// const edgesMap = ydoc.getMap('edges') // Map of edgeId to edge properties [not used here]
 
 export function addNode({ id, initialProps = {}, graph }) {
   const nodesMap = graph.getMap('nodes')
