@@ -1,4 +1,6 @@
 import * as Y from 'yjs'
+import { Graph, graphDoc } from '../../Helper/types/graph';
+import { NodeId, EdgeId, EdgeData, Policy, NodeData } from '../../Helper/types/types';
 
 
 // const ydoc = new Y.Doc()
@@ -10,61 +12,40 @@ import * as Y from 'yjs'
 // const edgesMap = ydoc.getMap('edges') // Map of nodeId to EdgeYJSMap [target maps to Properties] [not used here]
 
 
-const minimalInitialProps: Record<string, any> = {
-  policy: 'ADD_WINS',
-  label: 'Node',
-};
-
-interface AddNodeArgs {
-  id: string;
-  initialProps?: Record<string, any>;
-  graph: Y.Doc;
-}
-
-export function addNode({ id, initialProps = minimalInitialProps, graph }: AddNodeArgs) {
-  const nodesMap = graph.getMap<number>('nodes');
-  const propertiesMap = graph.getMap<Y.Map<any>>('properties');
+class SGraphV3 implements Graph {
+  addNode({ nodeId, initialProps, graph }: { nodeId: NodeId; initialProps: NodeData; graph: graphDoc; }): void {
+    const nodesMap = graph.getMap<any>('nodes');
+    const propertiesMap = graph.getMap<Y.Map<any>>('properties');
   
-  const nodeProps = new Y.Map();
+    const nodeProps = new Y.Map();
 
   for (const [key, value] of Object.entries(initialProps)) {
     nodeProps.set(key, value);
   }
   
   graph.transact(() => {
-    nodesMap.set(id, Date.now());
-    propertiesMap.set(id, nodeProps);
+    nodesMap.set(nodeId, Date.now());
+    propertiesMap.set(nodeId, nodeProps);
   });
-}
+  }
 
-interface UpdateNodeArgs {
-  id: string;
-  props: Record<string, any>;
-  graph: Y.Doc;
-}
+  updateNode({ nodeId, props, graph }: { nodeId: NodeId; props: Partial<NodeData>; graph: graphDoc; }): void {
+    const nodesMap = graph.getMap<any>('nodes');
+    const propertiesMap = graph.getMap<Y.Map<any>>('properties');
+    const nodeProps = propertiesMap.get(nodeId) || new Y.Map();
 
-export function updateNode({ id, props, graph }: UpdateNodeArgs) {
-  const nodesMap = graph.getMap<number>('nodes');
-  const propertiesMap = graph.getMap<Y.Map<any>>('properties');
-  const nodeProps = propertiesMap.get(id) || new Y.Map();
+    graph.transact(() => {
+      for (const [k, v] of Object.entries(props)) {
+      nodeProps.set(k, v);
+      nodesMap.set(nodeId, Date.now());
+    }});
+  }
 
-  graph.transact(() => {
-    for (const [k, v] of Object.entries(props)) {
-    nodeProps.set(k, v);
-    nodesMap.set(id, Date.now());
-  }});
-}
-
-interface DeleteNodeArgs {
-  id: string;
-  graph: Y.Doc;
-}
-
-export function deleteNode({ id, graph }: DeleteNodeArgs) {
-  const nodesMap = graph.getMap<number>('nodes')
-  const tombNodes = graph.getMap<number>('removedNodes')
+  deleteNode({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): void {
+  const nodesMap = graph.getMap<any>('nodes')
+  const tombNodes = graph.getMap<any>('removedNodes')
   const propertiesMap = graph.getMap<Y.Map<any>>('properties')
-  const node = propertiesMap.get(id);
+  const node = propertiesMap.get(nodeId);
 
   if (!node) return;
 
@@ -73,84 +54,24 @@ export function deleteNode({ id, graph }: DeleteNodeArgs) {
   graph.transact(() => {
     if (policy === 'REMOVE_WINS') {
 
-      tombNodes.set(id, Date.now());
-      propertiesMap.delete(id);
-      nodesMap.delete(id);
+      tombNodes.set(nodeId, Date.now());
+      propertiesMap.delete(nodeId);
+      nodesMap.delete(nodeId);
       
     } else if (policy === 'ADD_WINS') {
 
-      nodesMap.delete(id);
-      tombNodes.delete(id);
+      nodesMap.delete(nodeId);
+      tombNodes.delete(nodeId);
     }
   });
-}
-
-interface AddEdgeArgs {
-  sourceId: string;
-  targetId: string;
-  initialProps?: Record<string, any>;
-  graph: Y.Doc;
-}
-
-export function addEdge({ sourceId, targetId, initialProps = {}, graph }: AddEdgeArgs) {
-  const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
-  const nodesMap = graph.getMap<number>('nodes');
-  let edgeMap = edgesMap.get(sourceId);
-  
-  graph.transact(() => {
-    if (!edgeMap) {
-      edgeMap = new Y.Map();
-      edgesMap.set(sourceId, edgeMap);
-    }
-    
-    const edgeProps = new Y.Map();
-    for (const [key, value] of Object.entries(initialProps)) {
-      edgeProps.set(key, value);
-    }
-    edgeMap.set(targetId, edgeProps);
-    nodesMap.set(sourceId, Date.now());
-    nodesMap.set(targetId, Date.now());
-  });
-}
-
-interface UpdateEdgeArgs {
-  sourceId: string;
-  targetId: string;
-  props: Record<string, any>;
-  graph: Y.Doc;
-}
-
-export function updateEdge({ sourceId, targetId, props, graph }: UpdateEdgeArgs) {
-  // TODO
-}
-
-interface RemoveEdgeArgs {
-  sourceId: string;
-  targetId: string;
-  graph: Y.Doc;
-}
-
-export function removeEdge({ sourceId, targetId, graph }: RemoveEdgeArgs) {
-  const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges')
-  const edgeMap = edgesMap.get(sourceId);
-  if (!edgeMap) {
-    console.error(`Edge map for sourceId ${sourceId} does not exist.`);
-    return;
   }
-  edgeMap.delete(targetId);
-}
-
-interface GetVisibleNodesArgs {
-  graph: Y.Doc;
-}
-
-export function getVisibleNodes({ graph }: GetVisibleNodesArgs) {
-  const nodesMap = graph.getMap<number>('nodes')
-  const tombNodes = graph.getMap<number>('removedNodes')
+  getVisibleNodes({ graph }: { graph: graphDoc; }): Array<{ id: NodeId; props: NodeData; policy: Policy; }> {
+  const nodesMap = graph.getMap<any>('nodes')
+  const tombNodes = graph.getMap<any>('removedNodes')
   const propertiesMap = graph.getMap<Y.Map<any>>('properties')
   const visible: any[] = [];
   
-  nodesMap.forEach((node, id) => {
+  nodesMap.forEach((node: number , id: NodeId) => {
     if (!propertiesMap.has(id) && !tombNodes.has(id)) {
       console.error(`Node properties missing for node id: ${id}`);
       return;
@@ -172,21 +93,47 @@ export function getVisibleNodes({ graph }: GetVisibleNodesArgs) {
   });
   
   return visible;
-}
-
-export function getNodeProps(graph: Y.Doc, id: string) {
+  }
+  getNodeProps({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): NodeData | undefined {
   const propertiesMap = graph.getMap<Y.Map<any>>('properties');
-  const props = propertiesMap.get(id);
-  return props ? props.toJSON() : null;
-}
-
-interface GetEdgesArgs {
-  graph: Y.Doc;
-}
-
-export function getEdges({ graph }: GetEdgesArgs) {
+  const props = propertiesMap.get(nodeId);
+  return props ? props.toJSON() : undefined;
+  }
+  addEdge({ sourceId, targetId, initialProps = {}, graph }: { sourceId: NodeId; targetId: NodeId; initialProps?: EdgeData; graph: graphDoc; }): void {
   const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
-  const nodes = graph.getMap<number>('nodes');
+  const nodesMap = graph.getMap<any>('nodes');
+  let edgeMap = edgesMap.get(sourceId);
+  
+  graph.transact(() => {
+    if (!edgeMap) {
+      edgeMap = new Y.Map();
+      edgesMap.set(sourceId, edgeMap);
+    }
+    
+    const edgeProps = new Y.Map();
+    for (const [key, value] of Object.entries(initialProps)) {
+      edgeProps.set(key, value);
+    }
+    edgeMap.set(targetId, edgeProps);
+    nodesMap.set(sourceId, Date.now());
+    nodesMap.set(targetId, Date.now());
+  }); 
+  }
+  updateEdge({ sourceId, targetId, props, graph }: { sourceId: NodeId; targetId: NodeId; props: Partial<EdgeData>; graph: graphDoc; }): void {
+    throw new Error('Method not implemented.');
+  }
+  deleteEdge({ sourceId, targetId, graph }: { sourceId: NodeId; targetId: NodeId; graph: graphDoc; }): void {
+  const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges')
+  const edgeMap = edgesMap.get(sourceId);
+  if (!edgeMap) {
+    console.error(`Edge map for sourceId ${sourceId} does not exist.`);
+    return;
+  }
+  edgeMap.delete(targetId);
+  }
+  getEdges({ graph }: { graph: graphDoc; }): Array<{ sourceId: NodeId; targetId: NodeId; props: EdgeData; }> {
+  const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
+  const nodes = graph.getMap<any>('nodes');
   const edges: any[] = [];
   for (let sourceId of Array.from(nodes.keys())) {
     const edgeMap = edgesMap.get(sourceId);
@@ -195,9 +142,163 @@ export function getEdges({ graph }: GetEdgesArgs) {
       // edges.push(...[]);
       continue;
     }
-    edgeMap.forEach((props, targetId) => {
+    edgeMap.forEach((props: EdgeData, targetId: NodeId) => {
       edges.push({ sourceId, targetId, ...props.toJSON() });
     });
   }
   return edges;
+  }
 }
+
+const minimalInitialProps: Partial<NodeData> = {
+  policy: 'ADD_WINS',
+  label: 'Node',
+};
+
+// export function addNode({ id, initialProps = minimalInitialProps, graph }: AddNodeArgs) {
+//   const nodesMap = graph.getMap<any>('nodes');
+//   const propertiesMap = graph.getMap<Y.Map<any>>('properties');
+  
+//   const nodeProps = new Y.Map();
+
+//   for (const [key, value] of Object.entries(initialProps)) {
+//     nodeProps.set(key, value);
+//   }
+  
+//   graph.transact(() => {
+//     nodesMap.set(id, Date.now());
+//     propertiesMap.set(id, nodeProps);
+//   });
+// }
+
+// export function updateNode({ id, props, graph }: UpdateNodeArgs) {
+//   const nodesMap = graph.getMap<any>('nodes');
+//   const propertiesMap = graph.getMap<Y.Map<any>>('properties');
+//   const nodeProps = propertiesMap.get(id) || new Y.Map();
+
+//   graph.transact(() => {
+//     for (const [k, v] of Object.entries(props)) {
+//     nodeProps.set(k, v);
+//     nodesMap.set(id, Date.now());
+//   }});
+// }
+
+
+// export function deleteNode({ id, graph }: DeleteNodeArgs) {
+//   const nodesMap = graph.getMap<any>('nodes')
+//   const tombNodes = graph.getMap<any>('removedNodes')
+//   const propertiesMap = graph.getMap<Y.Map<any>>('properties')
+//   const node = propertiesMap.get(id);
+
+//   if (!node) return;
+
+//   const policy = node.get('policy');
+  
+//   graph.transact(() => {
+//     if (policy === 'REMOVE_WINS') {
+
+//       tombNodes.set(id, Date.now());
+//       propertiesMap.delete(id);
+//       nodesMap.delete(id);
+      
+//     } else if (policy === 'ADD_WINS') {
+
+//       nodesMap.delete(id);
+//       tombNodes.delete(id);
+//     }
+//   });
+// }
+
+
+// export function addEdge({ sourceId, targetId, initialProps = {}, graph }: AddEdgeArgs) {
+//   const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
+//   const nodesMap = graph.getMap<any>('nodes');
+//   let edgeMap = edgesMap.get(sourceId);
+  
+//   graph.transact(() => {
+//     if (!edgeMap) {
+//       edgeMap = new Y.Map();
+//       edgesMap.set(sourceId, edgeMap);
+//     }
+    
+//     const edgeProps = new Y.Map();
+//     for (const [key, value] of Object.entries(initialProps)) {
+//       edgeProps.set(key, value);
+//     }
+//     edgeMap.set(targetId, edgeProps);
+//     nodesMap.set(sourceId, Date.now());
+//     nodesMap.set(targetId, Date.now());
+//   });
+// }
+
+
+// export function updateEdge({ sourceId, targetId, props, graph }: UpdateEdgeArgs) {
+//   // TODO
+// }
+
+
+// export function removeEdge({ sourceId, targetId, graph }: RemoveEdgeArgs) {
+//   const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges')
+//   const edgeMap = edgesMap.get(sourceId);
+//   if (!edgeMap) {
+//     console.error(`Edge map for sourceId ${sourceId} does not exist.`);
+//     return;
+//   }
+//   edgeMap.delete(targetId);
+// }
+
+// 
+// export function getVisibleNodes({ graph }: GetVisibleNodesArgs) {
+//   const nodesMap = graph.getMap<any>('nodes')
+//   const tombNodes = graph.getMap<any>('removedNodes')
+//   const propertiesMap = graph.getMap<Y.Map<any>>('properties')
+//   const visible: any[] = [];
+  
+//   nodesMap.forEach((node, id) => {
+//     if (!propertiesMap.has(id) && !tombNodes.has(id)) {
+//       console.error(`Node properties missing for node id: ${id}`);
+//       return;
+//     }
+//     if (tombNodes.has(id)) {
+//       return;
+//     }
+//     const props = propertiesMap.get(id);
+//     if (!props) return;
+//     const policy = props.get('policy');
+//     // if (!node) return; // node is timestamp number, always truthy if exists
+
+//     if (policy === 'REMOVE_WINS') {
+//       if (tombNodes.has(id)) {
+//         return;
+//       }
+//     }
+//       visible.push({ id, ...props.toJSON(), policy });
+//   });
+  
+//   return visible;
+// }
+
+  // export function getNodeProps(graph: Y.Doc, id: string) {
+  //   const propertiesMap = graph.getMap<Y.Map<any>>('properties');
+  //   const props = propertiesMap.get(id);
+  //   return props ? props.toJSON() : null;
+  // }
+
+
+// export function getEdges({ graph }: GetEdgesArgs) {
+//   const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
+//   const nodes = graph.getMap<any>('nodes');
+//   const edges: any[] = [];
+//   for (let sourceId of Array.from(nodes.keys())) {
+//     const edgeMap = edgesMap.get(sourceId);
+//     if (!edgeMap) {
+//       // console.log("No edge map for sourceId:", sourceId);
+//       // edges.push(...[]);
+//       continue;
+//     }
+//     edgeMap.forEach((props, targetId) => {
+//       edges.push({ sourceId, targetId, ...props.toJSON() });
+//     });
+//   }
+//   return edges;
+// }
