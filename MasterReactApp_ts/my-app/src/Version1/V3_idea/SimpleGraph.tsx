@@ -102,9 +102,10 @@ export class SGraphV3 implements Graph {
   addEdge({ sourceId, targetId, initialProps = {}, graph }: { sourceId: NodeId; targetId: NodeId; initialProps?: EdgeData; graph: graphDoc; }): void {
     const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
     const nodesMap = graph.getMap<any>('nodes');
-    let edgeMap = edgesMap.get(sourceId);
+
     
     graph.transact(() => {
+      let edgeMap = edgesMap.get(sourceId);
       if (!edgeMap) {
         edgeMap = new Y.Map();
         edgesMap.set(sourceId, edgeMap);

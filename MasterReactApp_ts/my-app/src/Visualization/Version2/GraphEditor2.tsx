@@ -2,13 +2,13 @@ import React, { useState, useCallback } from 'react';
 import { GraphCanvas, GraphCanvasRef, useSelection } from 'reagraph';
 import * as Y from 'yjs';
 import { useYjsGraphReagraph, ReagraphNode } from '../../Helper/Hook/YJS_hook_Reagraph';
-import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
+import { SGraphV4 } from '../../Version1/V4/SimpleGraph';
 
 interface GraphEditorProps {
   ydoc: Y.Doc;
 }
 
-const graphInstance = new SGraphV3();
+const graphInstance = new SGraphV4();
 
 const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const { nodes, edges } = useYjsGraphReagraph(ydoc);
@@ -25,10 +25,10 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
     if (connectMode) {
       if (!sourceNodeForEdge) {
         setSourceNodeForEdge(node.id);
-        alert(`Source selected: ${node.label || node.id}. Now select target.`);
       } else {
         if (sourceNodeForEdge === node.id) {
-            alert("Cannot connect node to itself.");
+            // Cannot connect to self, just reset source or ignore
+            alert('Cannot connect to self');
             setSourceNodeForEdge(null);
             return;
         }
@@ -65,10 +65,9 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
     graphInstance.addNode({
       nodeId: id,
       initialProps: { 
-        label: 'New Node', 
+        label: 'Doctor', 
         policy: policy,
-        color: color,
-        // Reagraph might use 'size' or 'val'
+        color: color
       },
       graph: ydoc
     });
@@ -131,6 +130,12 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
           layoutType="forceDirected2d"
           labelType="all"
           sizingType="centrality"
+          // @ts-ignore
+          edgeInterpolation="curved"
+          // @ts-ignore
+          linkCurvature={(edge: any) => edge.curvature || 0}
+          // @ts-ignore
+          edgeCurvature={(edge: any) => edge.curvature || 0}
         />
         
         <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 5, display: 'flex', gap: '10px' }}>
@@ -145,9 +150,13 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
           </button>
         </div>
         
-        {connectMode && sourceNodeForEdge && (
-            <div style={{ position: 'absolute', top: 50, left: 10, zIndex: 5, background: 'rgba(255, 255, 255, 0.8)', padding: '5px' }}>
-                Select target node...
+        {connectMode && (
+            <div style={{ position: 'absolute', top: 50, left: 10, zIndex: 5, background: 'rgba(255, 255, 255, 0.9)', padding: '8px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                {!sourceNodeForEdge ? (
+                    <span><strong>Step 1:</strong> Select Source Node</span>
+                ) : (
+                    <span><strong>Step 2:</strong> Select Target Node (or click source again to reset)</span>
+                )}
             </div>
         )}
       </div>

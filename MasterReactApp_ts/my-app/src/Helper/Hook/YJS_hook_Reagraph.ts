@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
+import { SGraphV4 } from '../../Version1/V4/SimpleGraph';
 import * as Y from 'yjs';
 
 // Reagraph types (inferred, as we don't have exact types yet)
@@ -14,10 +14,11 @@ export interface ReagraphEdge {
   source: string;
   target: string;
   label?: string;
+  curvature?: number;
   [key: string]: any;
 }
 
-const graphInstance = new SGraphV3();
+const graphInstance = new SGraphV4();
 
 export function useYjsGraphReagraph(graph: Y.Doc) {
   const [nodes, setNodes] = useState<ReagraphNode[]>([]);
@@ -38,7 +39,7 @@ export function useYjsGraphReagraph(graph: Y.Doc) {
   const syncEdges = useCallback(() => {
     const rawEdges = graphInstance.getEdges({ graph });
 
-    const reagraphEdges: ReagraphEdge[] = rawEdges.map((edge: any) => ({
+    const tempEdges: ReagraphEdge[] = rawEdges.map((edge: any) => ({
       id: edge.id || `edge-${edge.sourceId}-${edge.targetId}`,
       source: edge.sourceId,
       target: edge.targetId,
@@ -46,7 +47,21 @@ export function useYjsGraphReagraph(graph: Y.Doc) {
       data: { ...edge }
     }));
 
-    setEdges(reagraphEdges);
+    // Detect bidirectional edges and apply curvature
+    for (let i = 0; i < tempEdges.length; i++) {
+      for (let j = i + 1; j < tempEdges.length; j++) {
+        const e1 = tempEdges[i];
+        const e2 = tempEdges[j];
+        console.log(e1, e2);
+        if (e1.source === e2.target && e1.target === e2.source) {
+          // Found a bidirectional pair
+          e1.curvature = 1.0;
+          e2.curvature = 1.0;
+        }
+      }
+    }
+
+    setEdges(tempEdges);
   }, [graph]);
 
   useEffect(() => {

@@ -29,7 +29,7 @@ function App() {
             borderRight: '2px solid #ccc',
             position: 'relative'
         }}>
-          <GraphEditor ydoc={graph} />
+          <GraphEditor2 ydoc={graph} />
         </div>
 
         <div style={{ 
@@ -39,7 +39,7 @@ function App() {
         }}>
 
           <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, background: 'white', padding: '5px' }}>
-            User 2 (Reagraph)
+            User 2 (New Reagraph Viz)
           </div>
           
           <GraphEditor2 ydoc={graph2} />
