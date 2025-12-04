@@ -3,6 +3,7 @@ import { GraphCanvas, GraphCanvasRef, useSelection } from 'reagraph';
 import * as Y from 'yjs';
 import { useYjsGraphReagraph, ReagraphNode } from '../../Helper/Hook/YJS_hook_Reagraph';
 import { SGraphV4 } from '../../Version1/V4/SimpleGraph';
+import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
 
 interface GraphEditorProps {
   ydoc: Y.Doc;

@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
+import { SGraphV4 } from '../../Version1/V4/SimpleGraph';
 import * as Y from 'yjs';
 import { Node, Edge, NodeChange, EdgeChange, Connection } from 'reactflow';
 
 // if no position random
 const getRandomPos = () => ({ x: Math.random() * 500, y: Math.random() * 500 });
 
-const graphInstance = new SGraphV3();
+const graphInstance = new SGraphV4();
 
 export function useYjsGraph(graph: Y.Doc) {
   const [nodes, setNodes] = useState<Node[]>([]);
