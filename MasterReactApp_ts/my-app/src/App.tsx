@@ -2,6 +2,7 @@ import './App.css';
 import * as Y from 'yjs';
 import { syncDocs } from './Helper/sync';
 import GraphEditor from './Visualization/Version1/GraphEditor';
+import GraphEditor2 from './Visualization/Version2/GraphEditor2';
 
 
 const graph = new Y.Doc();
@@ -38,10 +39,10 @@ function App() {
         }}>
 
           <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, background: 'white', padding: '5px' }}>
-            User 2 (Simulation)
+            User 2 (Reagraph)
           </div>
           
-          <GraphEditor ydoc={graph2} />
+          <GraphEditor2 ydoc={graph2} />
         </div>
 
       </div>
