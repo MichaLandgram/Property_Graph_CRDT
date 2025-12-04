@@ -120,7 +120,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100%', position: 'relative' }}>
       
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         <GraphCanvas
           ref={graphRef}
           nodes={visualNodes}
@@ -159,7 +159,22 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
           
           {
           Object.entries(formData).map(([key, value]) => {
-                if (key === 'label' || key === 'color' || key === 'policy' || key === 'id' || key === 'position') return null; 
+                if (key === 'label' || key === 'color' || key === 'policy' || key === 'id') return null;
+                if (key === 'position') {
+                Object.entries(value).map(([key2, value2]) => {
+                    return (
+                        <div key={key2} style={{ marginBottom: '10px' }}>
+                            <label style={{ display: 'block', fontSize: '0.8em', color: '#555' }}>{key}:</label>
+                            <input
+                                type="text"
+                                value={String(value2)} 
+                                onChange={(e) => handleUpdateFormChange(key, e.target.value)}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+                    )
+                });
+                }
                 return (
                     <div key={key} style={{ marginBottom: '10px' }}>
                         <label style={{ display: 'block', fontSize: '0.8em', color: '#555' }}>{key}:</label>
