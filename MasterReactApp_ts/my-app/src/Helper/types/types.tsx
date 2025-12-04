@@ -1,9 +1,6 @@
+// Node Types
 export type NodeId = string;
 export type Policy = 'ADD_WINS' | 'REMOVE_WINS';
-export type EdgeId = `${NodeId}+${NodeId}`
-export type EdgeData = {
-    label?: string;
-}
 
 
 export type XYPosition = {
@@ -16,4 +13,15 @@ export type NodeData = {
     label: string;
     policy: Policy;
     position: XYPosition;
+    color: string;
+    TESTDATA1: string;
+    TESTDATA2: string;
+    TESTDATA3: string;
 }
+
+// Edge Types
+export type EdgeData = {
+    label?: string;
+}
+
+export type EdgeId = `${NodeId}+${NodeId}`

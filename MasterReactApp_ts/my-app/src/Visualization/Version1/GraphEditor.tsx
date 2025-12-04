@@ -3,7 +3,7 @@ import ReactFlow, { Background, Controls, Handle, Position, Node, Connection } f
 import 'reactflow/dist/style.css';
 import * as Y from 'yjs';
 import { useYjsGraph } from '../../Helper/Hook/YJS_hook_V1';
-import { addNode, updateNode, deleteNode } from '../../Version1/V2_idea/SimpleGraph';
+import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
 
 // Suppress ResizeObserver loop error
 const originalError = console.error;
@@ -54,6 +54,8 @@ interface GraphEditorProps {
   ydoc: Y.Doc;
 }
 
+const graphInstance = new SGraphV3();
+
 const GraphEditor: React.FC<GraphEditorProps> = ({ ydoc }) => { 
   const { nodes, onNodesChange, edges, onEdgesChange } = useYjsGraph(ydoc);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -85,17 +87,16 @@ const GraphEditor: React.FC<GraphEditorProps> = ({ ydoc }) => {
     const id = `node-${Date.now()}`;
     const policy = Math.random() > 0.5 ? 'ADD_WINS' : 'REMOVE_WINS';
     const color = policy === 'ADD_WINS' ? '#a0e7e5' : '#ffaeae';
-    addNode({
-      id,
+    graphInstance.addNode({
+      nodeId: id,
       initialProps: { 
         label: 'New', 
-        x: Math.random() * 400, 
-        y: Math.random() * 400,
+        position : { x: Math.random() * 400, y: Math.random() * 400 },
         policy: policy,
         color: color,
-          data1: 'Default Data',
-          data2: 'More Default Data',
-          data3: 'Even More Default Data'
+        TESTDATA1: 'Default Data',
+        TESTDATA2: 'More Default Data',
+        TESTDATA3: 'Even More Default Data'
       },
       graph: ydoc
     });
@@ -112,8 +113,8 @@ const GraphEditor: React.FC<GraphEditorProps> = ({ ydoc }) => {
     
     // If key/value provided (like color), update directly
     if (key && value) {
-        updateNode({
-            id: selectedNode.id,
+        graphInstance.updateNode({
+            nodeId: selectedNode.id,
             props: { [key]: value },
             graph: ydoc
         });
@@ -123,8 +124,8 @@ const GraphEditor: React.FC<GraphEditorProps> = ({ ydoc }) => {
     }
 
     // Otherwise update from formData
-    updateNode({
-        id: selectedNode.id,
+    graphInstance.updateNode({
+        nodeId: selectedNode.id,
         props: { ...formData },
         graph: ydoc
     });
@@ -132,7 +133,7 @@ const GraphEditor: React.FC<GraphEditorProps> = ({ ydoc }) => {
 
   const handleDelete = () => {
       if(!selectedNode) return;
-      deleteNode({ id: selectedNode.id, graph: ydoc });
+      graphInstance.deleteNode({ nodeId: selectedNode.id, graph: ydoc });
       selectNode(null);
   }
 

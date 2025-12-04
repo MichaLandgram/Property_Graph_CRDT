@@ -12,8 +12,8 @@ import { NodeId, EdgeId, EdgeData, Policy, NodeData } from '../../Helper/types/t
 // const edgesMap = ydoc.getMap('edges') // Map of nodeId to EdgeYJSMap [target maps to Properties] [not used here]
 
 
-class SGraphV3 implements Graph {
-  addNode({ nodeId, initialProps, graph }: { nodeId: NodeId; initialProps: NodeData; graph: graphDoc; }): void {
+export class SGraphV3 implements Graph {
+  addNode({ nodeId, initialProps, graph }: { nodeId: NodeId; initialProps: Partial<NodeData>; graph: graphDoc; }): void {
     const nodesMap = graph.getMap<any>('nodes');
     const propertiesMap = graph.getMap<Y.Map<any>>('properties');
   
@@ -95,29 +95,29 @@ class SGraphV3 implements Graph {
   return visible;
   }
   getNodeProps({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): NodeData | undefined {
-  const propertiesMap = graph.getMap<Y.Map<any>>('properties');
-  const props = propertiesMap.get(nodeId);
-  return props ? props.toJSON() : undefined;
+    const propertiesMap = graph.getMap<Y.Map<any>>('properties');
+    const props = propertiesMap.get(nodeId);
+    return props ? props.toJSON() as NodeData : undefined;
   }
   addEdge({ sourceId, targetId, initialProps = {}, graph }: { sourceId: NodeId; targetId: NodeId; initialProps?: EdgeData; graph: graphDoc; }): void {
-  const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
-  const nodesMap = graph.getMap<any>('nodes');
-  let edgeMap = edgesMap.get(sourceId);
-  
-  graph.transact(() => {
-    if (!edgeMap) {
-      edgeMap = new Y.Map();
-      edgesMap.set(sourceId, edgeMap);
-    }
+    const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
+    const nodesMap = graph.getMap<any>('nodes');
+    let edgeMap = edgesMap.get(sourceId);
     
-    const edgeProps = new Y.Map();
-    for (const [key, value] of Object.entries(initialProps)) {
-      edgeProps.set(key, value);
-    }
-    edgeMap.set(targetId, edgeProps);
-    nodesMap.set(sourceId, Date.now());
-    nodesMap.set(targetId, Date.now());
-  }); 
+    graph.transact(() => {
+      if (!edgeMap) {
+        edgeMap = new Y.Map();
+        edgesMap.set(sourceId, edgeMap);
+      }
+      
+      const edgeProps = new Y.Map();
+      for (const [key, value] of Object.entries(initialProps)) {
+        edgeProps.set(key, value);
+      }
+      edgeMap.set(targetId, edgeProps);
+      nodesMap.set(sourceId, Date.now());
+      nodesMap.set(targetId, Date.now());
+    }); 
   }
   updateEdge({ sourceId, targetId, props, graph }: { sourceId: NodeId; targetId: NodeId; props: Partial<EdgeData>; graph: graphDoc; }): void {
     throw new Error('Method not implemented.');
@@ -138,33 +138,32 @@ class SGraphV3 implements Graph {
   for (let sourceId of Array.from(nodes.keys())) {
     const edgeMap = edgesMap.get(sourceId);
     if (!edgeMap) {
-      // console.log("No edge map for sourceId:", sourceId);
+      console.log("No edge map for sourceId:", sourceId);
       // edges.push(...[]);
       continue;
     }
-    edgeMap.forEach((props: EdgeData, targetId: NodeId) => {
-      edges.push({ sourceId, targetId, ...props.toJSON() });
+    edgeMap.forEach((props: Y.Map<any>, targetId: NodeId) => {
+      edges.push({ sourceId, targetId, ...props.toJSON() as EdgeData });
     });
   }
   return edges;
   }
 }
-
-const minimalInitialProps: Partial<NodeData> = {
-  policy: 'ADD_WINS',
-  label: 'Node',
-};
+// const minimalInitialProps: Partial<NodeData> = {
+//   policy: 'ADD_WINS',
+//   label: 'Node',
+// };
 
 // export function addNode({ id, initialProps = minimalInitialProps, graph }: AddNodeArgs) {
 //   const nodesMap = graph.getMap<any>('nodes');
 //   const propertiesMap = graph.getMap<Y.Map<any>>('properties');
-  
+//   
 //   const nodeProps = new Y.Map();
 
 //   for (const [key, value] of Object.entries(initialProps)) {
 //     nodeProps.set(key, value);
 //   }
-  
+//   
 //   graph.transact(() => {
 //     nodesMap.set(id, Date.now());
 //     propertiesMap.set(id, nodeProps);
@@ -193,14 +192,14 @@ const minimalInitialProps: Partial<NodeData> = {
 //   if (!node) return;
 
 //   const policy = node.get('policy');
-  
+//   
 //   graph.transact(() => {
 //     if (policy === 'REMOVE_WINS') {
 
 //       tombNodes.set(id, Date.now());
 //       propertiesMap.delete(id);
 //       nodesMap.delete(id);
-      
+//       
 //     } else if (policy === 'ADD_WINS') {
 
 //       nodesMap.delete(id);
@@ -214,13 +213,13 @@ const minimalInitialProps: Partial<NodeData> = {
 //   const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
 //   const nodesMap = graph.getMap<any>('nodes');
 //   let edgeMap = edgesMap.get(sourceId);
-  
+//   
 //   graph.transact(() => {
 //     if (!edgeMap) {
 //       edgeMap = new Y.Map();
 //       edgesMap.set(sourceId, edgeMap);
 //     }
-    
+//     
 //     const edgeProps = new Y.Map();
 //     for (const [key, value] of Object.entries(initialProps)) {
 //       edgeProps.set(key, value);
@@ -253,7 +252,7 @@ const minimalInitialProps: Partial<NodeData> = {
 //   const tombNodes = graph.getMap<any>('removedNodes')
 //   const propertiesMap = graph.getMap<Y.Map<any>>('properties')
 //   const visible: any[] = [];
-  
+//   
 //   nodesMap.forEach((node, id) => {
 //     if (!propertiesMap.has(id) && !tombNodes.has(id)) {
 //       console.error(`Node properties missing for node id: ${id}`);
@@ -274,7 +273,7 @@ const minimalInitialProps: Partial<NodeData> = {
 //     }
 //       visible.push({ id, ...props.toJSON(), policy });
 //   });
-  
+//   
 //   return visible;
 // }
 
