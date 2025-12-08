@@ -1,6 +1,6 @@
 import * as Y from 'yjs'
 import { Graph, graphDoc } from '../../Helper/types/graph';
-import { NodeId, EdgeId, EdgeData, Policy, NodeData } from '../../Helper/types/types';
+import { NodeId, EdgeId, EdgeData, Policy, NodeData, edgeLabelTypes } from '../../Helper/types/types';
 
 
 // const ydoc = new Y.Doc()
@@ -99,7 +99,7 @@ export class SGraphV3 implements Graph {
     const props = propertiesMap.get(nodeId);
     return props ? props.toJSON() as NodeData : undefined;
   }
-  addEdge({ sourceId, targetId, initialProps = {}, graph }: { sourceId: NodeId; targetId: NodeId; initialProps?: EdgeData; graph: graphDoc; }): void {
+  addEdge({ sourceId, targetId, label, initialProps = { placeholder: 'New Edge' }, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc; }): void {
     const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
     const nodesMap = graph.getMap<any>('nodes');
 

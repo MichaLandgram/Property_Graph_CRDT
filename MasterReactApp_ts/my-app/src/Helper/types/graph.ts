@@ -1,4 +1,4 @@
-import { NodeId, EdgeId, EdgeData, Policy, NodeData } from './types';
+import { NodeId, EdgeId, EdgeData, Policy, NodeData, edgeLabelTypes  } from './types';
 import * as Y from 'yjs';
 
 
@@ -11,7 +11,7 @@ export interface Graph {
     getVisibleNodes({ graph }: { graph: graphDoc}): Array<{ id: NodeId; props: NodeData, policy: Policy }>;
     getNodeProps({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc}): NodeData | undefined;
 
-    addEdge({ sourceId, targetId, initialProps, graph }: { sourceId: NodeId; targetId: NodeId; initialProps?: EdgeData; graph: graphDoc}): void;
+    addEdge({ sourceId, targetId, label, initialProps, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc}): void;
     updateEdge({ sourceId,targetId, props, graph }: { sourceId: NodeId; targetId: NodeId; props: Partial<EdgeData>; graph: graphDoc}): void;
     deleteEdge({ sourceId, targetId, graph }: { sourceId: NodeId; targetId: NodeId;  graph: graphDoc}): void;
 

@@ -2,8 +2,11 @@
 export type NodeId = string;
 export type Policy = 'ADD_WINS' | 'REMOVE_WINS';
 export type labelTypes = 'Doctor' | 'Patient' | 'Medicine' | 'Disease';
+export type edgeLabelTypes = 'Treats' | 'Has' | 'Causes';
+export type edgeLabelData = Y.Map<EdgeData>;
+export type edgeTargets = Y.Map<edgeLabelData>;
 
-
+import * as Y from 'yjs';
 export type XYPosition = {
     x: number;
     y: number;
@@ -19,11 +22,14 @@ export type NodeData = {
     TESTDATA1: string;
     TESTDATA2: string;
     TESTDATA3: string;
+
+    edgeTargets: edgeTargets;
 }
 
 // Edge Types
 export type EdgeData = {
-    label?: string;
+    placeholder: string;
+    label: edgeLabelTypes;
 }
 
 export type EdgeId = `${NodeId}+${NodeId}`

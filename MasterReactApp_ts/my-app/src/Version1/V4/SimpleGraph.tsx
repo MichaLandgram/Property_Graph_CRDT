@@ -1,6 +1,6 @@
 import * as Y from 'yjs'
 import { Graph, graphDoc } from '../../Helper/types/graph';
-import { NodeId, EdgeId, EdgeData, Policy, NodeData } from '../../Helper/types/types';
+import { NodeId, EdgeId, EdgeData, Policy, NodeData, edgeLabelTypes } from '../../Helper/types/types';
 
 
 // const ydoc = new Y.Doc()
@@ -90,23 +90,29 @@ export class SGraphV4 implements Graph {
     const props = propertiesMap.get(nodeId);
     return props ? props.toJSON() as NodeData : undefined;
   }
-  addEdge({ sourceId, targetId, initialProps = {}, graph }: { sourceId: NodeId; targetId: NodeId; initialProps?: EdgeData; graph: graphDoc; }): void {
-    const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
+  addEdge({ sourceId, targetId, label, initialProps = { placeholder: 'New Edge' }, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc; }): void {
+    const edgesTargetsMap = graph.getMap<any>('edgesTargets');
     const nodesMap = graph.getMap<any>('nodes');
 
     
     graph.transact(() => {
-      let edgeMap = edgesMap.get(sourceId);
-      if (!edgeMap) {
-        edgeMap = new Y.Map();
-        edgesMap.set(sourceId, edgeMap);
+      let edgeLabelMap = edgesTargetsMap.get(sourceId);
+      if (!edgeLabelMap) {
+        edgeLabelMap = new Y.Map();
+        edgesTargetsMap.set(sourceId, edgeLabelMap);
+      }
+
+      let edgesWithLabelMap = edgeLabelMap.get(label);
+      if (!edgesWithLabelMap) {
+        edgesWithLabelMap = new Y.Map();
+        edgeLabelMap.set(label, edgesWithLabelMap);
       }
       
-      const edgeProps = new Y.Map();
+      const edgeProps = new Y.Map<any>();
       for (const [key, value] of Object.entries(initialProps)) {
         edgeProps.set(key, value);
       }
-      edgeMap.set(targetId, edgeProps);
+      edgesWithLabelMap.set(targetId, edgeProps);
       nodesMap.set(sourceId, Date.now());
       nodesMap.set(targetId, Date.now());
     }); 
