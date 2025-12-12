@@ -5,11 +5,11 @@ import { NodeId, EdgeId, EdgeData, Policy, NodeData, edgeLabelTypes } from '../.
 
 // const ydoc = new Y.Doc()
 
-// const ydoc = new Y.Doc() // Represents the collaborative graph
+// const ydoc = new Y.Doc() // Represents the collaborative graph | TOP LEVEL
 // const nodesMap = ydoc.getMap('nodes') // Map of nodeId to touch timestamps and removed node information
 // const propertiesMap = ydoc.getMap('properties') // Map of nodeId to node properties
-// const edgesTargetsMap = ydoc.getMap('edgesTargets') // Map of nodeId to EdgeYJSMap [target maps to EdgeMap] [not used here]
-// const edgesMap = ydoc.getMap('edges') // Map of label to EdgeYJSMap [target maps to EdgeMap]
+// const edgesTargetsMap = ydoc.getMap('edgesTargets') // Map of nodeId to EdgeYJSMap [target maps to EdgeMap]
+// const edgesMap = inside edgesTargetsMap // Map of target to EdgeProperties
 
 export class SGraphV4 implements Graph {
   addNode({ nodeId, initialProps, graph }: { nodeId: NodeId; initialProps: Partial<NodeData>; graph: graphDoc; }): void {
@@ -90,29 +90,30 @@ export class SGraphV4 implements Graph {
     const props = propertiesMap.get(nodeId);
     return props ? props.toJSON() as NodeData : undefined;
   }
-  addEdge({ sourceId, targetId, label, initialProps = { placeholder: 'New Edge' }, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc; }): void {
+  addEdge({ sourceId, targetId, label, initialProps = { label: 'Has', placeholder: 'New Edge' }, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc; }): void {
     const edgesTargetsMap = graph.getMap<any>('edgesTargets');
     const nodesMap = graph.getMap<any>('nodes');
 
     
     graph.transact(() => {
-      let edgeLabelMap = edgesTargetsMap.get(sourceId);
-      if (!edgeLabelMap) {
-        edgeLabelMap = new Y.Map();
-        edgesTargetsMap.set(sourceId, edgeLabelMap);
+      let edgesMap = edgesTargetsMap.get(sourceId);
+      if (!edgesMap) {
+        edgesMap = new Y.Map();
+        edgesTargetsMap.set(sourceId, edgesMap);
       }
 
-      let edgesWithLabelMap = edgeLabelMap.get(label);
-      if (!edgesWithLabelMap) {
-        edgesWithLabelMap = new Y.Map();
-        edgeLabelMap.set(label, edgesWithLabelMap);
+      let specificTargetEdgesMap = edgesMap.get(targetId);
+      if (!specificTargetEdgesMap) {
+        specificTargetEdgesMap = new Y.Map();
+        edgesMap.set(targetId, specificTargetEdgesMap);
       }
       
       const edgeProps = new Y.Map<any>();
       for (const [key, value] of Object.entries(initialProps)) {
         edgeProps.set(key, value);
       }
-      edgesWithLabelMap.set(targetId, edgeProps);
+      specificTargetEdgesMap.set(targetId, edgeProps);
+      // touch operation on both nodes as if they were updated
       nodesMap.set(sourceId, Date.now());
       nodesMap.set(targetId, Date.now());
     }); 
@@ -121,7 +122,7 @@ export class SGraphV4 implements Graph {
     throw new Error('Method not implemented.');
   }
   deleteEdge({ sourceId, targetId, graph }: { sourceId: NodeId; targetId: NodeId; graph: graphDoc; }): void {
-  const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges')
+  const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edgesTargets')
   const edgeMap = edgesMap.get(sourceId);
   if (!edgeMap) {
     console.error(`Edge map for sourceId ${sourceId} does not exist.`);
@@ -130,19 +131,20 @@ export class SGraphV4 implements Graph {
   edgeMap.delete(targetId);
   }
   getEdges({ graph }: { graph: graphDoc; }): Array<{ sourceId: NodeId; targetId: NodeId; props: EdgeData; }> {
-  const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
-  const nodes = graph.getMap<any>('nodes');
+  const edgesTargetsMap = graph.getMap<Y.Map<Y.Map<any>>>('edgesTargets');
+  const nodesMap = graph.getMap<any>('nodes');
   const edges: any[] = [];
-  for (let sourceId of Array.from(nodes.keys())) {
-    const edgeMap = edgesMap.get(sourceId);
+  for (let sourceId of Array.from(nodesMap.keys())) {
+    const edgeMap = edgesTargetsMap.get(sourceId);
     if (!edgeMap) {
-      console.log("No edge map for sourceId:", sourceId);
-      // edges.push(...[]);
+      console.log("No edge targets map for sourceId:", sourceId);
       continue;
     }
-    edgeMap.forEach((props: Y.Map<any>, targetId: NodeId) => {
-      edges.push({ sourceId, targetId, ...props.toJSON() as EdgeData });
-    });
+    edgesTargetsMap.forEach((edgeMap, sourceId) => {
+      edgeMap.forEach((props, targetId) => {
+        edges.push({ sourceId, targetId, ...props.toJSON() as EdgeData });
+      });
+    })
   }
   return edges;
   }

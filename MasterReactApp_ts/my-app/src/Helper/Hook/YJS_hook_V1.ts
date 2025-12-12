@@ -96,8 +96,10 @@ export function useYjsGraph(graph: Y.Doc) {
             graphInstance.addEdge({
             sourceId: newEdge.source,
             targetId: newEdge.target,
+            label: "Has",
             initialProps: {
-                label: "Test"
+                label: "Has",
+                placeholder: "New Edge"
             },
             graph
             });

@@ -99,7 +99,7 @@ export class SGraphV3 implements Graph {
     const props = propertiesMap.get(nodeId);
     return props ? props.toJSON() as NodeData : undefined;
   }
-  addEdge({ sourceId, targetId, label, initialProps = { placeholder: 'New Edge' }, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc; }): void {
+  addEdge({ sourceId, targetId, label, initialProps = { label:'Has', placeholder: 'New Edge' }, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc; }): void {
     const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edges');
     const nodesMap = graph.getMap<any>('nodes');
 

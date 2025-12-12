@@ -1,11 +1,6 @@
 npm install --save-dev ajv@^7
 
-
-
-
-
-
-
+npm install --legacy-peer-deps
 
 
 # Getting Started with Create React App
