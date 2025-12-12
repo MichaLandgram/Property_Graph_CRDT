@@ -4,6 +4,7 @@ import * as Y from 'yjs';
 import { useYjsGraphReagraph, ReagraphNode } from '../../Helper/Hook/YJS_hook_Reagraph';
 import { SGraphV4 } from '../../Version1/V4/SimpleGraph';
 import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
+import { dumpGraphToNeo4j } from '../../Helper/Neo4jConnector';
 
 interface GraphEditorProps {
   ydoc: Y.Doc;
@@ -38,7 +39,8 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
         graphInstance.addEdge({
             sourceId: sourceNodeForEdge,
             targetId: node.id,
-            initialProps: { label: 'New Edge' },
+            label: 'Has',
+            initialProps: { label: 'Has', placeholder: 'New Edge' },
             graph: ydoc
         });
         setSourceNodeForEdge(null);
@@ -118,6 +120,8 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   }));
 
   return (
+    console.log('Nodes:', nodes),
+    console.log('Edges:', edges),
     <div style={{ display: 'flex', height: '100vh', width: '100%', position: 'relative' }}>
       
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
@@ -142,6 +146,9 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
         <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 5, display: 'flex', gap: '10px' }}>
           <button onClick={handleAddNode}>
               + Add Node
+          </button>
+          <button onClick={() => dumpGraphToNeo4j(visualNodes, edges)}>
+              Dump to Neo4j
           </button>
           <button 
             onClick={() => { setConnectMode(!connectMode); setSourceNodeForEdge(null); }} 
