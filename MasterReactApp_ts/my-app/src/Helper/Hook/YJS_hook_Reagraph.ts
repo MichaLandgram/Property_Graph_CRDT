@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { v4 as uuid } from 'uuid';
 import { SGraphV4 } from '../../Version1/V4/SimpleGraph';
+import { processEdgeCurvatures } from '../GraphUtils';
 import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
 import * as Y from 'yjs';
 
@@ -39,37 +41,30 @@ export function useYjsGraphReagraph(graph: Y.Doc) {
 
   const syncEdges = useCallback(() => {
     const rawEdges = graphInstance.getEdges({ graph });
+    const rawNodes = graphInstance.getVisibleNodes({ graph }); // Get current nodes to validate edges
+    const validNodeIds = new Set(rawNodes.map((n: any) => n.id));
 
-    const tempEdges: ReagraphEdge[] = rawEdges.map((edge: any) => ({
-      id: edge.id || `edge-${edge.sourceId}-${edge.targetId}`,
-      source: edge.sourceId,
-      target: edge.targetId,
-      label: edge.label || '',
-      data: { ...edge }
-    }));
+    const tempEdges: ReagraphEdge[] = rawEdges
+      .filter((edge: any) => validNodeIds.has(edge.sourceId) && validNodeIds.has(edge.targetId)) // Filter dangling edges
+      .map((edge: any) => ({
+        id: edge.id || uuid(),
+        source: edge.sourceId,
+        target: edge.targetId,
+        label: edge.label || '',
+        data: { ...edge }
+      }));
 
-    // Detect bidirectional edges and apply curvature
-    for (let i = 0; i < tempEdges.length; i++) {
-      for (let j = i + 1; j < tempEdges.length; j++) {
-        const e1 = tempEdges[i];
-        const e2 = tempEdges[j];
-        console.log(e1, e2);
-        if (e1.source === e2.target && e1.target === e2.source) {
-          // Found a bidirectional pair
-          e1.curvature = 1.0;
-          e2.curvature = 1.0;
-        }
-      }
-    }
+    // Use the utility to process curvatures for all edge types (parallel, bidirectional)
+    const finalEdges = processEdgeCurvatures(tempEdges);
 
-    setEdges(tempEdges);
+    setEdges(finalEdges);
   }, [graph]);
 
   useEffect(() => {
     const nodesMap = graph.getMap('nodes');
     const propertiesMap = graph.getMap('properties');
-    const tombNodes = graph.getMap('removedNodes');
-    const edgesMap = graph.getMap('edges');
+    const tombNodes = graph.getMap('removedNodes'); // Assuming this is correct from context, though not explicitly checked, but keeping as is
+    const edgesMap = graph.getMap('edgesTargets'); // FIXED: Observe edgesTargets instead of edges
 
     syncNodes();
     syncEdges();

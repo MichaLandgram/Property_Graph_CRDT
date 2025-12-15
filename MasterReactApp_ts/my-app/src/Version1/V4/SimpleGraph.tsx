@@ -91,7 +91,7 @@ export class SGraphV4 implements Graph {
     return props ? props.toJSON() as NodeData : undefined;
   }
   addEdge({ sourceId, targetId, label, initialProps = { label: 'Has', placeholder: 'New Edge' }, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc; }): void {
-    const edgesTargetsMap = graph.getMap<any>('edgesTargets');
+    const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');
     const nodesMap = graph.getMap<any>('nodes');
 
     
@@ -102,17 +102,18 @@ export class SGraphV4 implements Graph {
         edgesTargetsMap.set(sourceId, edgesMap);
       }
 
-      let specificTargetEdgesMap = edgesMap.get(targetId);
-      if (!specificTargetEdgesMap) {
-        specificTargetEdgesMap = new Y.Map();
-        edgesMap.set(targetId, specificTargetEdgesMap);
+      let specificTargetEdgesArray = edgesMap.get(targetId);
+      if (!specificTargetEdgesArray) {
+        specificTargetEdgesArray = new Y.Array();
+        edgesMap.set(targetId, specificTargetEdgesArray);
       }
       
       const edgeProps = new Y.Map<any>();
       for (const [key, value] of Object.entries(initialProps)) {
+        console.log(key, value);
         edgeProps.set(key, value);
       }
-      specificTargetEdgesMap.set(targetId, edgeProps);
+      specificTargetEdgesArray.push([edgeProps]);
       // touch operation on both nodes as if they were updated
       nodesMap.set(sourceId, Date.now());
       nodesMap.set(targetId, Date.now());
@@ -122,7 +123,7 @@ export class SGraphV4 implements Graph {
     throw new Error('Method not implemented.');
   }
   deleteEdge({ sourceId, targetId, graph }: { sourceId: NodeId; targetId: NodeId; graph: graphDoc; }): void {
-  const edgesMap = graph.getMap<Y.Map<Y.Map<any>>>('edgesTargets')
+  const edgesMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets')
   const edgeMap = edgesMap.get(sourceId);
   if (!edgeMap) {
     console.error(`Edge map for sourceId ${sourceId} does not exist.`);
@@ -131,20 +132,24 @@ export class SGraphV4 implements Graph {
   edgeMap.delete(targetId);
   }
   getEdges({ graph }: { graph: graphDoc; }): Array<{ sourceId: NodeId; targetId: NodeId; props: EdgeData; }> {
-  const edgesTargetsMap = graph.getMap<Y.Map<Y.Map<any>>>('edgesTargets');
+  const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');
   const nodesMap = graph.getMap<any>('nodes');
   const edges: any[] = [];
   for (let sourceId of Array.from(nodesMap.keys())) {
     const edgeMap = edgesTargetsMap.get(sourceId);
     if (!edgeMap) {
-      console.log("No edge targets map for sourceId:", sourceId);
+      // console.log("No edge targets map for sourceId:", sourceId);
       continue;
     }
-    edgesTargetsMap.forEach((edgeMap, sourceId) => {
-      edgeMap.forEach((props, targetId) => {
-        edges.push({ sourceId, targetId, ...props.toJSON() as EdgeData });
-      });
-    })
+    
+    for (const targetId of Array.from(edgeMap.keys())) {
+        const edgeList = edgeMap.get(targetId);
+        if (edgeList) {
+            edgeList.forEach((edgeProps: any) => {
+                 edges.push({ sourceId, targetId, ...edgeProps.toJSON() as EdgeData });
+            });
+        }
+    }
   }
   return edges;
   }

@@ -1,9 +1,18 @@
 // Node Types
 import * as Y from 'yjs';
 export type NodeId = string;
-export type Policy = 'ADD_WINS' | 'REMOVE_WINS';
-export type labelTypes = 'Doctor' | 'Patient' | 'Medicine' | 'Disease';
-export type edgeLabelTypes = 'Treats' | 'Has' | 'Causes';
+
+
+// Node Types
+export type labelTypes = string;
+
+// Edge Types - need to be consistent with edgeLabelTypeValues
+export type edgeLabelTypes = string;
+
+
+// Policy Types - and Mapping to the corresponding label type
+export type Policy = string;
+
 export type edgeLabelData = Y.Map<EdgeData>;
 export type edgeTargets = Y.Map<edgeLabelData>;
 
@@ -15,7 +24,7 @@ export type XYPosition = {
 
 export type NodeData = {
     id: NodeId;
-    label: labelTypes;
+    label: string;
     policy: Policy;
     position: XYPosition;
     color: string;
