@@ -6,7 +6,7 @@ import { SGraphV4 } from '../../Version1/V4/SimpleGraph';
 import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
 import { dumpGraphToNeo4j } from '../../Helper/Neo4jConnector';
 import { edgeLabelTypes, NodeData } from '../../Helper/types/types';
-import { edgeLabelTypeValues, allowedConnectivity } from '../../Schema/schema_1';
+import { edgeLabelTypeValues, allowedConnectivity, labelTypeValues } from '../../Schema/schema_1';
 
 interface GraphEditorProps {
   ydoc: Y.Doc;
@@ -23,11 +23,15 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const [connectMode, setConnectMode] = useState(false);
   const [sourceNodeForEdge, setSourceNodeForEdge] = useState<NodeData | null>(null);
   
-  // Adding an Edge Dialog
+  // Edge Dialog
   const [showEdgeDialog, setShowEdgeDialog] = useState(false);
   const [pendingTargetNode, setPendingTargetNode] = useState<NodeData | null>(null);
   const [edgeLabel, setEdgeLabel] = useState<edgeLabelTypes>('DEFAULT');
   const [edgePlaceholder, setEdgePlaceholder] = useState('');
+
+  //Node Dialog
+  const [showNodeDialog, setShowNodeDialog] = useState(false);
+  const [newNodeLabel, setNewNodeLabel] = useState<string>(labelTypeValues[0] || 'Person');
 
   // Ref for the graph canvas to access internal methods if needed
   const graphRef = React.useRef<GraphCanvasRef | null>(null);
@@ -73,7 +77,12 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
     }
   }, [connectMode]);
 
-  const handleAddNode = () => {
+  const handleAddNodeClick = () => {
+    setShowNodeDialog(true);
+    setNewNodeLabel(labelTypeValues[0] || 'Person');
+  };
+
+  const handleConfirmAddNode = () => {
     const id = `node-${Date.now()}`;
     const policy = Math.random() > 0.5 ? 'ADD_WINS' : 'REMOVE_WINS';
     const color = policy === 'ADD_WINS' ? '#a0e7e5' : '#ffaeae';
@@ -81,12 +90,13 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
     graphInstance.addNode({
       nodeId: id,
       initialProps: { 
-        label: 'Account', 
+        label: newNodeLabel, 
         policy: policy,
         color: color
       },
       graph: ydoc
     });
+    setShowNodeDialog(false);
   };
 
   const handleUpdateFormChange = (key: string, value: string) => {
@@ -98,7 +108,8 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
 
   const handleCreateEdge = () => {
       if (!sourceNodeForEdge || !pendingTargetNode) return;
-
+     console.log('Creating edge from', sourceNodeForEdge.id, 'to', pendingTargetNode.id); 
+     console.log('Edge label:', edgeLabel);
       graphInstance.addEdge({
           sourceId: sourceNodeForEdge.id,
           targetId: pendingTargetNode.id,
@@ -198,7 +209,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
         />
         
         <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 5, display: 'flex', gap: '10px' }}>
-          <button onClick={handleAddNode}>
+          <button onClick={handleAddNodeClick}>
               + Add Node
           </button>
           <button onClick={() => dumpGraphToNeo4j(visualNodes, edges)}>
@@ -221,7 +232,43 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
                 )}
             </div>
         )}
+        {showNodeDialog && (
+            <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 20,
+                background: 'white',
+                padding: '20px',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                border: '1px solid #ccc',
+                minWidth: '300px'
+            }}>
+                <h3>Add Node</h3>
+                <div style={{ marginBottom: '15px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px' }}>Node Type:</label>
+                    <select 
+                        value={newNodeLabel} 
+                        onChange={(e) => setNewNodeLabel(e.target.value)}
+                        style={{ width: '100%', padding: '5px' }}
+                    >
+                        {labelTypeValues.map((label) => (
+                            <option key={label} value={label}>
+                                {label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                    <button onClick={() => setShowNodeDialog(false)} style={{ background: '#f0f0f0', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={handleConfirmAddNode} style={{ background: '#4CAF50', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>Create</button>
+                </div>
+            </div>
+        )}
         {showEdgeDialog && (
+          console.log('showEdgeDialog', edgeLabel),
             <div style={{
                 position: 'absolute',
                 top: '50%',
@@ -243,6 +290,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
                         onChange={(e) => setEdgeLabel(e.target.value)}
                         style={{ width: '100%', padding: '5px' }}
                     >
+                      <option value="">Select Relationship Type</option>
                         {sourceNodeForEdge && pendingTargetNode && allowedConnectivity[sourceNodeForEdge.label][pendingTargetNode.label] && Object.values(allowedConnectivity[sourceNodeForEdge.label][pendingTargetNode.label]).map((label) => (
                             <option key={label} value={label}>
                                 {label}
