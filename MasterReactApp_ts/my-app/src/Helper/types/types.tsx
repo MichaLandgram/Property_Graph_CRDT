@@ -1,5 +1,8 @@
 // Node Types
 import * as Y from 'yjs';
+
+
+
 export type NodeId = string;
 
 
@@ -9,6 +12,19 @@ export type labelTypes = string;
 // Edge Types - need to be consistent with edgeLabelTypeValues
 export type edgeLabelTypes = string;
 
+export type dataTypes = string | number | boolean | Array<dataTypes> | Date | Map<string, dataTypes> | Vector | Point;
+
+export type Vector = {
+    dimensions: number;
+    datatype: 'number' | 'float32' | 'float64';
+    values: number[];
+};
+
+export type Point = {
+    x: number;
+    y: number;
+    z?: number;
+};
 
 // Policy Types - and Mapping to the corresponding label type
 export type Policy = string;
@@ -22,16 +38,12 @@ export type XYPosition = {
     y: number;
 };
 
-export type NodeData = {
+export type AlwaysNodeData = {
     id: NodeId;
     label: string;
     policy: Policy;
     position: XYPosition;
     color: string;
-
-    TESTDATA1: string;
-    TESTDATA2: string;
-    TESTDATA3: string;
 }
 
 // Edge Types
@@ -41,3 +53,6 @@ export type EdgeData = {
 }
 
 export type EdgeId = `${NodeId}+${NodeId}`
+
+/* Helper Types */
+export type boolKeys = "notNull" | "nullable";

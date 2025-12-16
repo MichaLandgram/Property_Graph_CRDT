@@ -88,15 +88,15 @@ const GraphEditor: React.FC<GraphEditorProps> = ({ ydoc }) => {
     const policy = Math.random() > 0.5 ? 'ADD_WINS' : 'REMOVE_WINS';
     const color = policy === 'ADD_WINS' ? '#a0e7e5' : '#ffaeae';
     graphInstance.addNode({
-      nodeId: id,
-      initialProps: { 
-        label: 'Doctor', 
+      alwaysProps: {
+        id: id,
         position : { x: Math.random() * 400, y: Math.random() * 400 },
+        label: 'Doctor', 
         policy: policy,
         color: color,
-        TESTDATA1: 'Default Data',
-        TESTDATA2: 'More Default Data',
-        TESTDATA3: 'Even More Default Data'
+      },
+      initialProps: { 
+        test: 'test'
       },
       graph: ydoc
     });

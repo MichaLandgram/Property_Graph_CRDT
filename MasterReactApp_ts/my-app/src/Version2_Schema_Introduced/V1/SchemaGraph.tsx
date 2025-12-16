@@ -1,7 +1,10 @@
 import * as Y from 'yjs'
 import { Graph, graphDoc } from '../../Helper/types/graph';
-import { NodeId, EdgeId, EdgeData, Policy, AlwaysNodeData, edgeLabelTypes } from '../../Helper/types/types';
-
+import { NodeId, EdgeId, EdgeData, Policy, AlwaysNodeData, edgeLabelTypes, labelTypes, boolKeys } from '../../Helper/types/types';
+import {
+  allowedNodePropeerties,
+  allowedEdgeProperties,
+} from '../../Schema/schema_1';
 /* This is a SCHEMA_LESS APPROACH TO A GRAPH BASED ON YJS */
 // const ydoc = new Y.Doc()
 
@@ -11,21 +14,56 @@ import { NodeId, EdgeId, EdgeData, Policy, AlwaysNodeData, edgeLabelTypes } from
 // const edgesTargetsMap = ydoc.getMap('edgesTargets') // Map of nodeId to EdgeYJSMap [target maps to EdgeMap]
 // const edgesMap = inside edgesTargetsMap // Map of target to EdgeProperties
 
-export class SGraphV4 implements Graph {
-  addNode({ alwaysProps, initialProps, graph }: { alwaysProps: AlwaysNodeData; initialProps: any; graph: graphDoc; }): void {
-    const nodesMap = graph.getMap<any>('nodes');
-    const propertiesMap = graph.getMap<Y.Map<any>>('properties');
-  
-    const nodeProps = new Y.Map();
-
-  for (const [key, value] of Object.entries(initialProps)) {
-    nodeProps.set(key, value);
+export class SchemaGraph implements Graph {
+  hasSchema : boolean = true;
+  isSchemaCorrect(graph: graphDoc): boolean {
+    throw new Error('Method not implemented.');
   }
-  
-  graph.transact(() => {
-    nodesMap.set(alwaysProps.id, Date.now());
-    propertiesMap.set(alwaysProps.id, nodeProps);
-  });
+  testProps(incoming: any, label: labelTypes | edgeLabelTypes, boolKey: boolKeys): void {
+    if (boolKey === 'notNull') {
+      Object.entries(allowedNodePropeerties[label]['notNull']).forEach(([key, value]) => {
+        if (incoming[key] === null || incoming[key] === undefined) {
+          throw new Error(`Property ${key} is null or undefined but has to be included`);
+        } else if (typeof incoming[key] !== value) {
+          throw new Error(`Property ${key} has to be of type ${value}`);
+        }
+      });
+    } else if (boolKey === 'nullable') {
+      Object.entries(allowedNodePropeerties[label]['nullable']).forEach(([key, value]) => {
+        if (incoming[key] === null || incoming[key] === undefined) {
+          return; // Property is nullable, so it can be null or undefined
+        } else if (typeof incoming[key] !== value) {
+          throw new Error(`Property ${key} has to be of type ${value}`);
+        }
+      });
+    }
+  }
+  addNode({ alwaysProps, initialProps, graph }: { alwaysProps: AlwaysNodeData; initialProps: any; graph: graphDoc; }): void {
+    try {
+      if (alwaysProps.label === null || alwaysProps.label === undefined) {
+        throw new Error('Label is null or undefined but has to be included');
+      }
+      const nodesMap = graph.getMap<any>('nodes');
+      const propertiesMap = graph.getMap<Y.Map<any>>('properties');
+
+      this.testProps(alwaysProps, alwaysProps.label, 'notNull');
+      this.testProps(initialProps, alwaysProps.label, 'nullable');
+
+      const nodeProps = new Y.Map();
+      for (const [key, value] of Object.entries(alwaysProps)) {
+        nodeProps.set(key, value);
+      }
+      for (const [key, value] of Object.entries(initialProps)) {
+        nodeProps.set(key, value);
+      }
+      
+      graph.transact(() => {
+        nodesMap.set(alwaysProps.id, Date.now());
+        propertiesMap.set(alwaysProps.id, nodeProps);
+      });
+    } catch (error) {
+        throw error;
+    }
   }
 
   updateNode({ nodeId, props, graph }: { nodeId: NodeId; props: any; graph: graphDoc; }): void {

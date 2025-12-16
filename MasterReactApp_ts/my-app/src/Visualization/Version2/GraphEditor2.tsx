@@ -2,17 +2,18 @@ import React, { useState, useCallback } from 'react';
 import { GraphCanvas, GraphCanvasRef, useSelection } from 'reagraph';
 import * as Y from 'yjs';
 import { useYjsGraphReagraph, ReagraphNode } from '../../Helper/Hook/YJS_hook_Reagraph';
-import { SGraphV4 } from '../../Version1/V4/SimpleGraph';
-import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
+// import { SGraphV4 as GraphInstance } from '../../Version1/V4/SimpleGraph';
+// import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
+import { SchemaGraph as GraphInstance } from '../../Version2_Schema_Introduced/V1/SchemaGraph';
 import { dumpGraphToNeo4j } from '../../Helper/Neo4jConnector';
-import { edgeLabelTypes, NodeData } from '../../Helper/types/types';
+import { edgeLabelTypes, AlwaysNodeData } from '../../Helper/types/types';
 import { edgeLabelTypeValues, allowedConnectivity, labelTypeValues } from '../../Schema/schema_1';
 
 interface GraphEditorProps {
   ydoc: Y.Doc;
 }
 
-const graphInstance = new SGraphV4();
+const graphInstance = new GraphInstance();
 
 const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const { nodes, edges } = useYjsGraphReagraph(ydoc);
@@ -21,11 +22,11 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const [selectedEdgeData, setSelectedEdgeData] = useState<any>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [connectMode, setConnectMode] = useState(false);
-  const [sourceNodeForEdge, setSourceNodeForEdge] = useState<NodeData | null>(null);
+  const [sourceNodeForEdge, setSourceNodeForEdge] = useState<AlwaysNodeData | null>(null);
   
   // Edge Dialog
   const [showEdgeDialog, setShowEdgeDialog] = useState(false);
-  const [pendingTargetNode, setPendingTargetNode] = useState<NodeData | null>(null);
+  const [pendingTargetNode, setPendingTargetNode] = useState<AlwaysNodeData | null>(null);
   const [edgeLabel, setEdgeLabel] = useState<edgeLabelTypes>('DEFAULT');
   const [edgePlaceholder, setEdgePlaceholder] = useState('');
 
@@ -82,17 +83,26 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
     setNewNodeLabel(labelTypeValues[0] || 'Person');
   };
 
+  const handleTestClick = () => {
+    console.log('Test Clicked');
+    graphInstance.testProps("s", 'Person', 'notNull');
+  };
+
   const handleConfirmAddNode = () => {
     const id = `node-${Date.now()}`;
     const policy = Math.random() > 0.5 ? 'ADD_WINS' : 'REMOVE_WINS';
     const color = policy === 'ADD_WINS' ? '#a0e7e5' : '#ffaeae';
     
     graphInstance.addNode({
-      nodeId: id,
-      initialProps: { 
+      alwaysProps: {
+        id: id,
+        position : { x: Math.random() * 400, y: Math.random() * 400 },
         label: newNodeLabel, 
         policy: policy,
-        color: color
+        color: color,
+      },
+      initialProps: { 
+        test: 'test'
       },
       graph: ydoc
     });
@@ -187,11 +197,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   }));
 
   return (
-    // console.log('Nodes:', nodes),
-    // console.log('Edges:', edges),
-    console.log('sourceNodeForEdge:', sourceNodeForEdge?.label),
-    console.log('pendingTargetNode:', pendingTargetNode?.label),
-    console.log('allowedConnectivity:', allowedConnectivity[sourceNodeForEdge?.label || 'Account'][pendingTargetNode?.label || 'Person']),
+    console.log('TEST', newNodeLabel),
     <div style={{ display: 'flex', height: '100vh', width: '100%', position: 'relative' }}>
       
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
@@ -220,6 +226,9 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
             style={{ background: connectMode ? '#ffeb3b' : '#e0e0e0' }}
           >
             {connectMode ? 'Cancel Connection' : 'Connect Nodes'}
+          </button>
+          <button onClick={handleTestClick}>
+              Test
           </button>
         </div>
         

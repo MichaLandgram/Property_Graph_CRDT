@@ -1,8 +1,9 @@
 import * as Y from 'yjs'
 import { Graph, graphDoc } from '../../Helper/types/graph';
-import { NodeId, EdgeId, EdgeData, Policy, NodeData, edgeLabelTypes } from '../../Helper/types/types';
+import { NodeId, EdgeId, EdgeData, Policy, AlwaysNodeData, edgeLabelTypes, labelTypes, boolKeys } from '../../Helper/types/types';
 
 
+/* This is a SCHEMA_LESS APPROACH TO A GRAPH BASED ON YJS */
 // const ydoc = new Y.Doc()
 
 // const ydoc = new Y.Doc() // Represents the collaborative graph | TOP LEVEL
@@ -12,23 +13,35 @@ import { NodeId, EdgeId, EdgeData, Policy, NodeData, edgeLabelTypes } from '../.
 // const edgesMap = inside edgesTargetsMap // Map of target to EdgeProperties
 
 export class SGraphV4 implements Graph {
-  addNode({ nodeId, initialProps, graph }: { nodeId: NodeId; initialProps: Partial<NodeData>; graph: graphDoc; }): void {
+  hasSchema : boolean = false;
+  isSchemaCorrect(graph: graphDoc): boolean {
+    alert('NOT SUPPORTED');
+    return false;
+  }
+  testProps(incoming: any, label: labelTypes | edgeLabelTypes, boolKey: boolKeys ): void {
+    throw new Error('NOT SUPPORTED');
+
+  }
+  addNode({ alwaysProps, initialProps, graph }: { alwaysProps: AlwaysNodeData; initialProps: any; graph: graphDoc; }): void {
     const nodesMap = graph.getMap<any>('nodes');
     const propertiesMap = graph.getMap<Y.Map<any>>('properties');
   
     const nodeProps = new Y.Map();
 
-  for (const [key, value] of Object.entries(initialProps)) {
-    nodeProps.set(key, value);
-  }
+    for (const [key, value] of Object.entries(alwaysProps)) {
+      nodeProps.set(key, value);
+    }
+    for (const [key, value] of Object.entries(initialProps)) {
+      nodeProps.set(key, value);
+    }
   
-  graph.transact(() => {
-    nodesMap.set(nodeId, Date.now());
-    propertiesMap.set(nodeId, nodeProps);
+    graph.transact(() => {
+      nodesMap.set(alwaysProps.id, Date.now());
+    propertiesMap.set(alwaysProps.id, nodeProps);
   });
   }
 
-  updateNode({ nodeId, props, graph }: { nodeId: NodeId; props: Partial<NodeData>; graph: graphDoc; }): void {
+  updateNode({ nodeId, props, graph }: { nodeId: NodeId; props: any; graph: graphDoc; }): void {
     const nodesMap = graph.getMap<any>('nodes');
     const propertiesMap = graph.getMap<Y.Map<any>>('properties');
     const nodeProps = propertiesMap.get(nodeId) || new Y.Map();
@@ -61,7 +74,7 @@ export class SGraphV4 implements Graph {
     }
   });
   }
-  getVisibleNodes({ graph }: { graph: graphDoc; }): Array<{ id: NodeId; props: NodeData; policy: Policy; }> {
+  getVisibleNodes({ graph }: { graph: graphDoc; }): Array<{ id: NodeId; props: any; policy: Policy; }> {
   const nodesMap = graph.getMap<any>('nodes')
   const propertiesMap = graph.getMap<Y.Map<any>>('properties')
   const visible: any[] = [];
@@ -85,10 +98,10 @@ export class SGraphV4 implements Graph {
   
   return visible;
   }
-  getNodeProps({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): NodeData | undefined {
+  getNodeProps({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): any | undefined {
     const propertiesMap = graph.getMap<Y.Map<any>>('properties');
     const props = propertiesMap.get(nodeId);
-    return props ? props.toJSON() as NodeData : undefined;
+    return props ? props.toJSON() as any : undefined;
   }
   addEdge({ sourceId, targetId, label, initialProps = { label: 'Has', placeholder: 'New Edge' }, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc; }): void {
     const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');
