@@ -6,14 +6,15 @@ import { useYjsGraphReagraph, ReagraphNode } from '../../Helper/Hook/YJS_hook_Re
 // import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
 import { SchemaGraph as GraphInstance } from '../../Version2_Schema_Introduced/V1/SchemaGraph';
 import { dumpGraphToNeo4j } from '../../Helper/Neo4jConnector';
-import { edgeLabelTypes, AlwaysNodeData } from '../../Helper/types/types';
-import { edgeLabelTypeValues, allowedConnectivity, labelTypeValues } from '../../Schema/schema_1';
+import { edgeLabelTypes, AlwaysNodeData } from '../../Helper/types_interfaces/types';
+import { Schema_1 as SchemaInstance } from '../../Schema/schema_1';
 
 interface GraphEditorProps {
   ydoc: Y.Doc;
 }
 
 const graphInstance = new GraphInstance();
+const schemaInstance = new SchemaInstance();
 
 const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const { nodes, edges } = useYjsGraphReagraph(ydoc);
@@ -32,7 +33,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
 
   //Node Dialog
   const [showNodeDialog, setShowNodeDialog] = useState(false);
-  const [newNodeLabel, setNewNodeLabel] = useState<string>(labelTypeValues[0] || 'Person');
+  const [newNodeLabel, setNewNodeLabel] = useState<string>(schemaInstance.labelTypeValues[0] || 'Person');
 
   // Ref for the graph canvas to access internal methods if needed
   const graphRef = React.useRef<GraphCanvasRef | null>(null);
@@ -80,7 +81,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
 
   const handleAddNodeClick = () => {
     setShowNodeDialog(true);
-    setNewNodeLabel(labelTypeValues[0] || 'Person');
+    setNewNodeLabel(schemaInstance.labelTypeValues[0] || 'Person');
   };
 
   const handleTestClick = () => {
@@ -263,7 +264,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
                         onChange={(e) => setNewNodeLabel(e.target.value)}
                         style={{ width: '100%', padding: '5px' }}
                     >
-                        {labelTypeValues.map((label) => (
+                        {schemaInstance.labelTypeValues.map((label) => (
                             <option key={label} value={label}>
                                 {label}
                             </option>
@@ -300,12 +301,12 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
                         style={{ width: '100%', padding: '5px' }}
                     >
                       <option value="">Select Relationship Type</option>
-                        {sourceNodeForEdge && pendingTargetNode && allowedConnectivity[sourceNodeForEdge.label][pendingTargetNode.label] && Object.values(allowedConnectivity[sourceNodeForEdge.label][pendingTargetNode.label]).map((label) => (
+                        {sourceNodeForEdge && pendingTargetNode && schemaInstance.allowedConnectivity[sourceNodeForEdge.label][pendingTargetNode.label] && Object.values(schemaInstance.allowedConnectivity[sourceNodeForEdge.label][pendingTargetNode.label]).map((label) => (
                             <option key={label} value={label}>
                                 {label}
                             </option>
                         ))}
-                        {sourceNodeForEdge && pendingTargetNode && !allowedConnectivity[sourceNodeForEdge.label][pendingTargetNode.label] && (
+                        {sourceNodeForEdge && pendingTargetNode && !schemaInstance.allowedConnectivity[sourceNodeForEdge.label][pendingTargetNode.label] && (
                             <option value="">No allowed connectivity</option>
                         )}
                     </select>
