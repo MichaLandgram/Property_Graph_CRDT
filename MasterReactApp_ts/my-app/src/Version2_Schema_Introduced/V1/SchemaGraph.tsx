@@ -1,6 +1,6 @@
 import * as Y from 'yjs'
-import { Graph, graphDoc } from '../../Helper/types/graph';
-import { NodeId, EdgeId, EdgeData, Policy, AlwaysNodeData, edgeLabelTypes, labelTypes, boolKeys } from '../../Helper/types/types';
+import { Graph, graphDoc } from '../../Helper/types_interfaces/graph';
+import { NodeId, EdgeId, EdgeData, Policy, AlwaysNodeData, edgeLabelTypes, labelTypes, boolKeys } from '../../Helper/types_interfaces/types';
 import {
   allowedNodePropeerties,
   allowedEdgeProperties,

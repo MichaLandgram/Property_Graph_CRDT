@@ -1,7 +1,7 @@
 import { SchemaGraph as GraphInstance } from './SchemaGraph';
 import { syncDocs } from '../../Helper/sync';
 import { getDoc } from '../../Helper/creator';
-import { graphDoc } from '../../Helper/types/graph';
+import { graphDoc } from '../../Helper/types_interfaces/graph';
 
 describe('Schema Graph Add Node Test', () => {
     let graph : graphDoc;
