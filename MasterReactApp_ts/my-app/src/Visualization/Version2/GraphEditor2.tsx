@@ -5,17 +5,21 @@ import { useYjsGraphReagraph, ReagraphNode } from '../../Helper/Hook/YJS_hook_Re
 import { dumpGraphToNeo4j } from '../../Helper/Vizuals/Neo4jConnector';
 import { edgeLabelTypes, AlwaysNodeData } from '../../Helper/types_interfaces/types';
 import { getGraphInstance, getSchemaInstance } from '../../VersionSelector';
+import { useGraphErrorHandler } from '../../Helper/useGraphErrorHandler';
 
 
 interface GraphEditorProps {
   ydoc: Y.Doc;
 }
 
+const testWrongLabel = ['Gnom', 'Wizard', 'Orc', 'Elf', 'Dwarf', 'Halfling', 'Dragon', 'Giant', 'Goblin', 'Golem'];
+
 const graphInstance = getGraphInstance();
 const schemaInstance = getSchemaInstance();
 
 const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const { nodes, edges } = useYjsGraphReagraph(ydoc);
+  const handleError = useGraphErrorHandler();
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [selectedEdgeData, setSelectedEdgeData] = useState<any>(null);
@@ -77,7 +81,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
     }
   }, [connectMode]);
 
-  try {
+
 
   const handleAddNodeClick = () => {
     setShowNodeDialog(true);
@@ -85,29 +89,37 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   };
 
   const handleTestClick = () => {
-    console.log('Test Clicked');
-    graphInstance.testProps("s", 'Person', 'notNull', 'Node');
+    try {
+        console.log('Test Clicked');
+        graphInstance.testProps("s", 'Person', 'notNull', 'Node');
+    } catch (e) {
+        handleError(e as Error);
+    }
   };
 
   const handleConfirmAddNode = () => {
-    const id = `node-${Date.now()}`;
-    const policy = Math.random() > 0.5 ? 'ADD_WINS' : 'REMOVE_WINS';
-    const color = policy === 'ADD_WINS' ? '#a0e7e5' : '#ffaeae';
-    
-    graphInstance.addNode({
-      alwaysProps: {
-        id: id,
-        position : { x: Math.random() * 400, y: Math.random() * 400 },
-        label: newNodeLabel, 
-        policy: policy,
-        color: color,
-      },
-      initialProps: { 
-        test: 'test'
-      },
-      graph: ydoc
-    });
-    setShowNodeDialog(false);
+    try {
+        const id = `node-${Date.now()}`;
+        const policy = Math.random() > 0.5 ? 'ADD_WINS' : 'REMOVE_WINS';
+        const color = policy === 'ADD_WINS' ? '#a0e7e5' : '#ffaeae';
+        
+        graphInstance.addNode({
+        alwaysProps: {
+            id: id,
+            position : { x: Math.random() * 400, y: Math.random() * 400 },
+            label: newNodeLabel, 
+            policy: policy,
+            color: color,
+        },
+        initialProps: { 
+            test: 'test'
+        },
+        graph: ydoc
+        });
+        setShowNodeDialog(false);
+    } catch (e) {
+        handleError(e as Error);
+    }
   };
 
   const handleUpdateFormChange = (key: string, value: string) => {
@@ -129,9 +141,9 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
           initialProps: { label: edgeLabel, placeholder: edgePlaceholder || 'No Data' },
           graph: ydoc
       });
-     } catch (error) {
-      alert(error);
-     }
+      } catch (error) {
+       handleError(error as Error);
+      }
 
       setSourceNodeForEdge(null);
       setPendingTargetNode(null);
@@ -147,21 +159,25 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const handleUpdateProperty = (key?: string, value?: string) => {
     if (!selectedNodeId) return;
     
-    if (key && value) {
+    try {
+        if (key && value) {
+            graphInstance.updateNode({
+                nodeId: selectedNodeId,
+                props: { [key]: value },
+                graph: ydoc
+            });
+            setFormData(prev => ({ ...prev, [key]: value }));
+            return;
+        }
+
         graphInstance.updateNode({
             nodeId: selectedNodeId,
-            props: { [key]: value },
+            props: { ...formData },
             graph: ydoc
         });
-        setFormData(prev => ({ ...prev, [key]: value }));
-        return;
+    } catch (e) {
+        handleError(e as Error);
     }
-
-    graphInstance.updateNode({
-        nodeId: selectedNodeId,
-        props: { ...formData },
-        graph: ydoc
-    });
   };
 
   const handleUpdateEdgeProperty = (key?: string, value?: string) => {
@@ -190,9 +206,13 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
 
   const handleDelete = () => {
       if(!selectedNodeId) return;
-      graphInstance.deleteNode({ nodeId: selectedNodeId, graph: ydoc });
-      setSelectedNodeId(null);
-      setFormData({});
+      try {
+        graphInstance.deleteNode({ nodeId: selectedNodeId, graph: ydoc });
+        setSelectedNodeId(null);
+        setFormData({});
+      } catch (e) {
+        handleError(e as Error);
+      }
   };
 
   const visualNodes = nodes.map(n => ({
@@ -202,7 +222,6 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   }));
 
   return (
-    console.log('TEST', newNodeLabel),
     <div style={{ display: 'flex', height: '100vh', width: '100%', position: 'relative' }}>
       
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
@@ -269,6 +288,12 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
                         style={{ width: '100%', padding: '5px' }}
                     >
                         {schemaInstance.labelTypeValues.map((label) => (
+                            <option key={label} value={label}>
+                                {label}
+                            </option>
+                        ))}
+                        { // to simulte the trying of non allowed labels :)
+                        testWrongLabel.map((label) => (
                             <option key={label} value={label}>
                                 {label}
                             </option>
@@ -436,9 +461,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
       )}
     </div>
   );
-  } catch (error) {
-    alert(error);
-  }
+
 };
 
 export default GraphEditor2;

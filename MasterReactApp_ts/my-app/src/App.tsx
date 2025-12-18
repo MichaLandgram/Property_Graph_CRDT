@@ -3,6 +3,7 @@ import * as Y from 'yjs';
 import { syncDocs } from './Helper/YJS_helper/sync';
 import GraphEditor from './Visualization/Version1/GraphEditor';
 import GraphEditor2 from './Visualization/Version2/GraphEditor2';
+import { GraphErrorBoundary } from './Helper/GraphErrorBoundary';
 
 
 const graph = new Y.Doc();
@@ -29,7 +30,9 @@ function App() {
             borderRight: '2px solid #ccc',
             position: 'relative'
         }}>
-          <GraphEditor2 ydoc={graph} />
+          <GraphErrorBoundary>
+            <GraphEditor2 ydoc={graph} />
+          </GraphErrorBoundary>
         </div>
 
         <div style={{ 
@@ -42,7 +45,9 @@ function App() {
             User 2 (New Reagraph Viz)
           </div>
           
-          <GraphEditor2 ydoc={graph2} />
+          <GraphErrorBoundary>
+            <GraphEditor2 ydoc={graph2} />
+          </GraphErrorBoundary>
         </div>
 
       </div>

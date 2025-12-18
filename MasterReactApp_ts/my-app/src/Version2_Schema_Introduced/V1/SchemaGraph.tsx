@@ -11,6 +11,7 @@ import { NodeId,
           edgeNodeToken
          } from '../../Helper/types_interfaces/types';
 import { Schema_1 as SchemaInstance } from '../../Schema/schema_1';
+import { GraphError } from '../../Helper/GraphError';
 /* This is a SCHEMA_LESS APPROACH TO A GRAPH BASED ON YJS */
 // const ydoc = new Y.Doc()
 
@@ -29,10 +30,10 @@ export class SchemaGraph implements Graph {
   }
   testLabel(label: labelTypes | edgeLabelTypes, edgeNodeToken: edgeNodeToken): void {
     if (edgeNodeToken === 'Node' && !schemaInstance.labelTypeValues.includes(label)) {
-      throw new Error(`Node Label ${label} is not allowed`);
+      throw new GraphError(`Node Label ${label} is not allowed`);
     }
     if (edgeNodeToken === 'Edge' && !schemaInstance.edgeLabelTypeValues.includes(label)) {
-      throw new Error(`Edge Label ${label} is not allowed`);
+      throw new GraphError(`Edge Label ${label} is not allowed`);
     }
   }
   testProps(incoming: any, label: labelTypes | edgeLabelTypes, boolKey: boolKeys, edgeNodeToken: edgeNodeToken): void {
@@ -41,9 +42,9 @@ export class SchemaGraph implements Graph {
         // unsure if necessary keep it for now
         Object.entries(schemaInstance.allowedNodePropeerties[label]['notNull']).forEach(([key, value]) => {
           if (incoming[key] === null || incoming[key] === undefined) {
-            throw new Error(`Property ${key} is null or undefined but has to be included`);
+            throw new GraphError(`Property ${key} is null or undefined but has to be included`);
           } else if (typeof incoming[key] !== value) {
-            throw new Error(`Property ${key} has to be of type ${value}`);
+            throw new GraphError(`Property ${key} has to be of type ${value}`);
           }
         });
       } else if (boolKey === 'nullable') {
@@ -51,7 +52,7 @@ export class SchemaGraph implements Graph {
           if (incoming[key] === null || incoming[key] === undefined) {
             return; // Property is nullable, so it can be null or undefined
           } else if (typeof incoming[key] !== value) {
-            throw new Error(`Property ${key} has to be of type ${value}`);
+            throw new GraphError(`Property ${key} has to be of type ${value}`);
           }
         });
       }
@@ -60,9 +61,9 @@ export class SchemaGraph implements Graph {
         Object.entries(schemaInstance.allowedEdgeProperties[label]['notNull']).forEach(([key, value]) => {
           // unsure if necessary keep it for now
           if (incoming[key] === null || incoming[key] === undefined) {
-            throw new Error(`Property ${key} is null or undefined but has to be included`);
+            throw new GraphError(`Property ${key} is null or undefined but has to be included`);
           } else if (typeof incoming[key] !== value) {
-            throw new Error(`Property ${key} has to be of type ${value}`);
+            throw new GraphError(`Property ${key} has to be of type ${value}`);
           }
         });
       } else if (boolKey === 'nullable') {
@@ -70,7 +71,7 @@ export class SchemaGraph implements Graph {
           if (incoming[key] === null || incoming[key] === undefined) {
             return; // Property is nullable, so it can be null or undefined
           } else if (typeof incoming[key] !== value) {
-            throw new Error(`Property ${key} has to be of type ${value}`);
+            throw new GraphError(`Property ${key} has to be of type ${value}`);
           }
         });
       }
@@ -81,11 +82,11 @@ export class SchemaGraph implements Graph {
       const targetNodeLabel = this.getNodeProps({nodeId: targetId, graph}).label;
       // block connectivity betweem nodes overall based on the schema 
       if (!schemaInstance.allowedConnectivity[sourceNodeLabel][targetNodeLabel]) {
-        throw new Error(`Connectivity between ${sourceNodeLabel} and ${targetNodeLabel} is not allowed`);
+        throw new GraphError(`Connectivity between ${sourceNodeLabel} and ${targetNodeLabel} is not allowed`);
       }
       // block specific label-connections based on the schema
       if (!schemaInstance.allowedConnectivity[sourceNodeLabel][targetNodeLabel].includes(edgeLabel)) {
-        throw new Error(`${edgeLabel} between ${sourceNodeLabel} and ${targetNodeLabel} is not allowed`);
+        throw new GraphError(`${edgeLabel} between ${sourceNodeLabel} and ${targetNodeLabel} is not allowed`);
       }
   }
   addNode({ alwaysProps, initialProps, graph }: { alwaysProps: AlwaysNodeData; initialProps: any; graph: graphDoc; }): void {
@@ -114,7 +115,7 @@ export class SchemaGraph implements Graph {
     const propertiesMap = graph.getMap<Y.Map<any>>('properties');
 
     const nodeProps = propertiesMap.get(nodeId)
-    if (!nodeProps) {throw new Error(`Node ${nodeId} not found - cannot update something that does not exist`);}
+    if (!nodeProps) {throw new GraphError(`Node ${nodeId} not found - cannot update something that does not exist`);}
     
     this.testProps(props, nodeProps.get('label'), 'nullable', 'Node');
 
@@ -129,7 +130,7 @@ export class SchemaGraph implements Graph {
     const propertiesMap = graph.getMap<Y.Map<any>>('properties')
     const node = propertiesMap.get(nodeId);
 
-    if (!node) {throw new Error(`Node ${nodeId} not found - cannot delete something that does not exist`);}
+    if (!node) {throw new GraphError(`Node ${nodeId} not found - cannot delete something that does not exist`);}
 
     const policy = node.get('policy');
     
