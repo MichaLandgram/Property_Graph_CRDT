@@ -1,6 +1,14 @@
 import * as Y from 'yjs'
 import { Graph, graphDoc } from '../../Helper/types_interfaces/graph';
-import { NodeId, EdgeId, EdgeData, Policy, AlwaysNodeData, edgeLabelTypes, labelTypes, boolKeys } from '../../Helper/types_interfaces/types';
+import { NodeId, 
+        EdgeId, 
+        EdgeData, 
+        Policy, 
+        AlwaysNodeData, 
+        edgeLabelTypes, 
+        labelTypes, 
+        boolKeys, 
+        edgeNodeToken } from '../../Helper/types_interfaces/types';
 
 
 /* This is a SCHEMA_LESS APPROACH TO A GRAPH BASED ON YJS */
@@ -17,6 +25,9 @@ export class SGraphV4 implements Graph {
   isSchemaCorrect(graph: graphDoc): boolean {
     alert('NOT SUPPORTED');
     return false;
+  }
+  testLabel(label: labelTypes | edgeLabelTypes, edgeNodeToken: edgeNodeToken): void {
+    throw new Error('NOT SUPPORTED');
   }
   testProps(incoming: any, label: labelTypes | edgeLabelTypes, boolKey: boolKeys ): void {
     throw new Error('NOT SUPPORTED');

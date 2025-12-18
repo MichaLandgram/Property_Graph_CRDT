@@ -70,7 +70,7 @@ export class Schema_1 implements Schema_Interface {
                 riskLevel: 'string',
                 deviceInfo: 'map',
                 location: 'point',
-                loginCount: 'number'
+                loginCount: 'counter'
             }
         },
         Company: {
@@ -101,10 +101,46 @@ export class Schema_1 implements Schema_Interface {
             }
         }
     };
-    allowedEdgeProperties: Record<edgeLabelTypes, Record<boolKeys, Record<string, dataTypes>>> = {
+    edgeTypeCardinality: Record<edgeLabelTypes, Record<labelTypes, Record<labelTypes, number>>> = {
         // TODO
     };
+    allowedEdgeProperties: Record<edgeLabelTypes, Record<boolKeys, Record<string, dataTypes>>> = {
+        Account: {
+            notNull: {
+                
+            },
+            nullable: {
+                
+            }
+        },
+        Medium: {
+            notNull: {
+                
+            },
+            nullable: {
+                
+            }
+        },
+        Company: {
+            notNull: {
+                
+            },
+            nullable: {
+                
+            }
+        },
+        Loan: {
+            notNull: {
+                
+            },
+            nullable: {
+                
+            }
+        }
+    };
+
     policyValues: Policy[] = ['ADD_WINS', 'REMOVE_WINS']
+
     matchPolicyToLabelType(label: labelTypes): Policy {
         switch (label) {
             case 'Loan':

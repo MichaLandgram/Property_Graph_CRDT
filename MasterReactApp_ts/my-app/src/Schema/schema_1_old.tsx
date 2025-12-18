@@ -47,7 +47,11 @@ export const allowedConnectivity: Record<labelTypes, Record<labelTypes, edgeLabe
         Company: ['guarantee'],
         Person: ['guarantorRef'],
     }
-};
+}
+
+export const edgeTypeCardinality: Record<edgeLabelTypes, Record<labelTypes, Record<labelTypes, number>>> = {
+    // TODO
+}
 
 
 // Record that contains all allowed node properties
@@ -147,6 +151,6 @@ export function MatchPolicyToLabelType(label: labelTypes): Policy {
         case 'Company':
             return 'ADD_WINS';
         default:
-            return 'ADD_WINS';
+            throw new Error('Invalid label type');
     }
 }

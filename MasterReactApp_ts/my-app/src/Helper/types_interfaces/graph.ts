@@ -1,4 +1,12 @@
-import { NodeId, EdgeId, EdgeData, Policy, AlwaysNodeData, edgeLabelTypes, labelTypes, boolKeys  } from './types';
+import { NodeId, 
+        EdgeId, 
+        EdgeData, 
+        Policy, 
+        AlwaysNodeData, 
+        edgeLabelTypes, 
+        labelTypes, 
+        boolKeys, 
+        edgeNodeToken } from './types';
 import * as Y from 'yjs';
 
 
@@ -6,7 +14,8 @@ export type graphDoc = Y.Doc;
 export interface Graph {
     hasSchema : boolean;
     isSchemaCorrect(graph: graphDoc): boolean;
-    testProps(incoming: any, label: labelTypes | edgeLabelTypes, boolKey: boolKeys ): void;
+    testLabel(label: labelTypes | edgeLabelTypes, edgeNodeToken: edgeNodeToken): void;
+    testProps(incoming: any, label: labelTypes | edgeLabelTypes, boolKey: boolKeys, edgeNodeToken: edgeNodeToken): void;
 
     addNode({alwaysProps, initialProps, graph}: {alwaysProps: Partial<AlwaysNodeData>, initialProps: any, graph: graphDoc}): void;
     updateNode({nodeId, props, graph}: {nodeId: NodeId, props: any, graph: graphDoc}): void;

@@ -5,6 +5,7 @@ export interface Schema_Interface {
     edgeLabelTypeValues: edgeLabelTypes[];
     allowedConnectivity: Record<labelTypes, Record<labelTypes, edgeLabelTypes[]>>;
     allowedNodePropeerties: Record<labelTypes, Record<boolKeys, Record<string, dataTypes>>>;
+    edgeTypeCardinality: Record<edgeLabelTypes, Record<labelTypes, Record<labelTypes, number>>>;
     allowedEdgeProperties: Record<edgeLabelTypes, Record<boolKeys, Record<string, dataTypes>>>;
     policyValues: Policy[];
     matchPolicyToLabelType(label: labelTypes): Policy;

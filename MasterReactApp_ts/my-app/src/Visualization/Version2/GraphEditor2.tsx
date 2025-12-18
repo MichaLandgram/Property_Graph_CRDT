@@ -86,7 +86,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
 
   const handleTestClick = () => {
     console.log('Test Clicked');
-    graphInstance.testProps("s", 'Person', 'notNull');
+    graphInstance.testProps("s", 'Person', 'notNull', 'Node');
   };
 
   const handleConfirmAddNode = () => {

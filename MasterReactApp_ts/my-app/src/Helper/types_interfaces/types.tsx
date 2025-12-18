@@ -1,24 +1,17 @@
-// Node Types
-import * as Y from 'yjs';
-
-
-
+// Node Id Type
 export type NodeId = string;
-
-
-// Node Types
+// Node Label
 export type labelTypes = string;
 
-// Edge Types - need to be consistent with edgeLabelTypeValues
+// Edge Label
 export type edgeLabelTypes = string;
 
-export type dataTypes = string | number | boolean | Array<dataTypes> | Date | Map<string, dataTypes> | Vector | Point;
+// Data Types
+export type dataTypes = string | number | boolean | Array<dataTypes> | Date | Map<string, dataTypes> | Counter // | Vector | Point;
 
-export type Vector = {
-    dimensions: number;
-    datatype: 'number' | 'float32' | 'float64';
-    values: number[];
-};
+export type Counter = {
+    value: number;
+}
 
 export type Point = {
     x: number;
@@ -29,8 +22,7 @@ export type Point = {
 // Policy Types - and Mapping to the corresponding label type
 export type Policy = "ADD_WINS" | "REMOVE_WINS"
 
-export type edgeLabelData = Y.Map<EdgeData>;
-export type edgeTargets = Y.Map<edgeLabelData>;
+
 
 
 export type XYPosition = {
@@ -56,3 +48,9 @@ export type EdgeId = `${NodeId}+${NodeId}`
 
 /* Helper Types */
 export type boolKeys = "notNull" | "nullable";
+
+export type edgeNodeToken = "Node" | "Edge";
+
+export type AllowedConnectivity = Record<labelTypes, Record<labelTypes, edgeLabelTypes[]>>;
+
+export type AllowedNodeProperties = Record<labelTypes, Record<boolKeys, Record<string, dataTypes>>>;
