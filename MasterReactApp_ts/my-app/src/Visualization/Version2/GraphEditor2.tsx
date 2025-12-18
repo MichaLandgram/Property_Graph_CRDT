@@ -2,19 +2,17 @@ import React, { useState, useCallback } from 'react';
 import { GraphCanvas, GraphCanvasRef, useSelection } from 'reagraph';
 import * as Y from 'yjs';
 import { useYjsGraphReagraph, ReagraphNode } from '../../Helper/Hook/YJS_hook_Reagraph';
-// import { SGraphV4 as GraphInstance } from '../../Version1/V4/SimpleGraph';
-// import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
-import { SchemaGraph as GraphInstance } from '../../Version2_Schema_Introduced/V1/SchemaGraph';
 import { dumpGraphToNeo4j } from '../../Helper/Neo4jConnector';
 import { edgeLabelTypes, AlwaysNodeData } from '../../Helper/types_interfaces/types';
-import { Schema_1 as SchemaInstance } from '../../Schema/schema_1';
+import { getGraphInstance, getSchemaInstance } from '../../VersionSelector';
+
 
 interface GraphEditorProps {
   ydoc: Y.Doc;
 }
 
-const graphInstance = new GraphInstance();
-const schemaInstance = new SchemaInstance();
+const graphInstance = getGraphInstance();
+const schemaInstance = getSchemaInstance();
 
 const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const { nodes, edges } = useYjsGraphReagraph(ydoc);
@@ -79,6 +77,8 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
     }
   }, [connectMode]);
 
+  try {
+
   const handleAddNodeClick = () => {
     setShowNodeDialog(true);
     setNewNodeLabel(schemaInstance.labelTypeValues[0] || 'Person');
@@ -118,9 +118,10 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   };
 
   const handleCreateEdge = () => {
-      if (!sourceNodeForEdge || !pendingTargetNode) return;
+    if (!sourceNodeForEdge || !pendingTargetNode) return;
      console.log('Creating edge from', sourceNodeForEdge.id, 'to', pendingTargetNode.id); 
      console.log('Edge label:', edgeLabel);
+     try {
       graphInstance.addEdge({
           sourceId: sourceNodeForEdge.id,
           targetId: pendingTargetNode.id,
@@ -128,6 +129,9 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
           initialProps: { label: edgeLabel, placeholder: edgePlaceholder || 'No Data' },
           graph: ydoc
       });
+     } catch (error) {
+      alert(error);
+     }
 
       setSourceNodeForEdge(null);
       setPendingTargetNode(null);
@@ -210,7 +214,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
           onEdgeClick={handleEdgeClick}
           onCanvasClick={handleCanvasClick}
           draggable={true}
-          // layoutType=""
+          // layoutType="" .. playing around to see whats best
           labelType="all"
           // aggregateEdges={true} using this crashed currently not know why .. but not that important
         />
@@ -301,7 +305,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
                         style={{ width: '100%', padding: '5px' }}
                     >
                       <option value="">Select Relationship Type</option>
-                        {sourceNodeForEdge && pendingTargetNode && schemaInstance.allowedConnectivity[sourceNodeForEdge.label][pendingTargetNode.label] && Object.values(schemaInstance.allowedConnectivity[sourceNodeForEdge.label][pendingTargetNode.label]).map((label) => (
+                        {sourceNodeForEdge && pendingTargetNode && Object.values(schemaInstance.edgeLabelTypeValues).map((label) => (
                             <option key={label} value={label}>
                                 {label}
                             </option>
@@ -432,6 +436,9 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
       )}
     </div>
   );
+  } catch (error) {
+    alert(error);
+  }
 };
 
 export default GraphEditor2;

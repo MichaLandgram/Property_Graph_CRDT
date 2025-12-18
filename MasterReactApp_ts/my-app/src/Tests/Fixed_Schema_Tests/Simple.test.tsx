@@ -1,16 +1,17 @@
-import { SchemaGraph as GraphInstance } from './SchemaGraph';
+import { getActiveGraphClass } from '../../VersionSelector';
 import { syncDocs } from '../../Helper/sync';
 import { getDoc } from '../../Helper/creator';
-import { graphDoc } from '../../Helper/types_interfaces/graph';
+import { graphDoc, Graph } from '../../Helper/types_interfaces/graph';
 
 describe('Schema Graph Add Node Test', () => {
     let graph : graphDoc;
-    let schemaGraph : GraphInstance;
+    let schemaGraph : Graph;
     let position = { x: 0, y: 0 };
     let color = 'red';
     beforeEach(() => {
         graph = getDoc();
-        schemaGraph = new GraphInstance();
+        const GraphClass = getActiveGraphClass();
+        schemaGraph = new GraphClass();
     })
     test('Add Node with missing props (label)', () => {
         // placeholder is not allowed should throw error

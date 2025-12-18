@@ -35,7 +35,6 @@ export class SchemaGraph implements Graph {
       throw new Error(`Edge Label ${label} is not allowed`);
     }
   }
-
   testProps(incoming: any, label: labelTypes | edgeLabelTypes, boolKey: boolKeys, edgeNodeToken: edgeNodeToken): void {
     if (edgeNodeToken === 'Node') {
       if (boolKey === 'notNull') {
@@ -77,7 +76,18 @@ export class SchemaGraph implements Graph {
       }
     } 
   }
-
+  testConnectivity({sourceId, targetId, edgeLabel, graph}: {sourceId: NodeId, targetId: NodeId, edgeLabel: edgeLabelTypes, graph: graphDoc}): void {
+      const sourceNodeLabel = this.getNodeProps({nodeId: sourceId, graph}).label;
+      const targetNodeLabel = this.getNodeProps({nodeId: targetId, graph}).label;
+      // block connectivity betweem nodes overall based on the schema 
+      if (!schemaInstance.allowedConnectivity[sourceNodeLabel][targetNodeLabel]) {
+        throw new Error(`Connectivity between ${sourceNodeLabel} and ${targetNodeLabel} is not allowed`);
+      }
+      // block specific label-connections based on the schema
+      if (!schemaInstance.allowedConnectivity[sourceNodeLabel][targetNodeLabel].includes(edgeLabel)) {
+        throw new Error(`${edgeLabel} between ${sourceNodeLabel} and ${targetNodeLabel} is not allowed`);
+      }
+  }
   addNode({ alwaysProps, initialProps, graph }: { alwaysProps: AlwaysNodeData; initialProps: any; graph: graphDoc; }): void {
       const nodesMap = graph.getMap<any>('nodes');
       const propertiesMap = graph.getMap<Y.Map<any>>('properties');
@@ -99,7 +109,6 @@ export class SchemaGraph implements Graph {
         propertiesMap.set(alwaysProps.id, nodeProps);
       });
   }
-
   updateNode({ nodeId, props, graph }: { nodeId: NodeId; props: any; graph: graphDoc; }): void {
     const nodesMap = graph.getMap<any>('nodes');
     const propertiesMap = graph.getMap<Y.Map<any>>('properties');
@@ -115,7 +124,6 @@ export class SchemaGraph implements Graph {
       nodesMap.set(nodeId, Date.now());
     }});
   }
-
   deleteNode({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): void {
     const nodesMap = graph.getMap<any>('nodes')
     const propertiesMap = graph.getMap<Y.Map<any>>('properties')
@@ -134,7 +142,6 @@ export class SchemaGraph implements Graph {
       }
     });
   }
-
   getVisibleNodes({ graph }: { graph: graphDoc; }): Array<{ id: NodeId; props: any; policy: Policy; }> {
     const nodesMap = graph.getMap<any>('nodes')
     const propertiesMap = graph.getMap<Y.Map<any>>('properties')
@@ -164,12 +171,12 @@ export class SchemaGraph implements Graph {
     const props = propertiesMap.get(nodeId);
     return props ? props.toJSON() as any : undefined;
   }
-
-  addEdge({ sourceId, targetId, label, initialProps = { label: 'Has', placeholder: 'New Edge' }, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc; }): void {
+  addEdge({ sourceId, targetId, label, initialProps, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps: EdgeData; graph: graphDoc; }): void {
     const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');
     const nodesMap = graph.getMap<any>('nodes');
 
     this.testLabel(label, 'Edge');
+    this.testConnectivity({sourceId, targetId, edgeLabel: label, graph});
     
     graph.transact(() => {
       let edgesMap = edgesTargetsMap.get(sourceId);
@@ -228,5 +235,5 @@ export class SchemaGraph implements Graph {
       }
     }
     return edges;
-    }
+  }
 }

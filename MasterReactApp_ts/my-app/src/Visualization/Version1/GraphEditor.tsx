@@ -3,7 +3,9 @@ import ReactFlow, { Background, Controls, Handle, Position, Node, Connection } f
 import 'reactflow/dist/style.css';
 import * as Y from 'yjs';
 import { useYjsGraph } from '../../Helper/Hook/YJS_hook_V1';
-import { SGraphV4 } from '../../Version1/V4/SimpleGraph';
+import { getGraphInstance } from '../../VersionSelector';
+
+const graphInstance = getGraphInstance();  // specifies the graph instance to use
 
 // Suppress ResizeObserver loop error
 const originalError = console.error;
@@ -54,7 +56,7 @@ interface GraphEditorProps {
   ydoc: Y.Doc;
 }
 
-const graphInstance = new SGraphV4();
+
 
 const GraphEditor: React.FC<GraphEditorProps> = ({ ydoc }) => { 
   const { nodes, onNodesChange, edges, onEdgesChange } = useYjsGraph(ydoc);
