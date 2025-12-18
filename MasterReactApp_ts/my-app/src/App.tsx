@@ -1,6 +1,6 @@
 import './App.css';
 import * as Y from 'yjs';
-import { syncDocs } from './Helper/sync';
+import { syncDocs } from './Helper/YJS_helper/sync';
 import GraphEditor from './Visualization/Version1/GraphEditor';
 import GraphEditor2 from './Visualization/Version2/GraphEditor2';
 

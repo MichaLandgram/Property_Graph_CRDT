@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuid } from 'uuid';
 // import { SGraphV4 as GraphInstance } from '../../Version1/V4/SimpleGraph';
 import { SchemaGraph as GraphInstance } from '../../Version2_Schema_Introduced/V1/SchemaGraph';
-import { processEdgeCurvatures } from '../GraphUtils';
+import { processEdgeCurvatures } from '../Vizuals/GraphUtils';
 import * as Y from 'yjs';
 
 // Reagraph types (inferred, as we don't have exact types yet)

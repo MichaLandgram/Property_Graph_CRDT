@@ -1,6 +1,6 @@
 import { getActiveGraphClass } from '../../VersionSelector';
-import { syncDocs } from '../../Helper/sync';
-import { getDoc } from '../../Helper/creator';
+import { syncDocs } from '../../Helper/YJS_helper/sync';
+import { getDoc } from '../../Helper/YJS_helper/creator';
 import { graphDoc, Graph } from '../../Helper/types_interfaces/graph';
 
 describe('Schema Graph Add Node Test', () => {

@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { GraphCanvas, GraphCanvasRef, useSelection } from 'reagraph';
 import * as Y from 'yjs';
 import { useYjsGraphReagraph, ReagraphNode } from '../../Helper/Hook/YJS_hook_Reagraph';
-import { dumpGraphToNeo4j } from '../../Helper/Neo4jConnector';
+import { dumpGraphToNeo4j } from '../../Helper/Vizuals/Neo4jConnector';
 import { edgeLabelTypes, AlwaysNodeData } from '../../Helper/types_interfaces/types';
 import { getGraphInstance, getSchemaInstance } from '../../VersionSelector';
 

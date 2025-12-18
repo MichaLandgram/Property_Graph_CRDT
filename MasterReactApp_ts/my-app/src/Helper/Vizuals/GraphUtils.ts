@@ -1,4 +1,4 @@
-import { ReagraphEdge } from './Hook/YJS_hook_Reagraph';
+import { ReagraphEdge } from '../Hook/YJS_hook_Reagraph';
 
 // experiments with basic edge curvature
 
