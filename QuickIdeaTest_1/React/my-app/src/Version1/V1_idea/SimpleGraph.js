@@ -1,13 +1,12 @@
 import * as Y from 'yjs'
 
 
-// const ydoc = new Y.Doc()
-// const nodesMap = ydoc.getMap('nodes')
-// const tombNodes = ydoc.getMap('removedNodes')
-// const edgesMap = ydoc.getMap('edges')
+// const ydoc = new Y.Doc() // Represents the collaborative graph
+// const nodesMap = ydoc.getMap('nodes') // Map of nodeId to node properties
+// const tombNodes = ydoc.getMap('removedNodes') // Map of removed nodeIds (tombstones)
+// const edgesMap = ydoc.getMap('edges') // Map of edgeId to edge properties [not used here]
 
 export function addNode({ id, initialProps = {}, graph }) {
-  console.log('Add Node:', id, initialProps);
   const nodesMap = graph.getMap('nodes')
   const nodeProps = new Y.Map()
 
@@ -20,39 +19,18 @@ export function addNode({ id, initialProps = {}, graph }) {
   })
 }
 
-// export function updateNode({ id, props, graph }) {
-//   const nodesMap = graph.getMap('nodes');
-//   console.log('Before Update Node Map:', nodesMap.get(id)?.toJSON());
-//   const node = nodesMap.get(id) || new Y.Map();
-//   console.log('Updated Node Map:', nodesMap.toJSON(), id, node.toJSON());
-  
-//   graph.transact(() => {
-//     for (const [k, v] of Object.entries(props)) {
-//     node.set(k, v);
-//   }
-//   });
-//   // nodesMap.set(id, node.clone());
-// }
-
 export function updateNode({ id, props, graph }) {
   const nodesMap = graph.getMap('nodes');
-  let isNewNode = false;
-  let node = nodesMap.get(id);
+  const node = nodesMap.get(id) || new Y.Map();
 
-  if (!node) {
-    node = new Y.Map();
-    isNewNode = true;
-  }
-  
   graph.transact(() => {
     for (const [k, v] of Object.entries(props)) {
-      node.set(k, v);
-    }
-    
-    if (isNewNode) {
-        nodesMap.set(id, node);
-    }
+    node.set(k, v);
+    // the clone is necessary to trigger Yjs updates in maps but it kills the nested syncing :C
+    nodesMap.set(id, node.clone());
+  }
   });
+
 }
 
 export function deleteNode({ id, graph }) {
@@ -72,7 +50,6 @@ export function deleteNode({ id, graph }) {
     } else if (policy === 'ADD_WINS') {
 
       nodesMap.delete(id);
-
       tombNodes.delete(id); 
     }
   });
@@ -101,32 +78,22 @@ export function getVisibleNodes({ graph }) {
   return visible;
 }
 
-function addEdge(id, sourceId, targetId, initialProps = {}) {
-  const edgeProps = new Y.Map()
-
-  edgeProps.set('source', sourceId)
-  edgeProps.set('target', targetId)
-  
-
-  for (const [key, value] of Object.entries(initialProps)) {
-    edgeProps.set(key, value)
-  }
-
-  // ydoc.transact(() => {
-  //   edgesMap.set(id, edgeProps)
-  // })
+export function getNodeProps(graph, id) {
+  const nodesMap = graph.getMap('nodes');
+  return nodesMap.get(id).toJSON();
 }
 
-export function test () {
-  const graph = new Y.Doc()
-  graph.getMap('nodes')
-  graph.getMap('removedNodes')
-  graph.getMap('edges')
+export function addEdge({ sourceId, targetId, initialProps = {}, graph }) {
+ // TODO
+ console.log("Not implemented");
 }
 
+export function updateEdge({ sourceId, targetId, props, graph }) {
+ // TODO
+ console.log("Not implemented");
+}
 
-export function test2 () {
-  addNode('node-3', { label: 'City', name: 'Wonderland' })
-
-
+export function removeEdge({ sourceId, targetId, graph }) {
+ // TODO
+ console.log("Not implemented");
 }

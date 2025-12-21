@@ -1,20 +1,17 @@
-import { addNode, deleteNode, getVisibleNodes, updateNode } from './SimpleGraph';
+import { addNode, deleteNode, updateNode, getNodeProps, getVisibleNodes, addEdge, getEdges } from './SimpleGraph';
 import { syncDocs } from '../../Helper/sync';
 import { getDoc } from '../../Helper/creator';
-
-// TEST TEST CASE Lol
-// test('adds 1 + 2 to equal 3', () => {
-//   expect(1 + 2).toBe(3);
-// });
 
 describe('Hybrid Policy Test for Conflict Resolution (REMOVE_WINS vs. ADD_WINS) NO CONCURRENCY', () => {
     let graph;
     const rwId = 'rw-config-1';
     const awId = 'aw-user-2';
 
+    // Graph V1 init
     beforeEach(() => {
         graph = getDoc();
         graph.getMap('nodes');
+        graph.getMap('properties');
         graph.getMap('removedNodes');
         graph.getMap('edges');
         // add Node with remove wins policy
@@ -37,7 +34,9 @@ describe('Hybrid Policy Test for Conflict Resolution (REMOVE_WINS vs. ADD_WINS) 
         
         expect(graph.getMap('nodes').has(rwId)).toBe(true);
         expect(graph.getMap('nodes').has(awId)).toBe(true);
+        console.log('Initial Nodes:', initialNodes);
         expect(initialNodes).toHaveLength(2);
+
         expect(initialNodes.map(n => n.id)).toEqual(expect.arrayContaining([rwId, awId]));
     });
 
@@ -51,7 +50,7 @@ describe('Hybrid Policy Test for Conflict Resolution (REMOVE_WINS vs. ADD_WINS) 
         const nodesMap = graph.getMap('nodes');
         const rwNodeMap = nodesMap.get(rwId);
         // Simuliere ein Update auf den gelöschten Knoten
-        rwNodeMap.set('name', 'Konfiguration (UPDATE)');
+        updateNode({ id: rwId, props: { name: 'Konfiguration (UPDATE)' }, graph });
 
         const afterRwDelete = getVisibleNodes({ graph });
         expect(afterRwDelete).toHaveLength(1);
@@ -99,7 +98,7 @@ describe('Hybrid Policy Sync Tests (Concurreny and Revival)', () => {
         deleteNode({ id: rwId, graph: docA }); 
         
         const rwNodeB = docB.getMap('nodes').get(rwId);
-        rwNodeB.set('name', 'RW Konkurrenz-Update'); 
+        updateNode({ id: rwId, props: { name: 'RW Konkurrenz-Update' }, graph: docB });
 
         syncDocs(docA, docB);
         syncDocs(docB, docA);
@@ -110,7 +109,7 @@ describe('Hybrid Policy Sync Tests (Concurreny and Revival)', () => {
         expect(getVisibleNodes({ graph: docA })).toHaveLength(1);
         expect(getVisibleNodes({ graph: docB })).toHaveLength(1);
         
-        expect(docA.getMap('nodes').get(rwId).get('name')).toBe('RW Konkurrenz-Update');
+        expect(docA.getMap('properties').get(rwId) === undefined).toBe(true);
     });
     
     test('AW-Knoten muss nach Delete vs. Update wiederbelebt werden (Revival)', () => {
@@ -151,5 +150,78 @@ describe('Hybrid Policy Sync Tests (Concurreny and Revival)', () => {
         expect(getVisibleNodes({ graph: docA })).toHaveLength(1);
         
         console.log(`\n✅ Blacklist Merge Test erfolgreich: Zwei konkurrierende Löschungen mergen zu einem einzelnen Grabstein.`);
+    });
+
+    test('AW-Knoten soll beide Update Informationen nach konkurrierenden Updates behalten', () => {
+
+        updateNode({ id: awId, props: { data: 'AW Update', policy: 'ADD_WINS', data2: 'AW Update 1' }, graph: docA });
+        updateNode({ id: awId, props: { data: 'AW Update', policy: 'ADD_WINS', data3: 'AW Update 2' }, graph: docB });
+        console.log(getNodeProps(docA, awId));
+        console.log(getNodeProps(docB, awId));
+
+        expect(getNodeProps(docA, awId).data2).toBe('AW Update 1');
+        expect(getNodeProps(docB, awId).data3).toBe('AW Update 2');
+
+        syncDocs(docA, docB);
+        syncDocs(docB, docA);
+
+        expect(getNodeProps(docA, awId).data2).toBe('AW Update 1');
+        expect(getNodeProps(docA, awId).data3).toBe('AW Update 2');
+        expect(getNodeProps(docB, awId).data3).toBe('AW Update 2');
+        expect(getNodeProps(docB, awId).data2).toBe('AW Update 1');
+
+        console.log(`\n✅ AW Concurrent Update Merge Test erfolgreich: Beide Updates wurden beibehalten.`);
+    });
+});
+
+describe('Sync the adding of edges between two docs', () => {
+    let graphA;
+    let graphB;
+    const node1Id = 'node-1';
+    const node2Id = 'node-2';
+    const node3Id = 'node-3';
+    const node4Id = 'node-4';
+
+    beforeEach(() => {
+        graphA = getDoc();
+        graphB = getDoc();
+
+        ['nodes', 'removedNodes', 'edges', 'properties'].forEach(mapName => {
+            graphA.getMap(mapName);
+            graphB.getMap(mapName);
+        });
+        addNode({ id: node1Id, initialProps: { policy: 'ADD_WINS', name: 'Node 1' }, graph: graphA });
+        addNode({ id: node2Id, initialProps: { policy: 'ADD_WINS', name: 'Node 2' }, graph: graphA });
+        addNode({ id: node3Id, initialProps: { policy: 'ADD_WINS', name: 'Node 3' }, graph: graphB });
+        addNode({ id: node4Id, initialProps: { policy: 'ADD_WINS', name: 'Node 4' }, graph: graphB });
+        syncDocs(graphA, graphB);
+        syncDocs(graphB, graphA);
+    });
+
+    test('Edges should sync correctly between two docs', () => {
+        const edgesA = [
+            { sourceId: node1Id, targetId: node2Id, initialProps: { label: 'Edge 1-2' } },
+            { sourceId: node2Id, targetId: node1Id, initialProps: { label: 'Edge 2-1' } },
+        ];
+        edgesA.forEach(edge => {
+            addEdge({ sourceId: edge.sourceId, targetId: edge.targetId, initialProps: edge.initialProps, graph: graphA });
+        });
+        syncDocs(graphA, graphB);
+        syncDocs(graphB, graphA);
+        const edgesB = [
+            { sourceId: node3Id, targetId: node4Id, initialProps: { label: 'Edge 3-4' } },
+            { sourceId: node4Id, targetId: node3Id, initialProps: { label: 'Edge 4-3' } },
+        ];
+        edgesB.forEach(edge => {
+            addEdge({ sourceId: edge.sourceId, targetId: edge.targetId, initialProps: edge.initialProps, graph: graphB });
+        });
+        syncDocs(graphA, graphB);
+        syncDocs(graphB, graphA);
+        const finalEdgesA = getEdges({ graph: graphA });
+        const finalEdgesB = getEdges({ graph: graphB });
+        expect(finalEdgesA).toHaveLength(4);
+        expect(finalEdgesB).toHaveLength(4);
+        const edgeLabels = finalEdgesA.map(e => e.label);
+        expect(edgeLabels).toEqual(expect.arrayContaining(['Edge 1-2', 'Edge 2-1', 'Edge 3-4', 'Edge 4-3']));
     });
 });

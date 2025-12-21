@@ -66,7 +66,5 @@ addEdge('edge-1', 'node-1', 'node-2', { label: 'KNOWS', since: 2023 })
 
 // Zugriff auf Daten
 const alice = nodesMap.get('node-1')
-console.log(alice.toJSON()) // { label: 'Person', name: 'Alice' }
 
 const connection = edgesMap.get('edge-1')
-console.log(connection.toJSON()) // { source: 'node-1', target: 'node-2', label: 'KNOWS', since: 2023 }

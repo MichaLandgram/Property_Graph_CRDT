@@ -1,0 +1,9 @@
+node_modules/@types/d3-dispatch/index.d.ts(91,5): error TS1139: Type parameter declaration expected.
+node_modules/@types/d3-dispatch/index.d.ts(91,22): error TS1005: ',' expected.
+node_modules/@types/d3-dispatch/index.d.ts(91,36): error TS1005: ',' expected.
+node_modules/@types/d3-dispatch/index.d.ts(91,48): error TS1005: ',' expected.
+node_modules/@types/d3-dispatch/index.d.ts(92,1): error TS1109: Expression expected.
+node_modules/@types/d3-dispatch/index.d.ts(93,5): error TS1109: Expression expected.
+node_modules/@types/d3-dispatch/index.d.ts(93,26): error TS1011: An element access expression should take an argument.
+node_modules/@types/d3-dispatch/index.d.ts(94,1): error TS1128: Declaration or statement expected.
+node_modules/@types/d3-dispatch/index.d.ts(94,2): error TS1128: Declaration or statement expected.

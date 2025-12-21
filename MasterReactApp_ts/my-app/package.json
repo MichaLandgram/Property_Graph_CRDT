@@ -7,10 +7,18 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.126",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "@types/uuid": "^10.0.0",
+    "jest": "^30.2.0",
+    "neo4j-driver": "^6.0.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-scripts": "5.0.1",
     "reactflow": "^11.11.4",
+    "reagraph": "^4.30.7",
     "web-vitals": "^2.1.4",
     "yjs": "^13.6.27"
   },
@@ -39,11 +47,9 @@
     ]
   },
   "devDependencies": {
-    "@babel/core": "^7.28.5",
-    "@babel/preset-env": "^7.28.5",
-    "@babel/preset-react": "^7.28.5",
+    "@babel/preset-typescript": "^7.28.5",
     "ajv": "^7.2.4",
-    "babel-jest": "^30.2.0",
-    "jest": "^27.5.1"
+    "jest-environment-jsdom": "^30.2.0",
+    "typescript": "^5.9.3"
   }
 }
