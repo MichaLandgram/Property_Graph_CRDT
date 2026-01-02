@@ -1,3 +1,4 @@
+import * as Y from 'yjs';
 // Node Id Type
 export type NodeId = string;
 // Node Label
@@ -6,12 +7,25 @@ export type labelTypes = string;
 // Edge Label
 export type edgeLabelTypes = string;
 
-// Data Types
-export type dataTypes = string | number | boolean | Array<dataTypes> | Date | Map<string, dataTypes> | Counter // | Vector | Point;
-
-export type Counter = {
-    value: number;
+// Minimal interface for grow-only counters (matches Yjs counters we use)
+export interface Counter {
+    increment(amount?: number): void;
+    getTotal(): number;
+    reset(): void;
 }
+
+// Data Types
+export type dataTypes = 
+  | string 
+  | number 
+  | boolean 
+  | Date 
+  | Counter
+  | Y.Map<dataTypes>      // Add this
+  | Y.Array<dataTypes>;   // Add this
+  // | Vector 
+  // | Point;
+
 
 export type Point = {
     x: number;
