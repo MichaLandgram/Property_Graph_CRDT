@@ -3,10 +3,11 @@ import { GraphCanvas, GraphCanvasRef, useSelection } from 'reagraph';
 import * as Y from 'yjs';
 import { useYjsGraphReagraph, ReagraphNode } from '../../Helper/Hook/YJS_hook_Reagraph';
 import { dumpGraphToNeo4j } from '../../Helper/Vizuals/Neo4jConnector';
-import { edgeLabelTypes, AlwaysNodeData } from '../../Helper/types_interfaces/types';
+import { edgeLabelTypes, AlwaysNodeData, Counter } from '../../Helper/types_interfaces/types';
 import { getGraphInstance, getSchemaInstance } from '../../VersionSelector';
-import { useGraphErrorHandler } from '../../Helper/useGraphErrorHandler';
-
+import { useGraphErrorHandler } from '../../Helper/Vizuals/useGraphErrorHandler';
+import { allowedNodePropeerties } from '../../Schema/schema_1_old';
+import { GrowOnlyCounter } from '../../Helper/YJS_helper/moreComplexTypes';
 
 interface GraphEditorProps {
   ydoc: Y.Doc;
@@ -20,10 +21,12 @@ const schemaInstance = getSchemaInstance();
 const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const { nodes, edges } = useYjsGraphReagraph(ydoc);
   const handleError = useGraphErrorHandler();
+
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [selectedEdgeData, setSelectedEdgeData] = useState<any>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [allProps, setAllProps] = useState<Record<string, any>>({});
   const [connectMode, setConnectMode] = useState(false);
   const [sourceNodeForEdge, setSourceNodeForEdge] = useState<AlwaysNodeData | null>(null);
   
@@ -55,6 +58,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
     }
 
     setSelectedNodeId(node.id);
+    setAllProps({...allowedNodePropeerties[node.label]['notNull'], ...allowedNodePropeerties[node.label]['nullable']});
     setSelectedEdgeId(null); // Clear edge selection
     setFormData(node.data || {});
   }, [connectMode, sourceNodeForEdge, ydoc]);
@@ -91,7 +95,8 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const handleTestClick = () => {
     try {
         console.log('Test Clicked');
-        graphInstance.testProps("s", 'Person', 'notNull', 'Node');
+        const test = new GrowOnlyCounter(ydoc, 'testCounter');
+        console.log('Test value:', test instanceof GrowOnlyCounter, test.getTotal());
     } catch (e) {
         handleError(e as Error);
     }
@@ -222,6 +227,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   }));
 
   return (
+    // console.log('Rendering GraphEditor2', { nodes, edges, selectedNodeId, selectedEdgeId, formData }),
     <div style={{ display: 'flex', height: '100vh', width: '100%', position: 'relative' }}>
       
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
@@ -364,29 +370,14 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
           <p>ID: {selectedNodeId}</p>
           
           {
-          Object.entries(formData).map(([key, value]) => {
-                if (key === 'label' || key === 'color' || key === 'policy' || key === 'id') return null;
-                if (key === 'position') {
-                Object.entries(value).map(([key2, value2]) => {
-                    return (
-                        <div key={key2} style={{ marginBottom: '10px' }}>
-                            <label style={{ display: 'block', fontSize: '0.8em', color: '#555' }}>{key}:</label>
-                            <input
-                                type="text"
-                                value={String(value2)} 
-                                onChange={(e) => handleUpdateFormChange(key, e.target.value)}
-                                style={{ width: '100%' }}
-                            />
-                        </div>
-                    )
-                });
-                }
+          Object.entries(allProps).map(([key, value]) => {
+                if (key === 'label' || key === 'color' || key === 'policy' || key === 'id' || key === 'position') return null;
                 return (
                     <div key={key} style={{ marginBottom: '10px' }}>
                         <label style={{ display: 'block', fontSize: '0.8em', color: '#555' }}>{key}:</label>
                         <input
                             type="text"
-                            value={String(value)} 
+                            value={String(formData[key] || 'NOT SET')} 
                             onChange={(e) => handleUpdateFormChange(key, e.target.value)}
                             style={{ width: '100%' }}
                         />

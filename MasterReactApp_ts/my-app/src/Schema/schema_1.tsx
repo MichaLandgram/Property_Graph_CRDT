@@ -2,7 +2,7 @@ import { Schema_Interface } from '../Helper/types_interfaces/schema';
 import { labelTypes, edgeLabelTypes, dataTypes, boolKeys, Policy } from '../Helper/types_interfaces/types';
 
 export class Schema_1 implements Schema_Interface {
-    labelTypeValues: labelTypes[] = ['Loan', 'Account', 'Medium', 'Person', 'Company'];
+    labelTypeValues: labelTypes[] = ['Loan', 'Account', 'Medium', 'Person', 'Company', 'TEST'];
     edgeLabelTypeValues: edgeLabelTypes[] = ['transfer', 'withdraw', 'own', 'apply', 'invest', 'signIn', 'deposit', 'repay', 'guarantee', 'guarantorRef'];
     allowedConnectivity: Record<labelTypes, Record<labelTypes, edgeLabelTypes[]>> = {
         Account: {
@@ -27,6 +27,23 @@ export class Schema_1 implements Schema_Interface {
         }
     };
     allowedNodePropeerties: Record<labelTypes, Record<boolKeys, Record<string, dataTypes>>> = {
+        TEST: {
+            notNull: {
+                testString: 'string',
+                testNumber: 'number',
+                testBoolean: 'boolean',
+                testDate: 'date',
+                // YJS Types
+                testCounter: { kind: 'counter' },
+                testArray: { kind: 'yarray', element: 'string', ref: 'string' },
+                testMap: { kind: 'ymap', value: 'string', ref: 'string' },
+                // testPoint: 'point',
+                // testVector: 'vector'
+            },
+            nullable: {
+                anotherTestProp: 'number'
+            }
+        },
         Person: {
             notNull: {
                 name: 'string',
@@ -38,8 +55,8 @@ export class Schema_1 implements Schema_Interface {
                 birthday: 'date',
                 country: 'string',
                 city: 'string',
-                faceEmbedding: 'vector',
-                languages: ['string']
+                faceEmbedding: { kind: 'yarray', element: 'number', ref: 'number' },
+                languages: { kind: 'yarray', element: 'string', ref: 'string'}
             }
         },
         Account: {
@@ -50,13 +67,14 @@ export class Schema_1 implements Schema_Interface {
                 nickname: 'string'
             },
             nullable: {
+                testcounter: { kind: 'counter' },
                 phoneNumber: 'string',
                 email: 'string',
                 freqLoginType: 'string',
                 lastLoginTime: 'date',
                 accountLevel: 'string',
-                lastLoginLocation: 'point',
-                prevPasswords: ['string']
+                lastLoginLocation: { dimensions: [0, 0] },
+                prevPasswords: { kind: 'yarray', element: 'string', ref: 'string'}
             }
         },
         Medium: {
@@ -68,9 +86,9 @@ export class Schema_1 implements Schema_Interface {
             nullable: {
                 lastLoginTime: 'date',
                 riskLevel: 'string',
-                deviceInfo: 'map',
-                location: 'point',
-                loginCount: 'counter'
+                deviceInfo: { kind: 'ymap', value: 'string', ref: 'string'},
+                location: { dimensions: [0, 0] },
+                loginCount: { kind: 'counter'}
             }
         },
         Company: {
@@ -85,8 +103,8 @@ export class Schema_1 implements Schema_Interface {
                 business: 'string',
                 description: 'string',
                 url: 'string',
-                headquarters: 'point',
-                metadata: 'map'
+                headquarters: { dimensions: [0, 0] },
+                metadata: { kind: 'ymap', value: 'string', ref: 'string'}
             }
         },
         Loan: {

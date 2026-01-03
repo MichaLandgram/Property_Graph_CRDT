@@ -8,7 +8,9 @@ import { NodeId,
           edgeLabelTypes, 
           labelTypes, 
           boolKeys, 
-          edgeNodeToken
+          edgeNodeToken,
+          YArrayType,
+          YMapType
          } from '../../Helper/types_interfaces/types';
 import { dataTypes } from '../../Helper/types_interfaces/types';
 import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreComplexTypes';
@@ -24,6 +26,55 @@ import { GraphError } from '../../Helper/Vizuals/GraphError';
 // const edgesMap = inside edgesTargetsMap // Map of target to EdgeProperties
 
 const schemaInstance = new SchemaInstance();
+
+/**
+ * Generate a unique reference key for a collaborative collection
+ */
+const generateCollectionRef = (nodeId: NodeId, propName: string): string => {
+  return `node_${nodeId}_${propName}_${Date.now()}`;
+};
+
+/**
+ * Store a Y.Array at the top-level collections map
+ */
+const storeYArray = (graph: graphDoc, nodeId: NodeId, propName: string, data: any[]): string => {
+  const collectionsMap = graph.getMap<Y.Array<any>>('collections');
+  const ref = generateCollectionRef(nodeId, propName);
+  const yarray = new Y.Array<any>();
+  yarray.push(data.map(normalizeValueForYjs));
+  collectionsMap.set(ref, yarray);
+  return ref;
+};
+
+/**
+ * Store a Y.Map at the top-level collections map
+ */
+const storeYMap = (graph: graphDoc, nodeId: NodeId, propName: string, data: Record<string, any>): string => {
+  const collectionsMap = graph.getMap<Y.Map<any>>('collections');
+  const ref = generateCollectionRef(nodeId, propName);
+  const ymap = new Y.Map<any>();
+  for (const [k, v] of Object.entries(data)) {
+    ymap.set(k, normalizeValueForYjs(v));
+  }
+  collectionsMap.set(ref, ymap);
+  return ref;
+};
+
+/**
+ * Retrieve a Y.Array from the collections map using its reference
+ */
+const getYArray = (graph: graphDoc, ref: string): Y.Array<any> | undefined => {
+  const collectionsMap = graph.getMap<Y.Array<any>>('collections');
+  return collectionsMap.get(ref);
+};
+
+/**
+ * Retrieve a Y.Map from the collections map using its reference
+ */
+const getYMap = (graph: graphDoc, ref: string): Y.Map<any> | undefined => {
+  const collectionsMap = graph.getMap<Y.Map<any>>('collections');
+  return collectionsMap.get(ref);
+};
 
 // Normalize values before inserting into Yjs maps to avoid embedding
 // unsupported types (e.g., native Map or class instances holding Y.Doc).
@@ -50,48 +101,46 @@ const normalizeValueForYjs = (value: any) => {
 };
 
 const typeCheck = (incomingValue: any, expectedType: dataTypes) => {
-  if (expectedType === 'string') {
-    if (typeof incomingValue !== 'string') {
+  if (typeof expectedType === 'string') {
+    if (expectedType === 'string' && typeof incomingValue !== 'string') {
       throw new GraphError(`Expected type string but got ${typeof incomingValue}`);
     }
-  } else if (expectedType === 'number') {
-    if (typeof incomingValue !== 'number') {
+    if (expectedType === 'number' && typeof incomingValue !== 'number') {
       throw new GraphError(`Expected type number but got ${typeof incomingValue}`);
     }
-  } else if (expectedType === 'boolean') {
-    if (typeof incomingValue !== 'boolean') {
+    if (expectedType === 'boolean' && typeof incomingValue !== 'boolean') {
       throw new GraphError(`Expected type boolean but got ${typeof incomingValue}`);
     }
-  } else if (expectedType === 'date') {
-    if (!(incomingValue instanceof Date)) {
+    if (expectedType === 'date' && !(incomingValue instanceof Date)) {
       throw new GraphError(`Expected type date but got ${typeof incomingValue}`);
     }
-  } else if (expectedType === 'counter') {
+    return;
+  }
+
+  // Handle YArrayType: value should be an array (will become reference)
+  if (expectedType && typeof expectedType === 'object' && 'kind' in expectedType && expectedType.kind === 'yarray') {
+    if (!Array.isArray(incomingValue)) {
+      throw new GraphError(`Expected array for yarray type but got ${typeof incomingValue}`);
+    }
+    return;
+  }
+
+  // Handle YMapType: value should be an object (will become reference)
+  if (expectedType && typeof expectedType === 'object' && 'kind' in expectedType && expectedType.kind === 'ymap') {
+    if (typeof incomingValue !== 'object' || incomingValue === null || Array.isArray(incomingValue) || incomingValue instanceof Date || incomingValue instanceof Y.Array || incomingValue instanceof Y.Map) {
+      throw new GraphError(`Expected object for ymap type but got ${typeof incomingValue}`);
+    }
+    return;
+  }
+
+  // Handle YCounter
+  if (expectedType && typeof expectedType === 'object' && 'kind' in expectedType && expectedType.kind === 'counter') {
     const isGrowOnlyCounter = incomingValue instanceof GrowOnlyCounter;
-    const isYMap = incomingValue instanceof Y.Map;
-    if (!isGrowOnlyCounter && !isYMap) {
-      throw new GraphError(`Expected type Counter but got ${typeof incomingValue}`);
+    const isYMapCounter = incomingValue instanceof Y.Map;
+    if (!isGrowOnlyCounter && !isYMapCounter) {
+      throw new GraphError(`Expected type counter but got ${typeof incomingValue}`);
     }
-  } else if (expectedType === 'vector') {
-    if (!(incomingValue instanceof OurVector)) {
-      throw new GraphError(`Expected type Vector but got ${typeof incomingValue}`);
-    }
-  } else if (expectedType === 'point') {
-    if (!(incomingValue instanceof Point)) {
-      throw new GraphError(`Expected type Point but got ${typeof incomingValue}`);
-    }
-  } else if (Array.isArray(expectedType)) {
-    const isArray = Array.isArray(incomingValue) || incomingValue instanceof Y.Array;
-    if (!isArray) {
-      throw new GraphError(`Expected type Array but got ${typeof incomingValue}`);
-    }
-    // TODO: Further type checks for array elements
-  } else if (expectedType instanceof Map) {
-    const isMap = incomingValue instanceof Map || incomingValue instanceof Y.Map;
-    if (!isMap) {
-      throw new GraphError(`Expected type Map but got ${typeof incomingValue}`);
-    }
-    // TODO: Further type checks for map entries
+    return;
   }
 };
 
@@ -175,15 +224,55 @@ export class SchemaGraph implements Graph {
       const allProps = {...alwaysProps, ...initialProps};
 
       const nodeProps = new Y.Map();
-      for (const [key, value] of Object.entries(allProps)) {
-        nodeProps.set(key, normalizeValueForYjs(value));
-        console.log('H2', key, value);
-      }
       
       graph.transact(() => {
+        for (const [key, value] of Object.entries(allProps)) {
+          const schemaType = this.getPropertySchemaType(alwaysProps.label, key);
+          
+          // Handle YArrayType: store array at top-level and save reference
+          if (schemaType && typeof schemaType === 'object' && 'kind' in schemaType && schemaType.kind === 'yarray') {
+            if (Array.isArray(value)) {
+              const ref = storeYArray(graph, alwaysProps.id, key, value);
+              nodeProps.set(key, ref);
+            } else {
+              throw new GraphError(`Expected array for property ${key}`);
+            }
+          }
+          // Handle YMapType: store map at top-level and save reference
+          else if (schemaType && typeof schemaType === 'object' && 'kind' in schemaType && schemaType.kind === 'ymap') {
+            if (typeof value === 'object' && !(value instanceof Date) && !(value instanceof Y.Array) && !(value instanceof Y.Map)) {
+              const ref = storeYMap(graph, alwaysProps.id, key, value);
+              nodeProps.set(key, ref);
+            } else {
+              throw new GraphError(`Expected object for property ${key}`);
+            }
+          }
+          // Handle all other types normally
+          else {
+            nodeProps.set(key, normalizeValueForYjs(value));
+          }
+          console.log('H2', key, value);
+        }
+        
         nodesMap.set(alwaysProps.id, Date.now());
         propertiesMap.set(alwaysProps.id, nodeProps);
       });
+  }
+
+  /**
+   * Get the schema type definition for a property
+   */
+  private getPropertySchemaType(label: labelTypes, propName: string): dataTypes | undefined {
+    const labelProps = schemaInstance.allowedNodePropeerties[label];
+    if (!labelProps) return undefined;
+    
+    if (labelProps.notNull && labelProps.notNull[propName]) {
+      return labelProps.notNull[propName];
+    }
+    if (labelProps.nullable && labelProps.nullable[propName]) {
+      return labelProps.nullable[propName];
+    }
+    return undefined;
   }
   updateNode({ nodeId, props, graph }: { nodeId: NodeId; props: any; graph: graphDoc; }): void {
     const nodesMap = graph.getMap<any>('nodes');
@@ -247,7 +336,29 @@ export class SchemaGraph implements Graph {
   getNodeProps({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): any | undefined {
     const propertiesMap = graph.getMap<Y.Map<any>>('properties');
     const props = propertiesMap.get(nodeId);
-    return props ? props.toJSON() as any : undefined;
+    if (!props) return undefined;
+    
+    const result: any = {};
+    props.forEach((value, key) => {
+      // Check if this property is a reference to a collection
+      const schemaType = this.getPropertySchemaType(props.get('label'), key);
+      if (schemaType && typeof schemaType === 'object' && 'kind' in schemaType) {
+        if (schemaType.kind === 'yarray' && typeof value === 'string') {
+          // It's a reference to a Y.Array
+          const yarray = getYArray(graph, value);
+          result[key] = yarray ? yarray.toArray() : value;
+        } else if (schemaType.kind === 'ymap' && typeof value === 'string') {
+          // It's a reference to a Y.Map
+          const ymap = getYMap(graph, value);
+          result[key] = ymap ? ymap.toJSON() : value;
+        } else {
+          result[key] = value;
+        }
+      } else {
+        result[key] = value;
+      }
+    });
+    return result;
   }
   addEdge({ sourceId, targetId, label, initialProps, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps: EdgeData; graph: graphDoc; }): void {
     const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');
