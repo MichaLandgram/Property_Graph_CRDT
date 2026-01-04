@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuid } from 'uuid';
-// import { SGraphV4 as GraphInstance } from '../../Version1/V4/SimpleGraph';
-import { SchemaGraph as GraphInstance } from '../../Version2_Schema_Introduced/V1/SchemaGraph';
+import { getGraphInstance } from '../../VersionSelector';
 import { processEdgeCurvatures } from '../Vizuals/GraphUtils';
 import * as Y from 'yjs';
 
@@ -21,7 +20,7 @@ export interface ReagraphEdge {
   [key: string]: any;
 }
 
-const graphInstance = new GraphInstance();
+const graphInstance = getGraphInstance();
 
 export function useYjsGraphReagraph(graph: Y.Doc) {
   const [nodes, setNodes] = useState<ReagraphNode[]>([]);

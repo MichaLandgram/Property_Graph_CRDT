@@ -1,6 +1,9 @@
 import * as Y from 'yjs'
 
-export function getDoc(): Y.Doc {
-  const ydoc = new Y.Doc()
+export function getDoc(clientId?: number): Y.Doc {
+  let ydoc = new Y.Doc()
+  if (clientId) {
+    ydoc.clientID = clientId
+  }
   return ydoc
 }

@@ -32,7 +32,7 @@ export class Schema_1 implements Schema_Interface {
                 testString: 'string',
                 testNumber: 'number',
                 testBoolean: 'boolean',
-                testDate: 'date',
+                // testDate: 'date',
                 // YJS Types
                 testCounter: { kind: 'counter' },
                 testArray: { kind: 'yarray', element: 'string', ref: 'string' },

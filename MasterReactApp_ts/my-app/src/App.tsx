@@ -4,12 +4,14 @@ import { syncDocs } from './Helper/YJS_helper/sync';
 import GraphEditor from './Visualization/Version1/GraphEditor';
 import GraphEditor2 from './Visualization/Version2/GraphEditor2';
 import { GraphErrorBoundary } from './Helper/Vizuals/GraphErrorBoundary';
+import { getGraphInstance } from './VersionSelector';
 
 
 const graph = new Y.Doc();
 const graph2 = new Y.Doc();
 
 function App() {
+  const graphInstance = getGraphInstance();
   return (
     <div className="App">
       <>
@@ -42,7 +44,7 @@ function App() {
         }}>
 
           <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, background: 'white', padding: '5px' }}>
-            User 2 (New Reagraph Viz)
+            User 2 (New Reagraph Viz {graphInstance.constructor.name})
           </div>
           
           <GraphErrorBoundary>

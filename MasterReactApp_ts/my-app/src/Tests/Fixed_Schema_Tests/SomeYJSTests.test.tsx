@@ -1,9 +1,10 @@
 
 import { getDoc } from "../../Helper/YJS_helper/creator";
 import { syncDocs } from "../../Helper/YJS_helper/sync";
+import * as Y from 'yjs'
 
 describe('Basis YJS Tests', () => {
-        test.only("Merging YJS Maps showing differences", () => {
+        test("Merging YJS Maps showing differences", () => {
     
             /* Having two maps with the same key in different docs */
             const doc = getDoc();
@@ -40,5 +41,33 @@ describe('Basis YJS Tests', () => {
             // expect exactly one of the two properties to be defined => Missing information!! 
             expect(finalMap3.get('TEST').hasOwnProperty('TestNumber') || finalMap3.get('TEST').hasOwnProperty('TestString')).toBe(true);
             expect(finalMap3.get('TEST').hasOwnProperty('TestNumber') && finalMap3.get('TEST').hasOwnProperty('TestString')).toBe(false);
+    });
+        test("Merging YJS Maps showing differences", () => {
+    
+            /* Having two maps with the same key in different docs */
+            const doc = getDoc();
+            const doc2 = getDoc();
+    
+            const map = doc.getMap<any>('TEST');
+            const map2 = doc2.getMap<any>('TEST');
+
+            map.set('TestNumber', 42);
+            map2.set('TestString', 'hello');
+    
+            syncDocs(doc, doc2);
+            syncDocs(doc2, doc);
+    
+            const finalMap = doc.getMap<any>('TEST');
+    
+            expect(finalMap.get('TestNumber')).toBe(42);
+            expect(finalMap.get('TestString')).toBe('hello');
+    });
+    test('Playground', () => {
+        const doc = getDoc();
+        doc.on('update', () => {
+            console.log('update');
+        });
+        doc.getMap<any>('TEST').set('TEST', 'TEST');
+        expect(true).toBe(true);
     });
 });

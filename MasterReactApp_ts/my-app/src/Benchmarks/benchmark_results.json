@@ -1,0 +1,1308 @@
+{
+  "config": {
+    "deleteRate": 0.5,
+    "updateRate": 0.5
+  },
+  "results": [
+    {
+      "opCount": 2,
+      "v1": {
+        "time": 1.60942,
+        "size": 849,
+        "snapshotSize": 33
+      },
+      "v2": {
+        "time": 0.8445600000000468,
+        "size": 966,
+        "snapshotSize": 392
+      }
+    },
+    {
+      "opCount": 12,
+      "v1": {
+        "time": 1.4155599999999595,
+        "size": 4179,
+        "snapshotSize": 242
+      },
+      "v2": {
+        "time": 1.2234600000000229,
+        "size": 5502,
+        "snapshotSize": 2527
+      }
+    },
+    {
+      "opCount": 22,
+      "v1": {
+        "time": 1.7732200000000375,
+        "size": 7854,
+        "snapshotSize": 430
+      },
+      "v2": {
+        "time": 1.2777800000000297,
+        "size": 10211,
+        "snapshotSize": 4785
+      }
+    },
+    {
+      "opCount": 32,
+      "v1": {
+        "time": 1.5487400000000435,
+        "size": 11221,
+        "snapshotSize": 644
+      },
+      "v2": {
+        "time": 1.96899999999996,
+        "size": 14913,
+        "snapshotSize": 7018
+      }
+    },
+    {
+      "opCount": 42,
+      "v1": {
+        "time": 1.630680000000075,
+        "size": 14927,
+        "snapshotSize": 830
+      },
+      "v2": {
+        "time": 1.9756200000000264,
+        "size": 19750,
+        "snapshotSize": 9143
+      }
+    },
+    {
+      "opCount": 52,
+      "v1": {
+        "time": 1.8595799999999598,
+        "size": 18333,
+        "snapshotSize": 1044
+      },
+      "v2": {
+        "time": 1.9785199999999805,
+        "size": 24494,
+        "snapshotSize": 11251
+      }
+    },
+    {
+      "opCount": 62,
+      "v1": {
+        "time": 2.0353000000000065,
+        "size": 21928,
+        "snapshotSize": 1230
+      },
+      "v2": {
+        "time": 2.1517399999999727,
+        "size": 29218,
+        "snapshotSize": 13376
+      }
+    },
+    {
+      "opCount": 72,
+      "v1": {
+        "time": 2.4048799999999573,
+        "size": 25294,
+        "snapshotSize": 1444
+      },
+      "v2": {
+        "time": 2.43123999999998,
+        "size": 33721,
+        "snapshotSize": 15689
+      }
+    },
+    {
+      "opCount": 82,
+      "v1": {
+        "time": 2.5860599999999976,
+        "size": 29108,
+        "snapshotSize": 1630
+      },
+      "v2": {
+        "time": 2.91576,
+        "size": 38459,
+        "snapshotSize": 17856
+      }
+    },
+    {
+      "opCount": 92,
+      "v1": {
+        "time": 2.7798400000000583,
+        "size": 32277,
+        "snapshotSize": 1844
+      },
+      "v2": {
+        "time": 2.9588599999999587,
+        "size": 43038,
+        "snapshotSize": 20077
+      }
+    },
+    {
+      "opCount": 102,
+      "v1": {
+        "time": 3.4160800000000107,
+        "size": 36153,
+        "snapshotSize": 2032
+      },
+      "v2": {
+        "time": 3.27207999999996,
+        "size": 47928,
+        "snapshotSize": 22282
+      }
+    },
+    {
+      "opCount": 112,
+      "v1": {
+        "time": 3.2460200000000894,
+        "size": 39442,
+        "snapshotSize": 2256
+      },
+      "v2": {
+        "time": 3.715219999999954,
+        "size": 52825,
+        "snapshotSize": 24448
+      }
+    },
+    {
+      "opCount": 122,
+      "v1": {
+        "time": 3.8023800000000847,
+        "size": 43425,
+        "snapshotSize": 2452
+      },
+      "v2": {
+        "time": 3.53163999999997,
+        "size": 57529,
+        "snapshotSize": 26836
+      }
+    },
+    {
+      "opCount": 132,
+      "v1": {
+        "time": 3.5802999999999883,
+        "size": 46868,
+        "snapshotSize": 2676
+      },
+      "v2": {
+        "time": 4.18122000000003,
+        "size": 62232,
+        "snapshotSize": 29412
+      }
+    },
+    {
+      "opCount": 142,
+      "v1": {
+        "time": 3.8151399999999738,
+        "size": 50346,
+        "snapshotSize": 2872
+      },
+      "v2": {
+        "time": 4.467460000000028,
+        "size": 67397,
+        "snapshotSize": 31432
+      }
+    },
+    {
+      "opCount": 152,
+      "v1": {
+        "time": 4.511539999999968,
+        "size": 53689,
+        "snapshotSize": 3096
+      },
+      "v2": {
+        "time": 4.4703599999998005,
+        "size": 72046,
+        "snapshotSize": 33845
+      }
+    },
+    {
+      "opCount": 162,
+      "v1": {
+        "time": 5.041239999999926,
+        "size": 55088,
+        "snapshotSize": 3292
+      },
+      "v2": {
+        "time": 4.96913999999997,
+        "size": 77123,
+        "snapshotSize": 36192
+      }
+    },
+    {
+      "opCount": 172,
+      "v1": {
+        "time": 4.852320000000054,
+        "size": 60938,
+        "snapshotSize": 3517
+      },
+      "v2": {
+        "time": 4.927499999999964,
+        "size": 82145,
+        "snapshotSize": 38358
+      }
+    },
+    {
+      "opCount": 182,
+      "v1": {
+        "time": 5.830120000000079,
+        "size": 64658,
+        "snapshotSize": 3713
+      },
+      "v2": {
+        "time": 7.119460000000072,
+        "size": 86916,
+        "snapshotSize": 40828
+      }
+    },
+    {
+      "opCount": 192,
+      "v1": {
+        "time": 5.824699999999939,
+        "size": 68136,
+        "snapshotSize": 3937
+      },
+      "v2": {
+        "time": 5.526500000000032,
+        "size": 91460,
+        "snapshotSize": 43035
+      }
+    },
+    {
+      "opCount": 202,
+      "v1": {
+        "time": 5.948259999999936,
+        "size": 68510,
+        "snapshotSize": 4132
+      },
+      "v2": {
+        "time": 6.114179999999942,
+        "size": 96656,
+        "snapshotSize": 45369
+      }
+    },
+    {
+      "opCount": 212,
+      "v1": {
+        "time": 6.112240000000111,
+        "size": 75284,
+        "snapshotSize": 4354
+      },
+      "v2": {
+        "time": 6.3619799999999485,
+        "size": 101210,
+        "snapshotSize": 47672
+      }
+    },
+    {
+      "opCount": 222,
+      "v1": {
+        "time": 6.201499999999942,
+        "size": 78840,
+        "snapshotSize": 4547
+      },
+      "v2": {
+        "time": 6.472419999999874,
+        "size": 106042,
+        "snapshotSize": 49993
+      }
+    },
+    {
+      "opCount": 232,
+      "v1": {
+        "time": 6.597940000000017,
+        "size": 78858,
+        "snapshotSize": 4769
+      },
+      "v2": {
+        "time": 7.065700000000106,
+        "size": 111103,
+        "snapshotSize": 52257
+      }
+    },
+    {
+      "opCount": 242,
+      "v1": {
+        "time": 7.2391999999999825,
+        "size": 85985,
+        "snapshotSize": 4962
+      },
+      "v2": {
+        "time": 7.26226000000006,
+        "size": 116023,
+        "snapshotSize": 54495
+      }
+    },
+    {
+      "opCount": 252,
+      "v1": {
+        "time": 6.745020000000022,
+        "size": 89553,
+        "snapshotSize": 5184
+      },
+      "v2": {
+        "time": 8.404399999999896,
+        "size": 120623,
+        "snapshotSize": 56758
+      }
+    },
+    {
+      "opCount": 262,
+      "v1": {
+        "time": 7.509720000000016,
+        "size": 93011,
+        "snapshotSize": 5377
+      },
+      "v2": {
+        "time": 8.454520000000048,
+        "size": 125436,
+        "snapshotSize": 59078
+      }
+    },
+    {
+      "opCount": 272,
+      "v1": {
+        "time": 7.837199999999939,
+        "size": 92459,
+        "snapshotSize": 5599
+      },
+      "v2": {
+        "time": 8.435480000000007,
+        "size": 130728,
+        "snapshotSize": 60849
+      }
+    },
+    {
+      "opCount": 282,
+      "v1": {
+        "time": 8.880700000000251,
+        "size": 100381,
+        "snapshotSize": 5791
+      },
+      "v2": {
+        "time": 10.48973999999962,
+        "size": 134908,
+        "snapshotSize": 63663
+      }
+    },
+    {
+      "opCount": 292,
+      "v1": {
+        "time": 9.219560000000092,
+        "size": 103761,
+        "snapshotSize": 6014
+      },
+      "v2": {
+        "time": 9.69908000000014,
+        "size": 140197,
+        "snapshotSize": 65434
+      }
+    },
+    {
+      "opCount": 302,
+      "v1": {
+        "time": 9.691060000000288,
+        "size": 107267,
+        "snapshotSize": 6207
+      },
+      "v2": {
+        "time": 9.734619999999813,
+        "size": 144977,
+        "snapshotSize": 67918
+      }
+    },
+    {
+      "opCount": 312,
+      "v1": {
+        "time": 10.373199999999816,
+        "size": 110620,
+        "snapshotSize": 6429
+      },
+      "v2": {
+        "time": 10.846639999999933,
+        "size": 149707,
+        "snapshotSize": 70058
+      }
+    },
+    {
+      "opCount": 322,
+      "v1": {
+        "time": 9.292699999999968,
+        "size": 114607,
+        "snapshotSize": 6622
+      },
+      "v2": {
+        "time": 10.02007999999987,
+        "size": 154923,
+        "snapshotSize": 72214
+      }
+    },
+    {
+      "opCount": 332,
+      "v1": {
+        "time": 9.510020000000077,
+        "size": 117718,
+        "snapshotSize": 6844
+      },
+      "v2": {
+        "time": 10.316499999999905,
+        "size": 159122,
+        "snapshotSize": 74928
+      }
+    },
+    {
+      "opCount": 342,
+      "v1": {
+        "time": 9.826599999999962,
+        "size": 121274,
+        "snapshotSize": 7037
+      },
+      "v2": {
+        "time": 10.801959999999962,
+        "size": 164618,
+        "snapshotSize": 77045
+      }
+    },
+    {
+      "opCount": 352,
+      "v1": {
+        "time": 10.224040000000059,
+        "size": 119667,
+        "snapshotSize": 7259
+      },
+      "v2": {
+        "time": 11.176540000000022,
+        "size": 168970,
+        "snapshotSize": 79799
+      }
+    },
+    {
+      "opCount": 362,
+      "v1": {
+        "time": 10.33899999999976,
+        "size": 128500,
+        "snapshotSize": 7452
+      },
+      "v2": {
+        "time": 11.22986000000019,
+        "size": 173769,
+        "snapshotSize": 81464
+      }
+    },
+    {
+      "opCount": 372,
+      "v1": {
+        "time": 10.909819999999854,
+        "size": 132135,
+        "snapshotSize": 7674
+      },
+      "v2": {
+        "time": 11.528999999999723,
+        "size": 178934,
+        "snapshotSize": 83686
+      }
+    },
+    {
+      "opCount": 382,
+      "v1": {
+        "time": 11.232160000000112,
+        "size": 135804,
+        "snapshotSize": 7866
+      },
+      "v2": {
+        "time": 12.396920000000136,
+        "size": 183906,
+        "snapshotSize": 86006
+      }
+    },
+    {
+      "opCount": 392,
+      "v1": {
+        "time": 11.35627999999997,
+        "size": 139343,
+        "snapshotSize": 8089
+      },
+      "v2": {
+        "time": 12.081760000000031,
+        "size": 188462,
+        "snapshotSize": 88516
+      }
+    },
+    {
+      "opCount": 402,
+      "v1": {
+        "time": 11.621499999999832,
+        "size": 143051,
+        "snapshotSize": 8282
+      },
+      "v2": {
+        "time": 13.009319999999935,
+        "size": 193603,
+        "snapshotSize": 90548
+      }
+    },
+    {
+      "opCount": 412,
+      "v1": {
+        "time": 12.045279999999911,
+        "size": 146358,
+        "snapshotSize": 8504
+      },
+      "v2": {
+        "time": 13.718259999999827,
+        "size": 198860,
+        "snapshotSize": 92444
+      }
+    },
+    {
+      "opCount": 422,
+      "v1": {
+        "time": 12.80046000000002,
+        "size": 150136,
+        "snapshotSize": 8697
+      },
+      "v2": {
+        "time": 14.026020000000063,
+        "size": 203184,
+        "snapshotSize": 95174
+      }
+    },
+    {
+      "opCount": 432,
+      "v1": {
+        "time": 13.079639999999927,
+        "size": 153344,
+        "snapshotSize": 8919
+      },
+      "v2": {
+        "time": 14.28176000000003,
+        "size": 208180,
+        "snapshotSize": 96986
+      }
+    },
+    {
+      "opCount": 442,
+      "v1": {
+        "time": 12.956819999999789,
+        "size": 157145,
+        "snapshotSize": 9112
+      },
+      "v2": {
+        "time": 15.387920000000303,
+        "size": 212924,
+        "snapshotSize": 99355
+      }
+    },
+    {
+      "opCount": 452,
+      "v1": {
+        "time": 13.524479999999675,
+        "size": 160545,
+        "snapshotSize": 9334
+      },
+      "v2": {
+        "time": 15.471320000000196,
+        "size": 218482,
+        "snapshotSize": 101364
+      }
+    },
+    {
+      "opCount": 462,
+      "v1": {
+        "time": 15.547520000000441,
+        "size": 164217,
+        "snapshotSize": 9526
+      },
+      "v2": {
+        "time": 17.345439999999872,
+        "size": 222779,
+        "snapshotSize": 103931
+      }
+    },
+    {
+      "opCount": 472,
+      "v1": {
+        "time": 13.769540000000053,
+        "size": 167549,
+        "snapshotSize": 9749
+      },
+      "v2": {
+        "time": 16.760359999999856,
+        "size": 227625,
+        "snapshotSize": 106194
+      }
+    },
+    {
+      "opCount": 482,
+      "v1": {
+        "time": 16.391419999999925,
+        "size": 171266,
+        "snapshotSize": 9942
+      },
+      "v2": {
+        "time": 18.84354000000021,
+        "size": 232617,
+        "snapshotSize": 108515
+      }
+    },
+    {
+      "opCount": 492,
+      "v1": {
+        "time": 13.9744200000001,
+        "size": 174935,
+        "snapshotSize": 10164
+      },
+      "v2": {
+        "time": 16.957399999999687,
+        "size": 237337,
+        "snapshotSize": 110737
+      }
+    },
+    {
+      "opCount": 502,
+      "v1": {
+        "time": 14.548440000000118,
+        "size": 178564,
+        "snapshotSize": 10357
+      },
+      "v2": {
+        "time": 16.352959999999438,
+        "size": 242332,
+        "snapshotSize": 112595
+      }
+    },
+    {
+      "opCount": 512,
+      "v1": {
+        "time": 15.27657999999974,
+        "size": 181961,
+        "snapshotSize": 10579
+      },
+      "v2": {
+        "time": 17.14153999999944,
+        "size": 246939,
+        "snapshotSize": 115279
+      }
+    },
+    {
+      "opCount": 522,
+      "v1": {
+        "time": 15.855460000000312,
+        "size": 185808,
+        "snapshotSize": 10772
+      },
+      "v2": {
+        "time": 17.465879999999743,
+        "size": 252078,
+        "snapshotSize": 117025
+      }
+    },
+    {
+      "opCount": 532,
+      "v1": {
+        "time": 15.769080000000395,
+        "size": 189325,
+        "snapshotSize": 10994
+      },
+      "v2": {
+        "time": 17.639719999999944,
+        "size": 257050,
+        "snapshotSize": 119616
+      }
+    },
+    {
+      "opCount": 542,
+      "v1": {
+        "time": 16.78853999999992,
+        "size": 192814,
+        "snapshotSize": 11187
+      },
+      "v2": {
+        "time": 18.011679999999977,
+        "size": 261144,
+        "snapshotSize": 122223
+      }
+    },
+    {
+      "opCount": 552,
+      "v1": {
+        "time": 17.077280000000975,
+        "size": 196227,
+        "snapshotSize": 11409
+      },
+      "v2": {
+        "time": 19.237680000000182,
+        "size": 266478,
+        "snapshotSize": 123687
+      }
+    },
+    {
+      "opCount": 562,
+      "v1": {
+        "time": 16.4516599999999,
+        "size": 199780,
+        "snapshotSize": 11602
+      },
+      "v2": {
+        "time": 18.565179999999962,
+        "size": 271223,
+        "snapshotSize": 126478
+      }
+    },
+    {
+      "opCount": 572,
+      "v1": {
+        "time": 17.795880000000032,
+        "size": 203336,
+        "snapshotSize": 11824
+      },
+      "v2": {
+        "time": 18.579099999999745,
+        "size": 276264,
+        "snapshotSize": 127963
+      }
+    },
+    {
+      "opCount": 582,
+      "v1": {
+        "time": 17.25695999999989,
+        "size": 207195,
+        "snapshotSize": 12017
+      },
+      "v2": {
+        "time": 20.26103999999941,
+        "size": 281590,
+        "snapshotSize": 130897
+      }
+    },
+    {
+      "opCount": 592,
+      "v1": {
+        "time": 18.396420000000216,
+        "size": 209982,
+        "snapshotSize": 12239
+      },
+      "v2": {
+        "time": 19.55596000000005,
+        "size": 285483,
+        "snapshotSize": 133570
+      }
+    },
+    {
+      "opCount": 602,
+      "v1": {
+        "time": 19.002360000000046,
+        "size": 205213,
+        "snapshotSize": 12432
+      },
+      "v2": {
+        "time": 20.09939999999988,
+        "size": 290905,
+        "snapshotSize": 135193
+      }
+    },
+    {
+      "opCount": 612,
+      "v1": {
+        "time": 18.040880000000108,
+        "size": 217709,
+        "snapshotSize": 12654
+      },
+      "v2": {
+        "time": 19.829539999999906,
+        "size": 296492,
+        "snapshotSize": 137661
+      }
+    },
+    {
+      "opCount": 622,
+      "v1": {
+        "time": 19.109279999999853,
+        "size": 221118,
+        "snapshotSize": 12847
+      },
+      "v2": {
+        "time": 20.516140000000085,
+        "size": 300219,
+        "snapshotSize": 139817
+      }
+    },
+    {
+      "opCount": 632,
+      "v1": {
+        "time": 19.104420000000026,
+        "size": 224258,
+        "snapshotSize": 13069
+      },
+      "v2": {
+        "time": 20.6274599999997,
+        "size": 302060,
+        "snapshotSize": 142285
+      }
+    },
+    {
+      "opCount": 642,
+      "v1": {
+        "time": 19.071099999999568,
+        "size": 228502,
+        "snapshotSize": 13262
+      },
+      "v2": {
+        "time": 20.729020000000673,
+        "size": 310461,
+        "snapshotSize": 144441
+      }
+    },
+    {
+      "opCount": 652,
+      "v1": {
+        "time": 19.793000000000756,
+        "size": 231482,
+        "snapshotSize": 13484
+      },
+      "v2": {
+        "time": 21.44713999999949,
+        "size": 314489,
+        "snapshotSize": 146909
+      }
+    },
+    {
+      "opCount": 662,
+      "v1": {
+        "time": 20.405900000000837,
+        "size": 225343,
+        "snapshotSize": 13677
+      },
+      "v2": {
+        "time": 21.892179999999644,
+        "size": 319743,
+        "snapshotSize": 149065
+      }
+    },
+    {
+      "opCount": 672,
+      "v1": {
+        "time": 21.24713999999949,
+        "size": 238834,
+        "snapshotSize": 13899
+      },
+      "v2": {
+        "time": 22.865580000000772,
+        "size": 324175,
+        "snapshotSize": 151656
+      }
+    },
+    {
+      "opCount": 682,
+      "v1": {
+        "time": 20.69600000000137,
+        "size": 242799,
+        "snapshotSize": 14092
+      },
+      "v2": {
+        "time": 23.00856000000058,
+        "size": 330021,
+        "snapshotSize": 153320
+      }
+    },
+    {
+      "opCount": 692,
+      "v1": {
+        "time": 20.733860000000277,
+        "size": 235592,
+        "snapshotSize": 14314
+      },
+      "v2": {
+        "time": 22.891219999999883,
+        "size": 334363,
+        "snapshotSize": 156075
+      }
+    },
+    {
+      "opCount": 702,
+      "v1": {
+        "time": 20.682159999999566,
+        "size": 249678,
+        "snapshotSize": 14507
+      },
+      "v2": {
+        "time": 23.307920000000742,
+        "size": 339175,
+        "snapshotSize": 158395
+      }
+    },
+    {
+      "opCount": 712,
+      "v1": {
+        "time": 20.983860000001005,
+        "size": 253158,
+        "snapshotSize": 14729
+      },
+      "v2": {
+        "time": 23.00008000000089,
+        "size": 344263,
+        "snapshotSize": 160453
+      }
+    },
+    {
+      "opCount": 722,
+      "v1": {
+        "time": 22.516179999997984,
+        "size": 256985,
+        "snapshotSize": 14922
+      },
+      "v2": {
+        "time": 23.61559999999954,
+        "size": 348966,
+        "snapshotSize": 162568
+      }
+    },
+    {
+      "opCount": 732,
+      "v1": {
+        "time": 21.581519999999,
+        "size": 260343,
+        "snapshotSize": 15144
+      },
+      "v2": {
+        "time": 23.358759999999165,
+        "size": 354387,
+        "snapshotSize": 164503
+      }
+    },
+    {
+      "opCount": 742,
+      "v1": {
+        "time": 23.986919999999373,
+        "size": 264020,
+        "snapshotSize": 15337
+      },
+      "v2": {
+        "time": 24.949139999999897,
+        "size": 358811,
+        "snapshotSize": 167520
+      }
+    },
+    {
+      "opCount": 752,
+      "v1": {
+        "time": 21.86182000000117,
+        "size": 267237,
+        "snapshotSize": 15559
+      },
+      "v2": {
+        "time": 26.781779999999706,
+        "size": 362822,
+        "snapshotSize": 169865
+      }
+    },
+    {
+      "opCount": 762,
+      "v1": {
+        "time": 25.90196000000069,
+        "size": 271475,
+        "snapshotSize": 15752
+      },
+      "v2": {
+        "time": 26.875960000001214,
+        "size": 364766,
+        "snapshotSize": 170914
+      }
+    },
+    {
+      "opCount": 772,
+      "v1": {
+        "time": 25.79904000000024,
+        "size": 274720,
+        "snapshotSize": 15974
+      },
+      "v2": {
+        "time": 27.2025999999998,
+        "size": 369590,
+        "snapshotSize": 174079
+      }
+    },
+    {
+      "opCount": 782,
+      "v1": {
+        "time": 25.047359999999752,
+        "size": 278928,
+        "snapshotSize": 16167
+      },
+      "v2": {
+        "time": 28.247559999999066,
+        "size": 378556,
+        "snapshotSize": 174878
+      }
+    },
+    {
+      "opCount": 792,
+      "v1": {
+        "time": 29.573619999999938,
+        "size": 282276,
+        "snapshotSize": 16389
+      },
+      "v2": {
+        "time": 30.214740000000166,
+        "size": 383057,
+        "snapshotSize": 178375
+      }
+    },
+    {
+      "opCount": 802,
+      "v1": {
+        "time": 23.233460000000196,
+        "size": 286464,
+        "snapshotSize": 16581
+      },
+      "v2": {
+        "time": 33.63988000000027,
+        "size": 388541,
+        "snapshotSize": 181023
+      }
+    },
+    {
+      "opCount": 812,
+      "v1": {
+        "time": 27.735780000000524,
+        "size": 277503,
+        "snapshotSize": 16804
+      },
+      "v2": {
+        "time": 29.98474000000133,
+        "size": 393688,
+        "snapshotSize": 182876
+      }
+    },
+    {
+      "opCount": 822,
+      "v1": {
+        "time": 29.93663999999917,
+        "size": 294017,
+        "snapshotSize": 16997
+      },
+      "v2": {
+        "time": 30.456039999999483,
+        "size": 398688,
+        "snapshotSize": 184868
+      }
+    },
+    {
+      "opCount": 832,
+      "v1": {
+        "time": 29.272720000000845,
+        "size": 297219,
+        "snapshotSize": 17219
+      },
+      "v2": {
+        "time": 29.513760000000183,
+        "size": 402862,
+        "snapshotSize": 187500
+      }
+    },
+    {
+      "opCount": 842,
+      "v1": {
+        "time": 29.69451999999874,
+        "size": 300751,
+        "snapshotSize": 17412
+      },
+      "v2": {
+        "time": 32.48445999999967,
+        "size": 404631,
+        "snapshotSize": 188198
+      }
+    },
+    {
+      "opCount": 852,
+      "v1": {
+        "time": 30.501140000000305,
+        "size": 305189,
+        "snapshotSize": 17634
+      },
+      "v2": {
+        "time": 33.8729800000001,
+        "size": 412923,
+        "snapshotSize": 190820
+      }
+    },
+    {
+      "opCount": 862,
+      "v1": {
+        "time": 31.59421999999977,
+        "size": 308473,
+        "snapshotSize": 17827
+      },
+      "v2": {
+        "time": 34.9514599999995,
+        "size": 418064,
+        "snapshotSize": 193665
+      }
+    },
+    {
+      "opCount": 872,
+      "v1": {
+        "time": 33.62834000000002,
+        "size": 299076,
+        "snapshotSize": 18049
+      },
+      "v2": {
+        "time": 34.39567999999999,
+        "size": 422951,
+        "snapshotSize": 196174
+      }
+    },
+    {
+      "opCount": 882,
+      "v1": {
+        "time": 33.39663999999975,
+        "size": 315897,
+        "snapshotSize": 18241
+      },
+      "v2": {
+        "time": 34.560520000000544,
+        "size": 428638,
+        "snapshotSize": 197592
+      }
+    },
+    {
+      "opCount": 892,
+      "v1": {
+        "time": 35.190360000001235,
+        "size": 319008,
+        "snapshotSize": 18464
+      },
+      "v2": {
+        "time": 35.9521799999995,
+        "size": 429273,
+        "snapshotSize": 200593
+      }
+    },
+    {
+      "opCount": 902,
+      "v1": {
+        "time": 36.731979999998295,
+        "size": 323550,
+        "snapshotSize": 18657
+      },
+      "v2": {
+        "time": 36.68907999999938,
+        "size": 439066,
+        "snapshotSize": 202790
+      }
+    },
+    {
+      "opCount": 912,
+      "v1": {
+        "time": 38.25994000000064,
+        "size": 327065,
+        "snapshotSize": 18879
+      },
+      "v2": {
+        "time": 41.11428000000014,
+        "size": 443518,
+        "snapshotSize": 205627
+      }
+    },
+    {
+      "opCount": 922,
+      "v1": {
+        "time": 37.878059999996914,
+        "size": 331004,
+        "snapshotSize": 19072
+      },
+      "v2": {
+        "time": 36.11774000000005,
+        "size": 448553,
+        "snapshotSize": 207291
+      }
+    },
+    {
+      "opCount": 932,
+      "v1": {
+        "time": 41.13587999999872,
+        "size": 333955,
+        "snapshotSize": 19293
+      },
+      "v2": {
+        "time": 47.88829999999871,
+        "size": 453168,
+        "snapshotSize": 209636
+      }
+    },
+    {
+      "opCount": 942,
+      "v1": {
+        "time": 39.69126000000106,
+        "size": 338439,
+        "snapshotSize": 19487
+      },
+      "v2": {
+        "time": 40.1523600000015,
+        "size": 457934,
+        "snapshotSize": 211833
+      }
+    },
+    {
+      "opCount": 952,
+      "v1": {
+        "time": 42.338799999999175,
+        "size": 341581,
+        "snapshotSize": 19709
+      },
+      "v2": {
+        "time": 43.05288,
+        "size": 463188,
+        "snapshotSize": 214219
+      }
+    },
+    {
+      "opCount": 962,
+      "v1": {
+        "time": 38.48937999999907,
+        "size": 346370,
+        "snapshotSize": 19902
+      },
+      "v2": {
+        "time": 40.09847999999911,
+        "size": 468955,
+        "snapshotSize": 216539
+      }
+    },
+    {
+      "opCount": 972,
+      "v1": {
+        "time": 38.3337400000004,
+        "size": 349857,
+        "snapshotSize": 20124
+      },
+      "v2": {
+        "time": 42.01186000000016,
+        "size": 473390,
+        "snapshotSize": 218925
+      }
+    },
+    {
+      "opCount": 982,
+      "v1": {
+        "time": 41.97584000000061,
+        "size": 353914,
+        "snapshotSize": 20317
+      },
+      "v2": {
+        "time": 44.54460000000108,
+        "size": 478746,
+        "snapshotSize": 221204
+      }
+    },
+    {
+      "opCount": 992,
+      "v1": {
+        "time": 42.90053999999945,
+        "size": 356447,
+        "snapshotSize": 20539
+      },
+      "v2": {
+        "time": 47.868659999998634,
+        "size": 479191,
+        "snapshotSize": 223016
+      }
+    }
+  ]
+}

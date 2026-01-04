@@ -159,7 +159,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
         console.log('Test Clicked');
         graphInstance.addNode({
             alwaysProps: {
-                id: 'test',
+                id: 'TEST',
                 position : { x: Math.random() * 400, y: Math.random() * 400 },
                 label: 'TEST', 
                 policy: 'ADD_WINS',

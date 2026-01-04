@@ -1,6 +1,7 @@
 /* Import the graph classes */
 import { SGraphV4 } from './Version1/V4/SimpleGraph';
 import { SchemaGraph } from './Version2_Schema_Introduced/V1/SchemaGraph';
+import { SchemaGraphV2 } from './Version2_Schema_Introduced/V2/SchemaGraph';
 import { Graph } from './Helper/types_interfaces/graph';
 
 /* Import the schema classes */
@@ -11,7 +12,8 @@ import { Schema_Interface } from './Helper/types_interfaces/schema';
 export enum GraphImplementation {
     SIMPLE_V4 = 'SIMPLE_V4',
     // SIMPLE_V5 = 'SIMPLE_V5', Currently not implemented but it will be the next version supporting Observe Removed
-    SCHEMA_V1 = 'SCHEMA_V1' // based on SIMPLE_V4
+    SCHEMA_V1 = 'SCHEMA_V1', // based on SIMPLE_V4
+    SCHEMA_V2 = 'SCHEMA_V2' // based on SCHEMA_V1
 }
 
 export enum SchemaImplementation {
@@ -20,8 +22,9 @@ export enum SchemaImplementation {
 }
 
 // Change this value to switch between implementations
-const ACTIVE_GRAPH_IMPLEMENTATION: GraphImplementation = GraphImplementation.SCHEMA_V1 as GraphImplementation;
+const ACTIVE_GRAPH_IMPLEMENTATION: GraphImplementation = GraphImplementation.SCHEMA_V2 as GraphImplementation;
 const ACTIVE_SCHEMA_IMPLEMENTATION: SchemaImplementation = SchemaImplementation.SCHEMA_1 as SchemaImplementation;
+
 
 
 export const getGraphInstance = (): Graph => {
@@ -30,6 +33,8 @@ export const getGraphInstance = (): Graph => {
             return new SGraphV4();
         case GraphImplementation.SCHEMA_V1:
             return new SchemaGraph();
+        case GraphImplementation.SCHEMA_V2:
+            return new SchemaGraphV2();
         default:
             throw new Error(`Unknown graph implementation: ${ACTIVE_GRAPH_IMPLEMENTATION}`);
     }
@@ -42,6 +47,8 @@ export const getActiveGraphClass = () => {
             return SGraphV4;
         case GraphImplementation.SCHEMA_V1:
             return SchemaGraph;
+        case GraphImplementation.SCHEMA_V2:
+            return SchemaGraphV2;
         default:
             throw new Error(`Unknown graph implementation: ${ACTIVE_GRAPH_IMPLEMENTATION}`);
     }
