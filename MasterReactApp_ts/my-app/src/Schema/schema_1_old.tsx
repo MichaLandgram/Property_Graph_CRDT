@@ -67,8 +67,8 @@ export const allowedNodePropeerties: Record<labelTypes, Record<boolKeys, Record<
             birthday: 'date',
             country: 'string',
             city: 'string',
-            faceEmbedding: 'vector',
-            languages: ['string']
+            // faceEmbedding: 'vector',
+            // languages: ['string']
         }
     },
     Account: {
@@ -84,8 +84,8 @@ export const allowedNodePropeerties: Record<labelTypes, Record<boolKeys, Record<
             freqLoginType: 'string',
             lastLoginTime: 'date',
             accountLevel: 'string',
-            lastLoginLocation: 'point',
-            prevPasswords: ['string']
+            // lastLoginLocation: 'point',
+            // prevPasswords: ['string']
         }
     },
     Medium: {
@@ -97,9 +97,9 @@ export const allowedNodePropeerties: Record<labelTypes, Record<boolKeys, Record<
         nullable: {
             lastLoginTime: 'date',
             riskLevel: 'string',
-            deviceInfo: 'map',
-            location: 'point',
-            loginCount: 'number'
+            // deviceInfo: 'map',
+            // location: 'point',
+            // loginCount: 'number'
         }
     },
     Company: {
@@ -114,8 +114,8 @@ export const allowedNodePropeerties: Record<labelTypes, Record<boolKeys, Record<
             business: 'string',
             description: 'string',
             url: 'string',
-            headquarters: 'point',
-            metadata: 'map'
+            // headquarters: 'point',
+            // metadata: 'map'
         }
     },
     Loan: {

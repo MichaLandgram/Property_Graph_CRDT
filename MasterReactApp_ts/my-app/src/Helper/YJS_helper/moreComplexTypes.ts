@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import { Counter } from '../../Helper/types_interfaces/types';
+import { v4 as uuidv4 } from 'uuid';
 
 
 /**
@@ -10,18 +10,33 @@ export class GrowOnlyCounter {
   public counter: Y.Map<number>;
   private clientId: string;
 
-  constructor(doc: Y.Doc, counterName: string = 'counter') {
-    this.counterName = counterName;
-    this.counter = doc.getMap<number>(counterName);
-    this.clientId = doc.clientID.toString();
+  constructor(counterMap: Y.Map<number>, doc?: Y.Doc) {
+    this.counterName = 'implicit';
+    this.counter = counterMap;
+    const d = doc || this.counter.doc;
+    if (d) {
+        this.clientId = d.clientID.toString();
+    } else {
+        // Fallback if sth goes wrong - but log a warning
+        console.warn('GrowOnlyCounter: Could not determine client ID. Using fallback UUID.');
+        this.clientId = uuidv4();
+    }
   }
 
-  increment({ amount = 1, doc }: { amount?: number;  doc: Y.Doc }): void {
+  increment({ amount = 1, doc }: { amount?: number;  doc?: Y.Doc }): void {
     if (amount < 0) {
       throw new Error('GrowOnlyCounter can only increment, not decrement');
     }
+
+    const d = doc || this.counter.doc;
+    if (!d) {
+        throw new Error('GrowOnlyCounter cannot increment without being attached to a Y.Doc');
+    }
+    if (!this.clientId) {
+        this.clientId = d.clientID.toString();
+    }
     
-    doc.transact(() => {
+    d.transact(() => {
       const currentValue = this.counter.get(this.clientId) || 0;
       this.counter.set(this.clientId, currentValue + amount);
     });
@@ -66,25 +81,6 @@ export class GrowOnlyCounter {
   }
 }
 
-// Usage example:
-/*
-const ydoc = new Y.Doc();
-const counter = new GrowOnlyCounter(ydoc);
-
-counter.increment();      // Increment by 1
-counter.increment(5);     // Increment by 5
-
-console.log(counter.getTotal());        // Total from all clients
-console.log(counter.getClientValue());  // This client's contribution
-
-// Subscribe to changes
-const unsubscribe = counter.onUpdate((total) => {
-  console.log('Counter total:', total);
-});
-
-// Unsubscribe when done
-unsubscribe();
-*/
 
 
 // TODO BETTER IMPLEMENTATIONS FOR POINT AND VECTOR 

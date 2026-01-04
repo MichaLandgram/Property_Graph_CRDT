@@ -16,7 +16,6 @@ export function useYjsGraph(graph: Y.Doc) {
 
   const syncNodes = useCallback(() => {
     const rawNodes = graphInstance.getVisibleNodes({ graph });
-    console.log("Raw Nodes:", rawNodes);
     
     const flowNodes: Node[] = rawNodes.map((node: any) => ({
       id: node.id,
@@ -33,7 +32,6 @@ export function useYjsGraph(graph: Y.Doc) {
 
   const syncEdges = useCallback(() => {
     const rawEdges = graphInstance.getEdges({ graph });
-    console.log("Raw Edges:", rawEdges);
 
     const flowEdges: Edge[] = rawEdges.map((edge: any) => ({
       id: edge.id || `edge-${edge.sourceId}-${edge.targetId}`,

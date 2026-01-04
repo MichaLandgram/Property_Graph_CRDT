@@ -177,3 +177,14 @@ export class Schema_1 implements Schema_Interface {
     }
     
 }
+
+
+// TODO IDK?
+// export function retru(label: labelTypes): string[] {
+//     switch (label) {
+//         case 'Medium':
+//             return ['loginCount'];
+//         default:
+//             return [];
+//     }
+// }
