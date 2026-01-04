@@ -52,7 +52,6 @@ describe('Schema Graph Add Node Test', () => {
             expect(counter.getTotal()).toBe(0);
             expect((props['testArray'].get(0) as string)).toBe('item1');
             expect((props['testArray'].get(1) as string)).toBe('item2');
-            console.log('testMap:', props['testMap']);
             expect((props['testMap'].get('key1') as Y.Map<any>).get('key1') as string).toBe('value1');
             // expect((props['testPoint'] as Point).x).toBe(1);
             // expect((props['testPoint'] as Point).y).toBe(2);
@@ -60,5 +59,42 @@ describe('Schema Graph Add Node Test', () => {
             // expect((props['testVector'] as OurVector).y).toBe(5);
             // expect((props['testVector'] as OurVector).z).toBe(6);
     });
+
     });
-})
+    test.skip('How are two nodes with the same id handled from different docs?', () => {
+        const array = new Y.Array<string>();
+        array.push(['item1', 'item2']);
+        const map = new Y.Map<any>();
+        const innerMap = new Y.Map<any>();
+        innerMap.set('key1', 'value1');
+        map.set('key1', innerMap);
+        const counter = new GrowOnlyCounter(new Y.Map<number>());
+        counter.increment({ doc: graph });
+        const initialProps1 = {
+            testString: 'hello',
+            testNumber: 42,
+            testBoolean: true,
+            testDate: new Date(),
+            testCounter: counter.counter,
+            testArray: array,
+            testMap: map,
+        }
+        const initialProps2 = {
+            testString: 'hello',
+            testNumber: 42,
+            testBoolean: true,
+            testDate: new Date(),
+            testCounter: counter.counter,
+            testArray: array,
+            testMap: map,
+        }
+        schemaGraph.addNode({ alwaysProps: { id: '1', label: 'TEST', policy: 'ADD_WINS', position, color }, initialProps: initialProps1, graph });
+        schemaGraph.addNode({ alwaysProps: { id: '1', label: 'TEST', policy: 'ADD_WINS', position, color }, initialProps: initialProps2, graph: graph2 });
+        syncDocs(graph, graph2);
+        const nodesMap = graph.getMap<any>('nodes');
+        const propertiesMap = graph.getMap<Y.Map<any>>('properties');
+        expect(nodesMap.has('1')).toBe(true);
+        expect(propertiesMap.has('1')).toBe(true);
+        expect(schemaGraph.getVisibleNodes({ graph })).toHaveLength(1);
+    });
+});
