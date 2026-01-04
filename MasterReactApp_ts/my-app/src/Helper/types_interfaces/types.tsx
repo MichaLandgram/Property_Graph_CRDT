@@ -75,6 +75,8 @@ export type EdgeId = `${NodeId}+${NodeId}`
 /* Helper Types */
 export type boolKeys = "notNull" | "nullable";
 
+export type addUpdateTag = "add" | "update";
+
 export type edgeNodeToken = "Node" | "Edge";
 
 export type AllowedConnectivity = Record<labelTypes, Record<labelTypes, edgeLabelTypes[]>>;

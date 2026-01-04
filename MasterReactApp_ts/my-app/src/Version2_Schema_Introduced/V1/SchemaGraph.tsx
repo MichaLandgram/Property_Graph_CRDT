@@ -14,7 +14,8 @@ import { dataTypes } from '../../Helper/types_interfaces/types';
 import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreComplexTypes';
 import { Schema_1 as SchemaInstance } from '../../Schema/schema_1';
 import { GraphError } from '../../Helper/Vizuals/GraphError';
-/* This is a SCHEMA_LESS APPROACH TO A GRAPH BASED ON YJS */
+
+/* This is a SCHEMA APPROACH TO A GRAPH BASED ON YJS */
 // const ydoc = new Y.Doc()
 
 // const ydoc = new Y.Doc() // Represents the collaborative graph | TOP LEVEL
@@ -27,29 +28,16 @@ const schemaInstance = new SchemaInstance();
 
 // Normalize values before inserting into Yjs maps to avoid embedding
 // unsupported types (e.g., native Map or class instances holding Y.Doc).
-const normalizeValueForYjs = (value: any) => {
-  if (value instanceof GrowOnlyCounter) {
-    // Store the shared counter map, not the wrapper instance
-    console.log('Normalizing GrowOnlyCounter for Yjs storage', value.counter);
-    return (value as any).counterName;
-  }
-  if (value instanceof Y.Map || value instanceof Y.Array) {
-    // Already a Yjs type in the same doc; store as-is
-    return value
-  }
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
-  if (value instanceof Point) {
-    return { x: value.x, y: value.y };
-  }
-  if (value instanceof OurVector) {
-    return { x: value.x, y: value.y, z: value.z };
-  }
-  return value;
-};
 
-const typeCheck = (incomingValue: any, expectedType: dataTypes) => {
+
+
+
+export class SchemaGraph implements Graph {
+  hasSchema : boolean = true;
+  isSchemaCorrect(graph: graphDoc): boolean {
+    throw new Error('Method not implemented.');
+  }
+  private typeCheck(incomingValue: any, expectedType: dataTypes) {
   if (expectedType === 'string') {
     if (typeof incomingValue !== 'string') {
       throw new GraphError(`Expected type string but got ${typeof incomingValue}`);
@@ -63,43 +51,157 @@ const typeCheck = (incomingValue: any, expectedType: dataTypes) => {
       throw new GraphError(`Expected type boolean but got ${typeof incomingValue}`);
     }
   } else if (expectedType === 'date') {
-    if (!(incomingValue instanceof Date)) {
-      throw new GraphError(`Expected type date but got ${typeof incomingValue}`);
+    if (!(incomingValue instanceof Date) && typeof incomingValue !== 'string') {
+       if (!(incomingValue instanceof Date)) {
+          throw new GraphError(`Expected type date but got ${typeof incomingValue}`);
+       }
     }
-  } else if (expectedType === 'counter') {
-    const isGrowOnlyCounter = incomingValue instanceof GrowOnlyCounter;
-    const isYMap = incomingValue instanceof Y.Map;
-    if (!isGrowOnlyCounter && !isYMap) {
-      throw new GraphError(`Expected type Counter but got ${typeof incomingValue}`);
-    }
+  } else if (typeof expectedType === 'object') {
+     if ('kind' in expectedType) {
+        if (expectedType.kind === 'counter') {
+            const isYMap = incomingValue instanceof Y.Map;
+            // Allow numbers for counter updates (diff-based)
+            if (!isYMap && typeof incomingValue !== 'number') {
+                throw new GraphError(`Expected type Counter (Y.Map) or number (for update) but got ${typeof incomingValue}`);
+            }
+        } else if (expectedType.kind === 'yarray') {
+            const isArray = incomingValue instanceof Y.Array || Array.isArray(incomingValue);
+            if (!isArray) {
+                throw new GraphError(`Expected type Array (or Y.Array) but got ${typeof incomingValue}`);
+             }
+            //  // Deep check each element
+            //  incomingValue.forEach((item: any) => {
+            //       typeCheck(item, expectedType.element);
+            //  });
+        } else if (expectedType.kind === 'ymap') {
+             // We expect a Map or Y.Map or maybe a plain object? 
+             // Yjs maps are usually initialized with plain objects or Y.Maps.
+             const isMap = incomingValue instanceof Y.Map || (typeof incomingValue === 'object' && incomingValue !== null);
+             if (!isMap) {
+                  throw new GraphError(`Expected type Map (or Object/Y.Map) but got ${typeof incomingValue}`);
+             }
+            //  // Deep check each key-value pair
+            //  Object.entries(incomingValue).forEach(([key, value]) => {
+            //       typeCheck(value, expectedType.value);
+            //  });
+        }
+        // TODO Point or Vector Just ideas
+     } else if ('dimensions' in expectedType) {
+          if (typeof incomingValue !== 'object' || incomingValue === null) {
+              throw new GraphError(`Expected Point/Vector structure but got ${typeof incomingValue}`);
+          }
+          const isPoint = incomingValue instanceof Point; // from complex types
+          const isVector = incomingValue instanceof OurVector;
+          const isSimpleObj = 'x' in incomingValue && 'y' in incomingValue; 
+          if (!isPoint && !isVector && !isSimpleObj) {
+               throw new GraphError(`Expected Point/Vector but got incompatible object`);
+          }
+     }
   } else if (expectedType === 'vector') {
-    if (!(incomingValue instanceof OurVector)) {
+     if (!(incomingValue instanceof OurVector)) {
       throw new GraphError(`Expected type Vector but got ${typeof incomingValue}`);
     }
   } else if (expectedType === 'point') {
     if (!(incomingValue instanceof Point)) {
       throw new GraphError(`Expected type Point but got ${typeof incomingValue}`);
     }
-  } else if (Array.isArray(expectedType)) {
-    const isArray = Array.isArray(incomingValue) || incomingValue instanceof Y.Array;
-    if (!isArray) {
-      throw new GraphError(`Expected type Array but got ${typeof incomingValue}`);
-    }
-    // TODO: Further type checks for array elements
-  } else if (expectedType instanceof Map) {
-    const isMap = incomingValue instanceof Map || incomingValue instanceof Y.Map;
-    if (!isMap) {
-      throw new GraphError(`Expected type Map but got ${typeof incomingValue}`);
-    }
-    // TODO: Further type checks for map entries
   }
 };
+  private setNormalizedValueAdd({k,v, nodeProps}: {k: string, v: any, nodeProps: Y.Map<any>}) : void {
+    if (v instanceof GrowOnlyCounter) {
+      nodeProps.set(k, v.counter);
+      return;
+    }
+    if (v instanceof Y.Map || v instanceof Y.Array) {
+      nodeProps.set(k, v);
+      return;
+    }
+    if (v instanceof Date) {
+      nodeProps.set(k, v.toISOString());
+      return;
+    }
+    if (v instanceof Point) {
+      nodeProps.set(k, { x: v.x, y: v.y });
+      return;
+    }
+    if (v instanceof OurVector) {
+      nodeProps.set(k, { x: v.x, y: v.y, z: v.z });
+      return;
+    }
+    nodeProps.set(k, v);
+    return;
+  };
+  private setNormalizedValueUpdate({k,v,expectedType, nodeProps, graph}: {k: string, v: any, expectedType: any, nodeProps: Y.Map<any>, graph: graphDoc}) : void {
+        // Handle Counter Updates
+        if (expectedType && typeof expectedType === 'object' && 'kind' in expectedType) { 
+          console.log('expectedType', v);
+            if (expectedType.kind === 'counter' && typeof v === 'number') {
+                 let currentCounterMap = nodeProps.get(k);
+                 if (!currentCounterMap || !(currentCounterMap instanceof Y.Map)) {
+                  console.log('Counter not found, creating new one');
+                     const newMap = new Y.Map<number>();
+                     nodeProps.set(k, newMap);
+                     currentCounterMap = newMap;
+                 }
+                 if (currentCounterMap instanceof Y.Map) {
+                     const counterWrapper = new GrowOnlyCounter(currentCounterMap, graph);
+                     const currentTotal = counterWrapper.getTotal();
+                     const diff = v - currentTotal;
+                     if (diff > 0) {
+                         counterWrapper.increment({ amount: diff });
+                     } else if (diff < 0) {
+                         console.warn(`GrowOnlyCounter for ${k} cannot be decremented. Ignored.`);
+                     }
+                     return;
+                 }
+            // Handle Array Updates
+            } else if (expectedType.kind === 'yarray' && Array.isArray(v)) {
+                 let currentArray = nodeProps.get(k);
+                 if (!currentArray || !(currentArray instanceof Y.Array)) {
+                     const newArray = new Y.Array();
+                     nodeProps.set(k, newArray);
+                     currentArray = newArray;
+                 }
+                 // currently remove strategy will be diff-based
+                 if (currentArray instanceof Y.Array) {
+                     const length = currentArray.length;
+                     if (length > 0) currentArray.delete(0, length);
+                     currentArray.push(v);
+                 }
+                 return;
+            // Handle Map Updates
+            } else if (expectedType.kind === 'ymap' && typeof v === 'object' && v !== null && !(v instanceof Y.Map)) {
+                 let currentMap = nodeProps.get(k);
+                 if (!currentMap || !(currentMap instanceof Y.Map)) {
+                     const newMap = new Y.Map();
+                     nodeProps.set(k, newMap);
+                     currentMap = newMap;
+                 }
+                 if (currentMap instanceof Y.Map) {
+                     const currentKeys = Array.from(currentMap.keys());
+                     const newKeys = Object.keys(v);
+                     const vAny = v as any;
+                     
+                     newKeys.forEach(inputKey => {
+                         if (currentMap.get(inputKey) !== vAny[inputKey]) {
+                             currentMap.set(inputKey, vAny[inputKey]);
+                         }
+                     });
 
-export class SchemaGraph implements Graph {
-  hasSchema : boolean = true;
-  isSchemaCorrect(graph: graphDoc): boolean {
-    throw new Error('Method not implemented.');
-  }
+                     currentKeys.forEach(existingKey => {
+                         if (!(existingKey in v)) {
+                             currentMap.delete(existingKey);
+                         }
+                     });
+                 }
+                 return;
+            }
+            return;
+        // Handle Simple Updates
+        } else {
+            nodeProps.set(k, v);
+        }
+  };
   testLabel(label: labelTypes | edgeLabelTypes, edgeNodeToken: edgeNodeToken): void {
     if (edgeNodeToken === 'Node' && !schemaInstance.labelTypeValues.includes(label)) {
       throw new GraphError(`Node Label ${label} is not allowed`);
@@ -114,12 +216,11 @@ export class SchemaGraph implements Graph {
         // unsure if necessary keep it for now
         Object.entries(schemaInstance.allowedNodePropeerties[label]['notNull']).forEach(([key, value]) => {
           // defined check
-             console.log('Type checking', incoming[key], 'against', value);
           if (incoming[key] === null || incoming[key] === undefined) {
             throw new GraphError(`Property ${key} is null or undefined but has to be included, incoming[key]: ${incoming[key]}`);
           }
           // Type Checks
-          typeCheck(incoming[key], value);
+          this.typeCheck(incoming[key], value);
         });
       } else if (boolKey === 'nullable') {
         Object.entries(schemaInstance.allowedNodePropeerties[label]['nullable']).forEach(([key, value]) => {
@@ -127,7 +228,7 @@ export class SchemaGraph implements Graph {
             return; // Property is nullable, so it can be null or undefined
           }
           // Type check using the same rules as notNull
-          typeCheck(incoming[key], value);
+          this.typeCheck(incoming[key], value);
         });
       }
     } else {
@@ -163,8 +264,12 @@ export class SchemaGraph implements Graph {
         throw new GraphError(`${edgeLabel} between ${sourceNodeLabel} and ${targetNodeLabel} is not allowed`);
       }
   }
+
+
+
+  /* Graph Main Interaction Interface */
+
   addNode({ alwaysProps, initialProps, graph }: { alwaysProps: AlwaysNodeData; initialProps: any; graph: graphDoc; }): void {
-    console.log('H1');
       const nodesMap = graph.getMap<any>('nodes');
       const propertiesMap = graph.getMap<Y.Map<any>>('properties');
 
@@ -174,30 +279,53 @@ export class SchemaGraph implements Graph {
       this.testProps(initialProps, alwaysProps.label, 'nullable', 'Node');
       const allProps = {...alwaysProps, ...initialProps};
 
-      const nodeProps = new Y.Map();
-      for (const [key, value] of Object.entries(allProps)) {
-        nodeProps.set(key, normalizeValueForYjs(value));
-        console.log('H2', key, value);
-      }
+      // const nodeProps = new Y.Map();
+      // for (const [key, value] of Object.entries(allProps)) {
+      //   nodeProps.set(key, this.normalizeValueForYjsAdd(value));
+      // }
       
+      const schemaProps = {
+        ...(schemaInstance.allowedNodePropeerties[alwaysProps.label]?.['notNull'] || {}),
+        ...(schemaInstance.allowedNodePropeerties[alwaysProps.label]?.['nullable'] || {})
+    }; 
       graph.transact(() => {
         nodesMap.set(alwaysProps.id, Date.now());
+        const nodeProps = new Y.Map();
+        for (const [key, value] of Object.entries(allProps)) {
+          const expectedType = schemaProps[key];
+          this.setNormalizedValueAdd({k:key,v:value, nodeProps});
+        }
         propertiesMap.set(alwaysProps.id, nodeProps);
       });
   }
+
   updateNode({ nodeId, props, graph }: { nodeId: NodeId; props: any; graph: graphDoc; }): void {
+    console.log('updateNode', nodeId, props);
     const nodesMap = graph.getMap<any>('nodes');
     const propertiesMap = graph.getMap<Y.Map<any>>('properties');
 
     const nodeProps = propertiesMap.get(nodeId)
     if (!nodeProps) {throw new GraphError(`Node ${nodeId} not found - cannot update something that does not exist`);}
     
-    this.testProps(props, nodeProps.get('label'), 'notNull', 'Node');
-    this.testProps(props, nodeProps.get('label'), 'nullable', 'Node');
+    const label = nodeProps.get('label');
+    
+    // find more compact solution!!
+    const currentProps = this.getNodeProps({ nodeId, graph }) || {};
+    const mergedProps = { ...currentProps, ...props };
+    
+    // Validate the FINAL state, not just the update
+    this.testProps(mergedProps, label, 'notNull', 'Node');
+    this.testProps(mergedProps, label, 'nullable', 'Node');
+
+    const schemaProps = {
+        ...(schemaInstance.allowedNodePropeerties[label]?.['notNull'] || {}),
+        ...(schemaInstance.allowedNodePropeerties[label]?.['nullable'] || {})
+    };
 
     graph.transact(() => {
       for (const [k, v] of Object.entries(props)) {
-        nodeProps.set(k, normalizeValueForYjs(v));
+        const expectedType = schemaProps[k];
+        this.setNormalizedValueUpdate({k,v,expectedType, nodeProps, graph});
         nodesMap.set(nodeId, Date.now());
       }
     });
@@ -246,8 +374,17 @@ export class SchemaGraph implements Graph {
   }
   getNodeProps({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): any | undefined {
     const propertiesMap = graph.getMap<Y.Map<any>>('properties');
-    const props = propertiesMap.get(nodeId);
-    return props ? props.toJSON() as any : undefined;
+    const props= propertiesMap.get(nodeId);
+    if (!props) return undefined;
+    const returnProps: any = {};
+    props.forEach((value: any, key: string) => {
+      if (value instanceof Y.Map) {
+        returnProps[key] = value;
+      } else {
+        returnProps[key] = value;
+      }
+    });
+    return returnProps;
   }
   addEdge({ sourceId, targetId, label, initialProps, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps: EdgeData; graph: graphDoc; }): void {
     const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');
@@ -271,7 +408,7 @@ export class SchemaGraph implements Graph {
       
       const edgeProps = new Y.Map<any>();
       for (const [key, value] of Object.entries(initialProps)) {
-        console.log(key, value);
+        // console.log(key, value);
         edgeProps.set(key, value);
       }
       specificTargetEdgesArray.push([edgeProps]);
