@@ -14,6 +14,7 @@ import { dataTypes } from '../../Helper/types_interfaces/types';
 import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreComplexTypes';
 import { Schema_1 as SchemaInstance } from '../../Schema/schema_1';
 import { GraphError } from '../../Helper/Vizuals/GraphError';
+import { DualKeyMap } from '../../Helper/YJS_helper/DualKeyMap';
 
 /* This is a SCHEMA APPROACH TO A GRAPH BASED ON YJS */
 // const ydoc = new Y.Doc()
@@ -26,7 +27,6 @@ import { GraphError } from '../../Helper/Vizuals/GraphError';
 
 const schemaInstance = new SchemaInstance();
 
-import { DualKeyMap } from '../../Helper/YJS_helper/DualKeyMap';
 
 // Normalize values before inserting into Yjs maps to avoid embedding
 // unsupported types (e.g., native Map or class instances holding Y.Doc).
