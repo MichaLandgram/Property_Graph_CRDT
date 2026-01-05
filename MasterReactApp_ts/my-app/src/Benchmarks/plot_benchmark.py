@@ -6,6 +6,7 @@ import sys
 def plot_benchmark():
     # Get the directory where the script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_dir = script_dir # Save plots in the same directory
     json_path = os.path.join(script_dir, 'benchmark_results.json')
     
     if not os.path.exists(json_path):
@@ -20,99 +21,78 @@ def plot_benchmark():
         config = json_data.get('config', {})
         update_rate = config.get('updateRate', 0) * 100
         delete_rate = config.get('deleteRate', 0) * 100
-        subtitle = f"Update Rate: {update_rate}%, Deletion Rate: {delete_rate}%"
     else:
         data = json_data
-        subtitle = "Legacy format"
+        update_rate = "N/A"
+        delete_rate = "N/A"
 
-    op_counts = [item['opCount'] for item in data]
+    ops = [item['opCount'] for item in data]
     
     # Extract data
-    v1_sizes = [item['v1']['size'] / 1024 for item in data]  # KB
-    v2_sizes = [item['v2']['size'] / 1024 for item in data]  # KB
-    v1_snapshot_sizes = [item['v1'].get('snapshotSize', 0) / 1024 for item in data] # KB
-    v2_snapshot_sizes = [item['v2'].get('snapshotSize', 0) / 1024 for item in data] # KB
     
-    v1_times = [item['v1']['time'] for item in data]
-    v2_times = [item['v2']['time'] for item in data]
+    # v1 data
+    v1_times = [xm['v1']['time'] / xm['opCount'] for xm in data]
+    v1_sizes = [xm['v1']['size'] / 1024 for xm in data]
+    v1_snapshot_sizes = [xm['v1'].get('snapshotSize', 0) / 1024 for xm in data]
 
-    # Plot Size
-    plt.figure(figsize=(10, 6))
-    plt.plot(op_counts, v1_sizes, label='V1 (Nested Maps)')
-    plt.plot(op_counts, v2_sizes, label='V2 (Top-Level Maps)')
-    plt.plot(op_counts, v1_snapshot_sizes, label='V1 (Snapshot)', linestyle='--')
-    plt.plot(op_counts, v2_snapshot_sizes, label='V2 (Snapshot)', linestyle='--')
-    
-    # Annotate differences
-    for i, (v1, v1Snap, v2, v2Snap) in enumerate(zip(v1_sizes, v1_snapshot_sizes, v2_sizes, v2_snapshot_sizes)):
-        # Only annotate every 20 nodes
-        if op_counts[i] % 20 != 0:
-            continue
-            
-        # Diff V1 vs V2 
-        diff = ((v2 - v1) / v1) * 100
-        color = 'green' if diff < 0 else 'red'
-        plt.annotate(f"{diff:.1f}%", 
-                     (op_counts[i], v2), 
-                     textcoords="offset points", 
-                     xytext=(0, 10), 
-                     ha='center', 
-                     color=color, 
-                     fontsize=9)
+    # v2 data
+    v2_times = [xm['v2']['time'] / xm['opCount'] for xm in data]
+    v2_sizes = [xm['v2']['size'] / 1024 for xm in data]
+    v2_snapshot_sizes = [xm['v2'].get('snapshotSize', 0) / 1024 for xm in data]
 
-        # Annotate Snapshot savings (optional, maybe just for the last point to avoid clutter)
-        if i == len(op_counts) - 1:
-             diff_snap = ((v2Snap - v2) / v2) * 100
-             plt.annotate(f"Snap: {diff_snap:.1f}%", 
-                     (op_counts[i], v2Snap), 
-                     textcoords="offset points", 
-                     xytext=(0, -15), 
-                     ha='center', 
-                     color='blue', 
-                     fontsize=9)
+    # v3 data
+    v3_times = [xm['v3']['time'] / xm['opCount'] for xm in data]
+    v3_sizes = [xm['v3']['size'] / 1024 for xm in data]
+    v3_snapshot_sizes = [xm['v3'].get('snapshotSize', 0) / 1024 for xm in data]
 
-    plt.xlabel('Number of Nodes')
-    plt.ylabel('Memory Usage (KB)')
-    plt.title(f'Memory Usage vs Node Count (Averaged)\n({subtitle})')
+    # 1) Memory Plot
+    plt.figure(figsize=(12, 6))
+
+    # Sizes with History
+    plt.plot(ops, v1_sizes, label='V1 (Nested Maps)', marker='o')
+    plt.plot(ops, v2_sizes, label='V2 (Top-Level Maps)', marker='x')
+    plt.plot(ops, v3_sizes, label='V3 (DualKeyMap)', marker='^', color='green')
+
+    # Snapshot Sizes (Dashed)
+    plt.plot(ops, v1_snapshot_sizes, label='V1 (Snapshot)',  linestyle='--', alpha=0.5)
+    plt.plot(ops, v2_snapshot_sizes, label='V2 (Snapshot)', linestyle='--', alpha=0.5)
+    plt.plot(ops, v3_snapshot_sizes, label='V3 (Snapshot)', linestyle='--', color='lightgreen', alpha=0.5)
+
+    plt.xlabel('Number of Operations (Adds/Updates)')
+    plt.ylabel('Document Size (KB)')
+    plt.title(f'YJS Memory Footprint\n(Config: DeleteRate={delete_rate}%, UpdateRate={update_rate}%)')
     plt.legend()
     plt.grid(True)
-    plt.savefig(os.path.join(script_dir, 'benchmark_memory.png'))
-    print(f"Saved {os.path.join(script_dir, 'benchmark_memory.png')}")
-    
-    # Plot Time
-    plt.figure(figsize=(10, 6))
-    
-    # Calculate time per node (Average Execution Time)
-    v1_times_per_node = [t / c for t, c in zip(v1_times, op_counts)]
-    v2_times_per_node = [t / c for t, c in zip(v2_times, op_counts)]
-    
-    plt.plot(op_counts, v1_times_per_node, label='V1 (Nested Maps)')
-    plt.plot(op_counts, v2_times_per_node, label='V2 (Top-Level Maps)')
 
-    # Annotate differences
-    for i, (v1, v2) in enumerate(zip(v1_times_per_node, v2_times_per_node)):
-        # Only annotate every 20 nodes
-        if op_counts[i] % 20 != 0:
-            continue
+    for i, op in enumerate(ops):
+        if i % 10 == 0: # Annotate every 10th point to avoid clutter
+            # V2 vs V1
+            diff_v2 = ((v2_sizes[i] - v1_sizes[i]) / v1_sizes[i]) * 100
+            plt.annotate(f'{diff_v2:+.1f}%', (op, v2_sizes[i]), textcoords="offset points", xytext=(0,10), ha='center', fontsize=8, color='blue')
             
-        if v1 == 0: continue # Avoid division by zero
-        diff = ((v2 - v1) / v1) * 100
-        color = 'green' if diff < 0 else 'red'
-        plt.annotate(f"{diff:.1f}%", 
-                     (op_counts[i], v2), 
-                     textcoords="offset points", 
-                     xytext=(0, 10), 
-                     ha='center', 
-                     color=color,
-                     fontsize=9)
+            # V3 vs V1
+            diff_v3 = ((v3_sizes[i] - v1_sizes[i]) / v1_sizes[i]) * 100
+            plt.annotate(f'{diff_v3:+.1f}%', (op, v3_sizes[i]), textcoords="offset points", xytext=(0,-15), ha='center', fontsize=8, color='green')
 
-    plt.xlabel('Number of Nodes')
-    plt.ylabel('Average Execution Time per Node (ms)')
-    plt.title(f'Average Execution Time vs Node Count\n({subtitle})')
+    plot_filename = os.path.join(output_dir, f'benchmark_memory.png')
+    plt.savefig(plot_filename)
+    print(f"Saved memory plot to {plot_filename}")
+
+    # 2) Execution Time Plot
+    plt.figure(figsize=(12, 6))
+    plt.plot(ops, v1_times, label='V1 (Nested Maps)', marker='o')
+    plt.plot(ops, v2_times, label='V2 (Top-Level Maps)', marker='x')
+    plt.plot(ops, v3_times, label='V3 (DualKeyMap)', marker='^', color='green')
+
+    plt.xlabel('Number of Operations')
+    plt.ylabel('Avg Time per Node (ms)')
+    plt.title(f'Execution Time Comparison (Avg per Node)\n(Config: DeleteRate={delete_rate}%, UpdateRate={update_rate}%)')
     plt.legend()
     plt.grid(True)
-    plt.savefig(os.path.join(script_dir, 'benchmark_time.png'))
-    print(f"Saved {os.path.join(script_dir, 'benchmark_time.png')}")
+    
+    time_plot_filename = os.path.join(output_dir, f'benchmark_time.png')
+    plt.savefig(time_plot_filename)
+    print(f"Saved time plot to {time_plot_filename}")
 
 if __name__ == "__main__":
     plot_benchmark()

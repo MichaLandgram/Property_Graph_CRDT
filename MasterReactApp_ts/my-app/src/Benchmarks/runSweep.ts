@@ -1,6 +1,7 @@
 import * as Y from 'yjs';
 import { SchemaGraph } from '../Version2_Schema_Introduced/V1/SchemaGraph';
 import { SchemaGraphV2 } from '../Version2_Schema_Introduced/V2/SchemaGraph';
+import { SchemaGraphV3 } from '../Version2_Schema_Introduced/V3/SchemaGraph';
 import { simulateLoad } from './runStorageBenchmark';
 import { performance } from 'perf_hooks';
 import * as fs from 'fs';
@@ -54,10 +55,13 @@ const measureBenchmark = (opCount: number, deleteRate: number, updateRate: numbe
     const iterations = 5; // Reduced iterations for speed
     let totalTimeV1 = 0;
     let totalTimeV2 = 0;
+    let totalTimeV3 = 0;
     let lastSizeV1 = 0;
     let lastSizeV2 = 0;
+    let lastSizeV3 = 0;
     let lastSizeV1Snapshot = 0;
     let lastSizeV2Snapshot = 0;
+    let lastSizeV3Snapshot = 0;
 
     for (let i = 0; i < iterations; i++) {
         // --- Test V1 (Nested Maps) ---
@@ -70,6 +74,11 @@ const measureBenchmark = (opCount: number, deleteRate: number, updateRate: numbe
         lastSizeV1 = update1.byteLength;
         totalTimeV1 += (end1 - start1);
 
+        // --- Snapshot V1 ---
+        const snapshotDoc1 = createSnapshot(doc1);
+        const snapshotUpdate1 = Y.encodeStateAsUpdate(snapshotDoc1);
+        lastSizeV1Snapshot = snapshotUpdate1.byteLength;
+
         // --- Test V2 (Top-Level Maps) ---
         const start2 = performance.now();
         const doc2 = new Y.Doc();
@@ -80,15 +89,25 @@ const measureBenchmark = (opCount: number, deleteRate: number, updateRate: numbe
         lastSizeV2 = update2.byteLength;
         totalTimeV2 += (end2 - start2);
 
-        // --- Snapshot V1 ---
-        const snapshotDoc1 = createSnapshot(doc1);
-        const snapshotUpdate1 = Y.encodeStateAsUpdate(snapshotDoc1);
-        lastSizeV1Snapshot = snapshotUpdate1.byteLength;
-
         // --- Snapshot V2 ---
-        const snapshotDoc = createSnapshot(doc2);
-        const snapshotUpdate = Y.encodeStateAsUpdate(snapshotDoc);
-        lastSizeV2Snapshot = snapshotUpdate.byteLength;
+        const snapshotDoc2 = createSnapshot(doc2);
+        const snapshotUpdate2 = Y.encodeStateAsUpdate(snapshotDoc2);
+        lastSizeV2Snapshot = snapshotUpdate2.byteLength;
+
+        // --- Test V3 (DualKeyMap Wrapper) ---
+        const start3 = performance.now();
+        const doc3 = new Y.Doc();
+        const v3 = new SchemaGraphV3();
+        simulateLoad(v3, doc3, opCount, deleteRate, updateRate);
+        const end3 = performance.now();
+        const update3 = Y.encodeStateAsUpdate(doc3);
+        lastSizeV3 = update3.byteLength;
+        totalTimeV3 += (end3 - start3);
+        
+        // --- Snapshot V3 ---
+        const snapshotDoc3 = createSnapshot(doc3);
+        const snapshotUpdate3 = Y.encodeStateAsUpdate(snapshotDoc3);
+        lastSizeV3Snapshot = snapshotUpdate3.byteLength;
     }
 
     return {
@@ -102,6 +121,11 @@ const measureBenchmark = (opCount: number, deleteRate: number, updateRate: numbe
             time: totalTimeV2 / iterations,
             size: lastSizeV2,
             snapshotSize: lastSizeV2Snapshot
+        },
+        v3: {
+            time: totalTimeV3 / iterations,
+            size: lastSizeV3,
+            snapshotSize: lastSizeV3Snapshot
         }
     };
 };

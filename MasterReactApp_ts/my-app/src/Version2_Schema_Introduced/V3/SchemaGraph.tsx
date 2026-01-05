@@ -26,10 +26,12 @@ import { GraphError } from '../../Helper/Vizuals/GraphError';
 
 const schemaInstance = new SchemaInstance();
 
+import { DualKeyMap } from '../../Helper/YJS_helper/DualKeyMap';
+
 // Normalize values before inserting into Yjs maps to avoid embedding
 // unsupported types (e.g., native Map or class instances holding Y.Doc).
 
-export class SchemaGraphV2 implements Graph {
+export class SchemaGraphV3 implements Graph {
   hasSchema : boolean = true;
   isSchemaCorrect(graph: graphDoc): boolean {
     throw new Error('Method not implemented.');
@@ -104,108 +106,7 @@ export class SchemaGraphV2 implements Graph {
     }
   }
 };
-  private setNormalizedValueAdd({k,v, nodeProps}: {k: string, v: any, nodeProps: Y.Map<any>}) : void {
-    if (v instanceof GrowOnlyCounter) {
-      nodeProps.set(k, v.counter);
-      return;
-    }
-    if (v instanceof Y.Map || v instanceof Y.Array) {
-      nodeProps.set(k, v);
-      return;
-    }
-    const initKey = `init_${k}`;
-    if (v instanceof Date) {
-      nodeProps.set(initKey, v.toISOString());
-      return;
-    }
-    if (v instanceof Point) {
-      nodeProps.set(initKey, { x: v.x, y: v.y });
-      return;
-    }
-    if (v instanceof OurVector) {
-      nodeProps.set(initKey, { x: v.x, y: v.y, z: v.z });
-      return;
-    }
-    nodeProps.set(initKey, v);
-    return;
-  };
-  private setNormalizedValueUpdate({k,v,expectedType, nodeProps, graph}: {k: string, v: any, expectedType: any, nodeProps: Y.Map<any>, graph: graphDoc}) : void {
-        // Handle Counter Updates
-        if (expectedType && typeof expectedType === 'object' && 'kind' in expectedType) { 
-          console.log('expectedType', v);
-            if (expectedType.kind === 'counter' && typeof v === 'number') {
-                 let currentCounterMap = nodeProps.get(k);
-                 if (!currentCounterMap || !(currentCounterMap instanceof Y.Map)) {
-                  console.log('Counter not found, creating new one');
-                     const newMap = new Y.Map<number>();
-                     nodeProps.set(k, newMap);
-                     currentCounterMap = newMap;
-                 }
-                 if (currentCounterMap instanceof Y.Map) {
-                     const counterWrapper = new GrowOnlyCounter(currentCounterMap, graph);
-                     const currentTotal = counterWrapper.getTotal();
-                     const diff = v - currentTotal;
-                     if (diff > 0) {
-                         counterWrapper.increment({ amount: diff });
-                     } else if (diff < 0) {
-                         console.warn(`GrowOnlyCounter for ${k} cannot be decremented. Ignored.`);
-                     }
-                     return;
-                 }
-            // Handle Array Updates
-            } else if (expectedType.kind === 'yarray' && Array.isArray(v)) {
-                 let currentArray = nodeProps.get(k);
-                 if (!currentArray || !(currentArray instanceof Y.Array)) {
-                     const newArray = new Y.Array();
-                     nodeProps.set(k, newArray);
-                     currentArray = newArray;
-                 }
-                 // currently remove strategy will be diff-based
-                 if (currentArray instanceof Y.Array) {
-                     const length = currentArray.length;
-                     if (length > 0) currentArray.delete(0, length);
-                     currentArray.push(v);
-                 }
-                 return;
-            // Handle Map Updates
-            } else if (expectedType.kind === 'ymap' && typeof v === 'object' && v !== null && !(v instanceof Y.Map)) {
-                 let currentMap = nodeProps.get(k);
-                 if (!currentMap || !(currentMap instanceof Y.Map)) {
-                     const newMap = new Y.Map();
-                     nodeProps.set(k, newMap);
-                     currentMap = newMap;
-                 }
-                 if (currentMap instanceof Y.Map) {
-                     const currentKeys = Array.from(currentMap.keys());
-                     const newKeys = Object.keys(v);
-                     const vAny = v as any;
-                     
-                     newKeys.forEach(inputKey => {
-                         if (currentMap.get(inputKey) !== vAny[inputKey]) {
-                             currentMap.set(inputKey, vAny[inputKey]);
-                         }
-                     });
 
-                     currentKeys.forEach(existingKey => {
-                         if (!(existingKey in v)) {
-                             currentMap.delete(existingKey);
-                         }
-                     });
-                 }
-                 return;
-            }
-            return;
-        // Handle Simple Updates
-        } else {
-            nodeProps.set(k, v);
-            
-            // Memory Optimization: Delete init key if it exists
-            const initKey = `init_${k}`;
-            if (nodeProps.has(initKey)) {
-                nodeProps.delete(initKey);
-            }
-        }
-  };
   testLabel(label: labelTypes | edgeLabelTypes, edgeNodeToken: edgeNodeToken): void {
     if (edgeNodeToken === 'Node' && !schemaInstance.labelTypeValues.includes(label)) {
       throw new GraphError(`Node Label ${label} is not allowed`);
@@ -290,17 +191,19 @@ export class SchemaGraphV2 implements Graph {
         nodesMap.set(alwaysProps.id, Date.now());
         
         // Use Top-Level Shared Type for Node Properties (Enables Merging)
-        const nodeProps = graph.getMap(`n_${alwaysProps.id}`);
+        const nodePropsYMap = graph.getMap(`n_${alwaysProps.id}`);
+        // Wrap with DualKeyMap
+        const nodeProps = new DualKeyMap(nodePropsYMap);
         
         // Always properties: Set directly without init_ prefix logic
         for (const [key, value] of Object.entries(alwaysProps)) {
-             nodeProps.set(key, value); 
+             nodePropsYMap.set(key, value); 
         }
 
-        // Initial properties: Use normalization with init_ prefix
+        // Initial properties: Use normalization with init_ prefix via DualKeyMap
         for (const [key, value] of Object.entries(initialProps)) {
-          const expectedType = schemaProps[key];
-          this.setNormalizedValueAdd({k:key,v:value, nodeProps});
+          // const expectedType = schemaProps[key];
+          nodeProps.setInitial(key, value);
         }
       });
   }
@@ -312,12 +215,13 @@ export class SchemaGraphV2 implements Graph {
     if (!nodesMap.has(nodeId)) {throw new GraphError(`Node ${nodeId} not found - cannot update something that does not exist`);}
 
     // Access Top-Level Map
-    const nodeProps = graph.getMap(`n_${nodeId}`);
+    const nodePropsYMap = graph.getMap(`n_${nodeId}`);
+    const nodeProps = new DualKeyMap(nodePropsYMap);
     
     const label = nodeProps.get('label') as labelTypes || nodeProps.get('init_label') as labelTypes;
     
     // find more compact solution!!
-    const currentProps = this.getNodeProps({ nodeId, graph }) || {};
+    const currentProps = nodeProps.getAll() || {};
     const mergedProps = { ...currentProps, ...props };
     
     // Validate the FINAL state, not just the update
@@ -332,7 +236,7 @@ export class SchemaGraphV2 implements Graph {
     graph.transact(() => {
       for (const [k, v] of Object.entries(props)) {
         const expectedType = schemaProps[k];
-        this.setNormalizedValueUpdate({k,v,expectedType, nodeProps, graph});
+        nodeProps.setUpdate(k, v, expectedType, graph);
         nodesMap.set(nodeId, Date.now());
       }
     });
@@ -372,14 +276,16 @@ export class SchemaGraphV2 implements Graph {
            return;
       }
       
-      const policy = propsMap.get('policy') || propsMap.get('init_policy');
+      const nodeProps = new DualKeyMap(propsMap);
+      const props = nodeProps.getAll();
+      const policy = props['policy'];
 
       if (policy === 'REMOVE_WINS') {
         if (node.removed) {
           return; // Node is already removed and should not be visible
         }
       }
-        visible.push({ id, ...propsMap.toJSON(), policy });
+        visible.push({ id, ...props, policy });
     });
     
     return visible;
@@ -388,30 +294,9 @@ export class SchemaGraphV2 implements Graph {
     const nodesMap = graph.getMap<any>('nodes');
     if (!nodesMap.has(nodeId)) return undefined;
 
-    const props = graph.getMap(`n_${nodeId}`);
-    
-    const returnProps: any = {};
-    const combinedProps = new Map<string, any>();
-
-    props.forEach((value: any, key: string) => {
-       if (key.startsWith('init_')) {
-           const realKey = key.replace('init_', '');
-           if (!combinedProps.has(realKey)) {
-               combinedProps.set(realKey, value);
-           }
-       } else {
-           // Direct update value - takes precedence
-           combinedProps.set(key, value);
-       }
-    });
-
-    combinedProps.forEach((value, key) => {
-         returnProps[key] = value;
-    });
-
-    // console.log('returnProps:', returnProps);
-
-    return returnProps;
+    const propsYMap = graph.getMap(`n_${nodeId}`);
+    const nodeProps = new DualKeyMap(propsYMap);
+    return nodeProps.getAll();
   }
   addEdge({ sourceId, targetId, label, initialProps, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps: EdgeData; graph: graphDoc; }): void {
     const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');

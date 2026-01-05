@@ -154,6 +154,7 @@ describe('Schema Graph Add Node Test', () => {
         expect(schemaGraph.getVisibleNodes({ graph: graph2 })).toHaveLength(1);
         expect(schemaGraph.getNodeProps({ nodeId: '1', graph }).testNumber).toBe(2);
         expect(schemaGraph.getNodeProps({ nodeId: '1', graph: graph2 }).testNumber).toBe(2);
+        // it is Hi2 because the id is the tie breaker!
         expect(schemaGraph.getNodeProps({ nodeId: '1', graph }).testString).toBe('Hi2');
         expect(schemaGraph.getNodeProps({ nodeId: '1', graph: graph2 }).testString).toBe('Hi2');
         expect(schemaGraph.getNodeProps({ nodeId: '1', graph }).testBoolean).toBe(false);
