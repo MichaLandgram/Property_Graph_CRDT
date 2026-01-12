@@ -2,7 +2,15 @@
 
 This document summarizes the architectural options explored for integrating **Yjs (Real-time Collaboration)** with **Graph Databases (Neo4j, ArangoDB, ...)**.
 
-## 1. Client-Side Direct Write - Makes no sense for our goals
+## 0. Abstraction
+- Small sketch that scheme is indipendent of the basic Y-PG implementation.
+```mermaid
+graph TD
+
+    Y-PG[YJS Property Graph CRDTs]
+    Schema[Schema Validation] <-->|Validate| Y-PG
+```
+## 1. Client-Side Direct Write 
 **Concept:** Every Client connects directly to a Graph Database. Clients write updates to the Graph Database individually.
 
 ```mermaid
@@ -51,11 +59,11 @@ graph LR
 ```mermaid
 graph LR
     subgraph C1
-        UI1[UI] -->|Read/Write| YJS1[YJS]
+        UI1[UI] -->|Read/Write| YJS1[Y-PGS]
     end
-    YJS1 <-->|WS| YJS3[Server-YJS]
+    YJS1 <-->|WS| YJS3[Server-Y-PGS]
     subgraph C2
-        UI2[UI] -->|Read/Write| YJS2[YJS]
+        UI2[UI] -->|Read/Write| YJS2[Y-PGS]
     end
     YJS2 <-->|WS| YJS3
     subgraph Sync Server
@@ -84,7 +92,7 @@ graph LR
 ```mermaid
 graph LR
     subgraph C1
-        UI1[UI] -->|Write| YJS1[YJS]
+        UI1[UI] -->|Write| YJS1[Y-PGS]
         UI1 -->|Read| RL1[Read Layer]
     end
 
@@ -93,7 +101,7 @@ graph LR
     end
     subgraph Interaction Layer
         GB[DB Gateway]
-        YJS3[Server-YJS] <-->|triggers| GB
+        YJS3[Server-Y-PGS] <-->|triggers| GB
     end
     OC[Other Clients] <-->|WS| YJS3
     YJS1 <-->|WS| YJS3

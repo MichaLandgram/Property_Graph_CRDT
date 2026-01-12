@@ -1,25 +1,9 @@
 # Thesis Research Questions (Suggestions)
 
----
-
-## RQ: The Architectural Trade-off (Availability vs. Consistency)
-**Question:**
-> *To what extent can our architecture improve data consistency compared to client-side direct writes in a distributed graph application, and what is the latency cost?*
-
-*   **Why:** Addresses the core decision ofLocal-First.
-
----
-
 ## RQ: Enforcing Graph Constraints on CRDTs (Integrity)
 **Question:**
 > *How can schema constraints be enforced in a Local-First Property Graph without compromising conflict-free convergence?*
 
-*   **Why:** Addresses your specific concern about "Path / Cardinality". CRDTs naturally allow *anything*. You are adding rules.
-*   **How to Evaluate:**
-    *   **Setup:** Define a rule: *"A Project Node MUST have exactly 1 Owner."*
-    *   **Attack:** Have Client A delete the Owner while Client B edits the Owner's name (concurrently).
-    *   **Measure:** Does the system end up with 0 Owners (Constraint Violation) or does it converge to a safe state?
-    *   **Deliverable:** A proposed algorithm or "Repair Strategy" in your Gateway.
 
 ---
 
@@ -27,14 +11,6 @@
 **Question:**
 > *What mechanisms allow for evolving a Property Graph Schema (e.g., adding mandatory properties, adding / removing / renaming properties, adding / removing / renaming node / edge labels, adding / removing / renaming connectivities ) in a distributed system without disrupting offline clients?*
 
-*   **Why:** Addresses "Schema Evolution".
-*   **How to Evaluate:**
-    *   **Scenario:**
-        1.  Client A goes Offline with Schema V1.
-        2.  Server upgrades to Schema V2 (e.g., "User" node now requires "Age").
-        3.  Client A creates a "User" (without Age) and reconnects.
-    *   **Measure:** Does the system crash? Does it reject the data? Or does it apply a "Migration Strategy"?
-    *   **Comparison:** Compare "Strict Rejection" (TypeDB style) vs. "Adaptive Migration" (Your solution).
 
 ---
 
@@ -42,11 +18,40 @@
 **Question:**
 > *What is the performance overhead of running a Distributed Graph Database (Option 5.2) on consumer hardware compared to a Centralized Cloud architecture?*
 
-*   **Why:** Validates the "Option 5" vs "Option 2" trade-off.
-*   **How to Evaluate:**
-    *   **Benchmark:** Execute 1,000 read queries (e.g., 3-hop traversal).
-    *   **Compare:** Local Neo4j (0ms network, high CPU) vs. Cloud Neo4j (50ms network, low CPU).
-    *   **Result:** A chart showing the break-even point where Local becomes faster.
+---
+
+## RQ: Referential Integrity Strategies (The "Dangling Edge" Problem)
+**Question:**
+> *How do different Referential Integrity strategies (Tombstones/Ghost Nodes vs. Cascading Deletes vs. Tolerating Dangling Edges) impact storage overhead and writing performance in a Local-First Graph?*
+
+---
+
+## RQ: Internal Data Structure & Query Performance
+**Question:**
+> *What is the performance impact of traversing a graph directly on underlying CRDT structures (e.g., Yjs Maps/Arrays) versus traversing the underlying graphdatabase itself?* *Does a dedicated Graph Traversal Layer in the middleware improve performance?*
+
+
+---
+
+## RQ: Basic CRDT Graph Modeling (Nodes vs. Edges)
+**Question:**
+> *What is the impact on convergence reliability, storage and time overhead when modeling Edges as independent CRDT entities (e.g., separate Maps) versus embedding them as logical references within Node CRDTs?*
+
+*   **Why:** Addresses core Data Structure design. You use `edgesTargetsMap` (separate).
+
+
+
+
+---
+
+## RQ: The "Merge Trap" in Cardinality Constraints
+**Question:**
+> *User Experience implications of different automatic repair strategies for "Max N" cardinality violations (e.g., "Deterministic Drop" vs. "Escrow/Reservation").*
+
+*   **Why:**  Concurrent adds can violate `Max 5 edges`.
+*   **Scenario:** 5 users each add a friend to a node (limit 5). Total 10 friends.
+*   **Study:** Which repair logic feels less "broken" to the end-user? (Randomly deleting 5 friends vs. pausing all adds).
+
 
 
 | Constraint           | Category    | Monotonic? | Local Strategy | Merge Strategy  | Repair Strategy   |
