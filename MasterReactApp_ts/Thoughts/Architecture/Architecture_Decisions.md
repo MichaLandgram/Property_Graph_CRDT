@@ -119,16 +119,16 @@ graph LR
 ```mermaid
 graph TD
     subgraph C1
-        UI1[UI] -->|Write/Read| YA[YJS] 
+        UI1[UI] -->|Write/Read| YA[Y-PGS] 
         subgraph Interaction Layer1[Interaction Layer]
-            YA[YJS] --> GA[DB Gateway]
+            YA[Y-PGS] --> GA[DB Gateway]
         end
         GA --> DBA[(Graph Database)]
     end
     subgraph C*
-        UI2[UI] -->|Write/Read| YB[YJS]
+        UI2[UI] -->|Write/Read| YB[Y-PGS]
         subgraph Interaction Layer2[Interaction Layer]
-            YB[YJS] --> GB[DB Gateway]
+            YB[Y-PGS] --> GB[DB Gateway]
         end
         GB --> DBB[(Graph Database)]
     end
@@ -151,16 +151,16 @@ Read from the Graph Database directly. Write via the Sync Server.
 ```mermaid
 graph TD
     subgraph C1
-        UI1[UI] -->|Write| YA[YJS] 
+        UI1[UI] -->|Write| YA[Y-PGS] 
         subgraph Interaction Layer1[Interaction Layer]
-            YA[YJS] --> GA[DB Gateway]
+            YA[Y-PGS] --> GA[DB Gateway]
         end
         GA --> DBA[(Graph Database)]
     end
     subgraph C*
-        UI2[UI] -->|Write| YB[YJS]
+        UI2[UI] -->|Write| YB[Y-PGS]
         subgraph Interaction Layer2[Interaction Layer]
-            YB[YJS] --> GB[DB Gateway]
+            YB[Y-PGS] --> GB[DB Gateway]
         end
         GB --> DBB[(Graph Database)]
     end
@@ -184,9 +184,9 @@ But single point of failure! Still local work could be done.
 ```mermaid
 graph TD
     subgraph C1
-        UI1[UI] -->|Write/Read| YA[YJS] 
+        UI1[UI] -->|Write/Read| YA[Y-PGS] 
         subgraph Interaction Layer1[Interaction Layer]
-            YA[YJS] --> GA[DB Gateway]
+            YA[Y-PGS] --> GA[DB Gateway]
         end
         GA --> DBA[(Graph Database)]
     end
@@ -194,9 +194,9 @@ graph TD
         Relay[("WebSocket Relay (No Storage)")]
     end
     subgraph C*
-        UI2[UI] -->|Write/Read| YB[YJS]
+        UI2[UI] -->|Write/Read| YB[Y-PGS]
         subgraph Interaction Layer2[Interaction Layer]
-            YB[YJS] --> GB[DB Gateway]
+            YB[Y-PGS] --> GB[DB Gateway]
         end
         GB --> DBB[(Graph Database)]
     end
