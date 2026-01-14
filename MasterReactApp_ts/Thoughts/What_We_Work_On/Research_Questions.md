@@ -54,7 +54,7 @@
 # Brainstorming Pool (more detailed ideas)
 
 ## RQ: The "Middleware" Architecture Integration
-**Option A (Design Focus):**
+**Option A (Design Focus):** -- current favourite
 > *How can an abstraction layer based on Property Graph CRDTs be effectively integrated into a distributed architecture to mediate between local-first application logic and persistent graph storage?*
 
 **Option B (Decoupling Focus):**
