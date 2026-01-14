@@ -1,3 +1,15 @@
+# Thesis Name Ideas:
+
+**Enforcing Structural and Semantic Constraints in Local-First Property Graphs**
+
+**Enforcing Graph Constraints in Local-First Property Graphs using CRDTs**
+
+**The Merge Trap: Managing Schema Evolution and Constraints in Offline-First Graph Systems**
+
+**Beyond Eventually Consistent: Enforcing Strict Graph Semantics on Relaxed CRDT Structures**
+
+**A Middleware Architecture for Replicated Property Graphs with Semantic Guarantees**
+
 # Thesis Research Questions (Suggestions)
 
 
