@@ -29,7 +29,7 @@
 
 --- 
 
-## RQ: Distributed Schema Evolution
+## RQ: Distributed Schema Evolution / Living Schema
 **Question:**
 > *How can schema evolution operations be performed without breaking offline clients, while preserving eventual convergence to a schema-valid graph?*
 
@@ -86,5 +86,4 @@
 *   **Context:** Design leaves "Zombie Maps" (`n_ID`) after deletion.
 
 ---
-
 
