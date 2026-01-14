@@ -3,7 +3,7 @@
 
 # Main RQ: 
 >How can a property-graph CRDT be designed to preserve key structural and schema constraints (typing, referential integrity, selected cardinality constraints) while retaining coordination-free convergence in a local-first setting?
-=> split into subquestions
+> *split into subquestions*
 
 ## RQ: Property Graph Design with CRDTs
 **Question:**
