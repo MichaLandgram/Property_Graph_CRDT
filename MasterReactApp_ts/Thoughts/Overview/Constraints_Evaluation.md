@@ -98,3 +98,31 @@ Basic Schema (local resolvable)
 | **1** | **Local** | Labels, Prop Types, Allowed Edges | **Implement (Baseline)** |
 | **2** | **Conflict** | Cardinality, Ref Integrity, Bidirectional, Degree Constraints | **Implement** |
 | **3** | **Global** | Acyclicity, Path, Schema Evolution | **--** |
+
+
+---
+
+My first idea table :D 
+
+| Constraint           | Category    | Monotonic? | Local Strategy | Merge Strategy  | Repair Strategy   |
+| -------------------- | --------    | ---------- | -------------- | --------------- | ---------------  |
+| Node / Edge label    | Node / Edge | Yes        | Type-check     |     Union       |     -            |
+| Property existence   | Node / Edge | Partial    | Validate       |     -           |     -            |
+| Property type        | Node / Edge | Yes        | Type-check     |     -           |     -            |
+| Property uniqueness  | Node / Edge | No         | Validate       |     -           |     Repair       |
+| allowed Edges        | Edge        | Yes*       | Validate       |     -           |     -            |
+| Cardinality lower    | Edge        | No         | Validate       |     -           |Repair (keep some edges)|
+| Cardinality equal    | Edge        | Yes        | Validate       |     -           |     -            |
+| Cardinality upper    | Edge        | Partial    | Validate       |     -           |     -            |
+| Degree Out           | Edge        | Partial    | Validate       |     -           |     -            |
+| Degree In            | Edge        | Partial    | Validate       |     -           |     -            |
+| Edge uniqueness between nodes      | Edge       | Partial        |       -        |             Tie-break    |     Repair       |
+| Acyclicity           | Graph       | No         |      -         |    -           |     Evelyn - US   |
+| Path Exsistence      | Graph       | No         |      -         |    -           |     Restructure   |
+| Path Non-Existence   | Graph       | No         |      -         |    -           |     Restructure   |
+| Connectivity         | Graph       | No         |      -         |    -           |     Restructure   |
+| Bidirectional        | Edge        | Yes*       | Auto-Create / Delete |           |     -            |
+| Referential Integrity| Node        | Yes*       | None           |                 |     -            |
+| Composite uniqueness | Node        | No         | None           |                 |     -            |
+
+*Cascade the problem

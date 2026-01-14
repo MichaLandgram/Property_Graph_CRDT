@@ -190,17 +190,13 @@ export class SchemaGraphV3 implements Graph {
       graph.transact(() => {
         nodesMap.set(alwaysProps.id, Date.now());
         
-        // Use Top-Level Shared Type for Node Properties (Enables Merging)
         const nodePropsYMap = graph.getMap(`n_${alwaysProps.id}`);
-        // Wrap with DualKeyMap
         const nodeProps = new DualKeyMap(nodePropsYMap);
         
-        // Always properties: Set directly without init_ prefix logic
         for (const [key, value] of Object.entries(alwaysProps)) {
              nodePropsYMap.set(key, value); 
         }
 
-        // Initial properties: Use normalization with init_ prefix via DualKeyMap
         for (const [key, value] of Object.entries(initialProps)) {
           // const expectedType = schemaProps[key];
           nodeProps.setInitial(key, value);
