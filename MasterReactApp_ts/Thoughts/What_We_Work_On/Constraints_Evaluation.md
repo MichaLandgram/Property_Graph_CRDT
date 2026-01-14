@@ -10,7 +10,7 @@ based on
 *   **Strategy B (Server):** Uses **Strict Serializability** (via Gateway). Suitable for Tier 2 (Cardinality).
 *   **Strategy C (Prevention):** Uses **Local Invariants** to reduce the need for repair.
 
-## Tier 1 Only Local
+## Tier 1 ONLY Local
 Basic Schema (local resolvable)
 *   **Node / Edge Label:** Simple check. (R1/2/3)
 *   **Property Type:** `typeof value === '...'`.  -> For what properties we are talking about look at PropertyOverview.md (R1/2/3)
