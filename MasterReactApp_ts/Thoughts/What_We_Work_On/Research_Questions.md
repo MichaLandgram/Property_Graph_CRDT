@@ -1,50 +1,46 @@
 # Thesis Research Questions (Suggestions)
 
-## RQ: Enforcing Graph Constraints on CRDTs (Integrity)
+## RQ: Property Graph Design with CRDTs
 **Question:**
-> *How can schema constraints be enforced in a Local-First Property Graph without compromising conflict-free convergence?*
-
+> *Can a simple Property Graph be designed with CRDTs to enforce basic graph constraints (e.g., node/edge labels, property existence, property type, allowed edges, no dangling edges) without compromising conflict-free convergence?* 
 
 ---
 
+## RQ: Distributed Schema Integration
+**Question:**
+> *Can a Schema be integrated into a distributed Property Graph without compromising conflict-free convergence?* 
+
+---
 ## RQ: Distributed Schema Evolution
 **Question:**
 > *What mechanisms allow for evolving a Property Graph Schema (e.g., adding mandatory properties, adding / removing / renaming properties, adding / removing / renaming node / edge labels, adding / removing / renaming connectivities ) in a distributed system without disrupting offline clients?*
 
+---
+
+## RQ: Distributed Cardinality Constraints
+**Question:**
+> *Can a Property Graph be designed with CRDTs to enforce cardinality constraints (e.g., max 5 edges, min 1 edge, exact 5 edges) without compromising conflict-free convergence?*
 
 ---
 
-## RQ: The Limit of Local-First Querying (The "Thick Client" RQ)
+## RQ: Distributed Neighborhood Constraints
+**Question:**
+> *Can simple neighborhood Constraints be enforced in a distributed Property Graph?*
+---
+
+## RQ Distributed Path Exsistence Constraints
+**Question:**
+> *Can simple path existence / non-existence Constraints be enforced in a distributed Property Graph?*
+
+--- 
+
+## RQ: The Limit of Local-First Querying (The "Thick Client" RQ) # another Idea than "consumer" hardware
 **Question:**
 > *What is the performance overhead of running a Distributed Graph Database (Option 5.2) on consumer hardware compared to a Centralized Cloud architecture?*
 
 ---
 
-## RQ: Referential Integrity Strategies (The "Dangling Edge" Problem)
-**Question:**
-> *How do different Referential Integrity strategies (Tombstones/Ghost Nodes vs. Cascading Deletes vs. Tolerating Dangling Edges) impact storage overhead and writing performance in a Local-First Graph?*
-
----
-
-## RQ: Internal Data Structure & Query Performance
-**Question:**
-> *What is the performance impact of traversing a graph directly on underlying CRDT structures (e.g., Yjs Maps/Arrays) versus traversing the underlying graphdatabase itself?* *Does a dedicated Graph Traversal Layer in the middleware improve performance?*
-
-
----
-
-## RQ: Basic CRDT Graph Modeling (Nodes vs. Edges)
-**Question:**
-> *What is the impact on convergence reliability, storage and time overhead when modeling Edges as independent CRDT entities (e.g., separate Maps) versus embedding them as logical references within Node CRDTs?*
-
-*   **Why:** Addresses core Data Structure design. You use `edgesTargetsMap` (separate).
-
-
-
-
----
-
-## RQ: The "Merge Trap" in Cardinality Constraints
+## RQ: The "Merge Trap" in Cardinality Constraints [User-Study Idea]
 **Question:**
 > *User Experience implications of different automatic repair strategies for "Max N" cardinality violations (e.g., "Deterministic Drop" vs. "Escrow/Reservation").*
 
@@ -52,6 +48,7 @@
 *   **Scenario:** 5 users each add a friend to a node (limit 5). Total 10 friends.
 *   **Study:** Which repair logic feels less "broken" to the end-user? (Randomly deleting 5 friends vs. pausing all adds).
 
+---
 
 
 | Constraint           | Category    | Monotonic? | Local Strategy | Merge Strategy  | Repair Strategy   |

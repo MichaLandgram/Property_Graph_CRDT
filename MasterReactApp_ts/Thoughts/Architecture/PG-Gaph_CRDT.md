@@ -105,27 +105,27 @@ classDiagram
         <<Root - Y.Doc>>
         +YMap nodesRegistry
         +YMap edgesRegistry
-        +YMap edgesTargets (Topology)
-        +YMap n_NodeId (Data)
-        +YMap e_EdgeId (Data)
+        +YMap edgesTargets - Topology
+        +YMap n_NodeId - Data
+        +YMap e_EdgeId -Data
     }
 
     class OR_Registry_Entry {
         <<OR-Set Metadata>>
-        +Set E (Active IDs + uniqueTags)
-        +Set T (Tombstone Tags)
+        +Set E - Active IDs + uniqueTags
+        +Set T - Tombstone Tags
     }
 
     class DualKeyMap_Logic {
         <<Property Wrapper>>
-        +init_key (Creation)
-        +key (Update)
+        +init_key - Creation
+        +key - Update
     }
 
     class Node_Property_Map {
         <<Independent Map: n_ID>>
         +label
-        +policy (OR | AUW)
+        +policy - OR | AUW
         +props
     }
 
@@ -142,10 +142,10 @@ classDiagram
         +SourceId -> TargetId -> EdgeId
     }
 
-    Y_Doc_Root *-- OR_Registry_Entry : "Registry [ID]"
-    Y_Doc_Root *-- Topology_Index : "Topology [SourceID]"
-    Y_Doc_Root *-- Node_Property_Map : "Data [n_ID]"
-    Y_Doc_Root *-- Edge_Property_Map : "Data [e_EdgeID]"
+    Y_Doc_Root *-- OR_Registry_Entry : "Registry [Id]"
+    Y_Doc_Root *-- Topology_Index : "Topology [SourceId]"
+    Y_Doc_Root *-- Node_Property_Map : "Data [n_Id]"
+    Y_Doc_Root *-- Edge_Property_Map : "Data [e_EdgeId]"
     
     DualKeyMap_Logic ..> Node_Property_Map : "Manages"
     DualKeyMap_Logic ..> Edge_Property_Map : "Manages"
