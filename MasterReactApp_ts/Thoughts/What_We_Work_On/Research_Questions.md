@@ -53,6 +53,17 @@
 
 # Brainstorming Pool (more detailed ideas)
 
+## RQ: The "Middleware" Architecture Integration
+**Option A (Design Focus):**
+> *How can an abstraction layer based on Property Graph CRDTs be effectively integrated into a distributed architecture to mediate between local-first application logic and persistent graph storage?*
+
+**Option B (Decoupling Focus):**
+> *To what extent can a "Property Graph CRDT Middleware" decouple client-side graph operations from network synchronization constraints, and what are the resulting architectural trade-offs?*
+
+**Option C (The "Thick Client" bridge):**
+> *How can a CRDT-based "Data Layer" be architected to enable fully offline-capable graph modifications while ensuring eventual consistency with a centralized Graph Database?*
+
+---
 
 ## RQ: Internal Data Structure & Query Performance
 **Question:**
