@@ -24,47 +24,52 @@
 
 # Main RQ: 
 >How can a property-graph CRDT be designed to preserve key structural and schema constraints (typing, referential integrity, selected cardinality constraints) while retaining coordination-free convergence in a local-first setting?
-> *split into subquestions*
+> *split into subquestions* (see below)
 
-## RQ: Property Graph Design with CRDTs
+Choose about 3 - 4 of the following subquestions to work on.
+My opion on main focused set on **{RQ1, RQ2, RQ3, RQ4}**
+Keep as "if time option" {RQ5, RQ7} ... maybe as a small section to not analize but talk about the different architecture options
+
+## RQ1: Property Graph Design with CRDTs -- I think necessary as an basis
 **Question:**
 > *How can CRDT-based replicated types for property graphs be composed to guarantee convergence while enforcing basic structural and typing constraints (e.g., node/edge labels, property type, referential integrity)?* 
 
 ---
 
-## RQ: Distributed Schema Integration
+## RQ2: Distributed Schema Integration -- Also necessary for arguing about exactly and easy integration of an Schema to enhance simple Property Graph to an Property Graph with CRDTs (could be integrated into RQ1)
 **Question:**
 > *How can a property-graph schema (e.g.: PG-Schema-style), including property types and allowed connectivity (including certain neighborhood and exclusive cardinality constraints), be integrated into such CRDTs so that all converged states satisfy the schema?*
 
 ---
 
-## RQ: Distributed Cardinality Constraints
+## RQ3: Distributed Cardinality Constraints -- enhances the research to a more complex Property Graph with CRDTs
 **Question:**
 > *What are the trade-offs between conflict-free and reservation-based approaches (e.g., escrow, bounded counters) for enforcing edge/property cardinality constraints in a local-first graph database?*
 
 ---
 
-## RQ Distributed Path Exsistence Constraints
-**Question:**
-> *What are the trade-offs of designing a Property Graph with CRDTs to enforce path existence / non-existence Constraints without compromising conflict-free convergence?*
-
---- 
-
-## RQ: Distributed Schema Evolution / Living Schema
+## RQ4: Distributed Schema Evolution / Living Schema -- good for arguing about the usability of the system
 **Question:**
 > *How can schema evolution operations be performed without breaking offline clients, while preserving eventual convergence to a schema-valid graph?*
 
 ---
 
-## RQ: The Limit of Local-First Querying (The "Thick Client" RQ) # another Idea than "consumer" hardware
+## RQ5: Distributed Path Exsistence Constraints -- Most complex constrain when not solved via simple dropping. Interesting if time to be included. 
+**Question:**
+> *What are the trade-offs of designing a Property Graph with CRDTs to enforce path existence / non-existence Constraints without compromising conflict-free convergence?*
+
+--- 
+
+
+## RQ6: The Limit of Local-First Querying (The "Thick Client" RQ) # another Idea than "consumer" hardware -- interesting but too off of the main focus
 **Question:**
 > *What are the trade-offs of running a Distributed Graph Database (Option 5.2) on consumer hardware compared to a Centralized Cloud architecture?*
 
 ---
 
-## RQ: The "Merge Trap" in Cardinality Constraints [User-Study Idea]
+## RQ7: The "Merge Trap" in Cardinality Constraints [User-Study Idea] -- I would find that very nice to include but should keep it as an optional topic
 **Question:**
-> *What are the User Experience implications of different automatic repair strategies for "Max N" cardinality violations (e.g., "Deterministic Drop" vs. "Escrow/Reservation").*
+> *What are the User Experience implications of different automatic repair strategies for "Max N" cardinality violations or Path (e.g., "Deterministic Drop" vs. "Escrow/Reservation").*
 
 *   **Why:**  Concurrent adds can violate `Max 5 edges`.
 *   **Scenario:** 5 users each add a friend to a node (limit 5). Total 10 friends.
