@@ -1,4 +1,4 @@
-# Thesis Name Ideas:
+# Thesis Title Ideas:
 
 ## Michas Favourits:
 
