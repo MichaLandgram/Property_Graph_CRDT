@@ -70,7 +70,7 @@ graph TD
     *   **Offline Querying:** You can run full Cypher queries (`MATCH ...`) locally, even offline.
     *   **Data Duplication:** Data exists in Server YJS Document + Graph Database.
 
-### 5.2 Hybrid / Relay (WebSocket)
+### 5.2 Hybrid / Relay (WebSocket) -- Michas Favourite! Allows simplification of handling merge conflicts on the server instead on a client.
 **Concept:** Clients run **Local Graph Database** but sync via a central **WebSocket Relay Server**.
 > The WS server could be used as a global constraint solver. [Cyclicity, Path Existence, ...] - single source of truth
 But single point of failure! Still local work could be done.

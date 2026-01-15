@@ -257,8 +257,6 @@ classDiagram
     PropertiesMap *-- EdgeInformation : "edgeInformation [TargetID]"
     Y_Document *-- NodesMap : "NodesMap [ID]"
 ```
-
-=> for n nodes we store max ~ 2 * n + Number of all adds entries (of nodes that are remove win)
 => resulting in an add win (update win policy) and remove win combination option. 
 ? Garbage collection ? Is it wanted to DELETE ALL!
 
