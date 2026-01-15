@@ -56,7 +56,7 @@ Keep as "if time option" {RQ5, RQ7} ... maybe as a small section to not analize 
 
 ## RQ5: Distributed Path Exsistence Constraints -- Most complex constrain when not solved via simple dropping. Interesting if time to be included. 
 **Question:**
-> *What are the trade-offs of designing a Property Graph with CRDTs to enforce path existence / non-existence Constraints without compromising conflict-free convergence?*
+> *How to design a Property Graph with CRDTs to enforce path existence / non-existence Constraints without compromising conflict-free convergence?*
 
 --- 
 
