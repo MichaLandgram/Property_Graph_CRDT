@@ -1,11 +1,16 @@
 # Thesis Name Ideas:
 
+## Michas Favourits:
 
-**Coordination-Free Property Graphs: Enforcing Schema and Structural Constraints with CRDTs**
+**Coordination-Free Property Graphs: Enforcing Schema and Structural Constraints with CRDTs** -- Main Focus but allows flexibility for secondary options
 
-**Enforcing Structural and Semantic Constraints in Local-First Property Graphs**
+**A Middleware Architecture for Replicated Property Graphs with Semantic Guarantees** -- Includes directly the middleware Architecture Idea
 
-**Enforcing Graph Constraints in Local-First Property Graphs using CRDTs**
+**Enforcing Structural and Semantic Constraints in Local-First Property Graphs** -- Ok 
+
+**Enforcing Graph Constraints in Local-First Property Graphs using CRDTs** -- ok
+
+## Secondary Options:
 
 **The Merge Trap: Managing Schema Evolution and Constraints in Offline-First Graph Systems**
 
@@ -13,7 +18,6 @@
 
 **Beyond Eventually Consistent: Enforcing Strict Graph Semantics on Relaxed CRDT Structures**
 
-**A Middleware Architecture for Replicated Property Graphs with Semantic Guarantees**
 
 # Thesis Research Questions (Suggestions)
 
