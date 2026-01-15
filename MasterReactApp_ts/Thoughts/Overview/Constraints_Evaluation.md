@@ -67,17 +67,17 @@ Basic Schema
     *   *Constraint:* "Data must match the *latest* schema."
 
 *   **Acyclicity:** (No Cycles - EVELYNS WORK not really focused in my thesis)
-    *   *Strategy A (Local Prevention):* Check `isCyclic()` before *my own* write.
+    *   **Strategy A (Local Prevention):** Check `isCyclic()` before *my own* write.
         *   *Cost:* High CPU (DFS) on the Client.
         *   *Benefit:* Prevents "Self-Inflicted" cycles.
-    *   *Strategy B (Centralized Repair):* Server checks *all* writes. Reverts violations.
+    *   **Strategy B (Centralized Repair):** Server checks *all* writes. Reverts violations.
         *   *Benefit:* Handles "Merge Conflicts" not on the Client (User A + User B create cycle together).
     *   **Strategy C:**
         *   **Local:** Prevent obvious mistakes (Best-effort DFS on known graph).
         *   **Online:** Server / Merge logic handles the Merge Conflicts.
         *   *Result:* Minimizes "Ghost Edits" (only happens on race conditions) while keeping pure local work safe.
 
-    *   **Path Existence / Non-Existence:**
+*   **Path Existence / Non-Existence:**
     *   *Problem:* Between two nodes a exsisting path is required or forbidden. (e.g., "User A can never be a friend of User B if User A has a "Visits" with User B")
     *   **Strategy A (Local Prevention):** Check `isPathExist()` before *my own* write.
         *   *Cost:* High CPU (DFS) on the Client.
@@ -90,9 +90,11 @@ Basic Schema
         *   *Result:* Minimizes "Ghost Edits" (only happens on race conditions) while keeping pure local work safe.
     *   **Strategy D:** 
         *   *Path Rights* Idea: RICH-CRDT Escrow - right exchange or compensation. (is that possible? I do need to check that)
+    *   **More Strategies:**
+        *  Topological Invariants - encoding path invariant into the node information.
 
-    *   **Path Aggregation**
-        *  Similar to Path Existence / Non-Existence, but with aggregation
+*   **Path Aggregation**
+    *  Similar to Path Existence / Non-Existence, but with aggregation
 
 
 
