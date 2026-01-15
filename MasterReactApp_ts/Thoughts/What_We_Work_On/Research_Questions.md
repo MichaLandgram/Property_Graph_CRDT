@@ -1,10 +1,15 @@
 # Thesis Name Ideas:
 
+
+**Coordination-Free Property Graphs: Enforcing Schema and Structural Constraints with CRDTs**
+
 **Enforcing Structural and Semantic Constraints in Local-First Property Graphs**
 
 **Enforcing Graph Constraints in Local-First Property Graphs using CRDTs**
 
 **The Merge Trap: Managing Schema Evolution and Constraints in Offline-First Graph Systems**
+
+**Schema-Aware CRDTs for Property Graphs: From Structural Invariants to Schema Evolution**
 
 **Beyond Eventually Consistent: Enforcing Strict Graph Semantics on Relaxed CRDT Structures**
 
