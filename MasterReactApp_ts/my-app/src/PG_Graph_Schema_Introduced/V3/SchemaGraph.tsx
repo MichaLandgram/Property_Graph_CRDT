@@ -12,25 +12,26 @@ import { NodeId,
          } from '../../Helper/types_interfaces/types';
 import { dataTypes } from '../../Helper/types_interfaces/types';
 import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreComplexTypes';
-import { Schema_1 as SchemaInstance } from '../../Schema/schema_1';
+import { Schema_1 as SchemaInstance } from '../../PG_Graph_Schema/schema_1';
 import { GraphError } from '../../Helper/Vizuals/GraphError';
-
-
+import { DualKeyMap } from '../../Helper/YJS_helper/DualKeyMap';
 
 /* This is a SCHEMA APPROACH TO A GRAPH BASED ON YJS */
 // const ydoc = new Y.Doc()
 
 // const ydoc = new Y.Doc() // Represents the collaborative graph | TOP LEVEL
 // const nodesMap = ydoc.getMap('nodes') // Map of nodeId to touch timestamps and removed node information
-// const propertiesMap = ydoc.getMap('properties') // Map of nodeId to node properties
+// const nodePropsMap = ydoc.getMap('nodeProps') // Map of nodeId to node properties TOP LEVEL BECAUSE OF MERGING BEHAVIOUR
 // const edgesTargetsMap = ydoc.getMap('edgesTargets') // Map of nodeId to EdgeYJSMap [target maps to EdgeMap]
 // const edgesMap = inside edgesTargetsMap // Map of target to EdgeProperties
 
 const schemaInstance = new SchemaInstance();
 
+
 // Normalize values before inserting into Yjs maps to avoid embedding
 // unsupported types (e.g., native Map or class instances holding Y.Doc).
-export class SchemaGraph implements Graph {
+
+export class SchemaGraphV3 implements Graph {
   hasSchema : boolean = true;
   isSchemaCorrect(graph: graphDoc): boolean {
     throw new Error('Method not implemented.');
@@ -105,101 +106,7 @@ export class SchemaGraph implements Graph {
     }
   }
 };
-  private setNormalizedValueAdd({k,v, nodeProps}: {k: string, v: any, nodeProps: Y.Map<any>}) : void {
-    if (v instanceof GrowOnlyCounter) {
-      nodeProps.set(k, v.counter);
-      return;
-    }
-    if (v instanceof Y.Map || v instanceof Y.Array) {
-      nodeProps.set(k, v);
-      return;
-    }
-    if (v instanceof Date) {
-      nodeProps.set(k, v.toISOString());
-      return;
-    }
-    if (v instanceof Point) {
-      nodeProps.set(k, { x: v.x, y: v.y });
-      return;
-    }
-    if (v instanceof OurVector) {
-      nodeProps.set(k, { x: v.x, y: v.y, z: v.z });
-      return;
-    }
-    nodeProps.set(k, v);
-    return;
-  };
-  private setNormalizedValueUpdate({k,v,expectedType, nodeProps, graph}: {k: string, v: any, expectedType: any, nodeProps: Y.Map<any>, graph: graphDoc}) : void {
-        // Handle Counter Updates
-        if (expectedType && typeof expectedType === 'object' && 'kind' in expectedType) { 
-          console.log('expectedType', v);
-            if (expectedType.kind === 'counter' && typeof v === 'number') {
-                 let currentCounterMap = nodeProps.get(k);
-                 if (!currentCounterMap || !(currentCounterMap instanceof Y.Map)) {
-                  console.log('Counter not found, creating new one');
-                     const newMap = new Y.Map<number>();
-                     nodeProps.set(k, newMap);
-                     currentCounterMap = newMap;
-                 }
-                 if (currentCounterMap instanceof Y.Map) {
-                     const counterWrapper = new GrowOnlyCounter(currentCounterMap, graph);
-                     const currentTotal = counterWrapper.getTotal();
-                     const diff = v - currentTotal;
-                     if (diff > 0) {
-                         counterWrapper.increment({ amount: diff });
-                     } else if (diff < 0) {
-                         console.warn(`GrowOnlyCounter for ${k} cannot be decremented. Ignored.`);
-                     }
-                     return;
-                 }
-            // Handle Array Updates
-            } else if (expectedType.kind === 'yarray' && Array.isArray(v)) {
-                 let currentArray = nodeProps.get(k);
-                 if (!currentArray || !(currentArray instanceof Y.Array)) {
-                     const newArray = new Y.Array();
-                     nodeProps.set(k, newArray);
-                     currentArray = newArray;
-                 }
-                 // currently remove strategy will be diff-based
-                 if (currentArray instanceof Y.Array) {
-                     const length = currentArray.length;
-                     if (length > 0) currentArray.delete(0, length);
-                     currentArray.push(v);
-                 }
-                 return;
-            // Handle Map Updates
-            } else if (expectedType.kind === 'ymap' && typeof v === 'object' && v !== null && !(v instanceof Y.Map)) {
-                 let currentMap = nodeProps.get(k);
-                 if (!currentMap || !(currentMap instanceof Y.Map)) {
-                     const newMap = new Y.Map();
-                     nodeProps.set(k, newMap);
-                     currentMap = newMap;
-                 }
-                 if (currentMap instanceof Y.Map) {
-                     const currentKeys = Array.from(currentMap.keys());
-                     const newKeys = Object.keys(v);
-                     const vAny = v as any;
-                     
-                     newKeys.forEach(inputKey => {
-                         if (currentMap.get(inputKey) !== vAny[inputKey]) {
-                             currentMap.set(inputKey, vAny[inputKey]);
-                         }
-                     });
 
-                     currentKeys.forEach(existingKey => {
-                         if (!(existingKey in v)) {
-                             currentMap.delete(existingKey);
-                         }
-                     });
-                 }
-                 return;
-            }
-            return;
-        // Handle Simple Updates
-        } else {
-            nodeProps.set(k, v);
-        }
-  };
   testLabel(label: labelTypes | edgeLabelTypes, edgeNodeToken: edgeNodeToken): void {
     if (edgeNodeToken === 'Node' && !schemaInstance.labelTypeValues.includes(label)) {
       throw new GraphError(`Node Label ${label} is not allowed`);
@@ -269,18 +176,12 @@ export class SchemaGraph implements Graph {
 
   addNode({ alwaysProps, initialProps, graph }: { alwaysProps: AlwaysNodeData; initialProps: any; graph: graphDoc; }): void {
       const nodesMap = graph.getMap<any>('nodes');
-      const propertiesMap = graph.getMap<Y.Map<any>>('properties');
 
       // Validate label and required/optional properties based on schema
       this.testLabel(alwaysProps.label, 'Node');
       this.testProps(initialProps, alwaysProps.label, 'notNull', 'Node');
       this.testProps(initialProps, alwaysProps.label, 'nullable', 'Node');
       const allProps = {...alwaysProps, ...initialProps};
-
-      // const nodeProps = new Y.Map();
-      // for (const [key, value] of Object.entries(allProps)) {
-      //   nodeProps.set(key, this.normalizeValueForYjsAdd(value));
-      // }
       
       const schemaProps = {
         ...(schemaInstance.allowedNodePropeerties[alwaysProps.label]?.['notNull'] || {}),
@@ -288,26 +189,35 @@ export class SchemaGraph implements Graph {
     }; 
       graph.transact(() => {
         nodesMap.set(alwaysProps.id, Date.now());
-        const nodeProps = new Y.Map();
-        for (const [key, value] of Object.entries(allProps)) {
-          const expectedType = schemaProps[key];
-          this.setNormalizedValueAdd({k:key,v:value, nodeProps});
+        
+        const nodePropsYMap = graph.getMap(`n_${alwaysProps.id}`);
+        const nodeProps = new DualKeyMap(nodePropsYMap);
+        
+        for (const [key, value] of Object.entries(alwaysProps)) {
+             nodePropsYMap.set(key, value); 
         }
-        propertiesMap.set(alwaysProps.id, nodeProps);
+
+        for (const [key, value] of Object.entries(initialProps)) {
+          // const expectedType = schemaProps[key];
+          nodeProps.setInitial(key, value);
+        }
       });
   }
 
   updateNode({ nodeId, props, graph }: { nodeId: NodeId; props: any; graph: graphDoc; }): void {
     const nodesMap = graph.getMap<any>('nodes');
-    const propertiesMap = graph.getMap<Y.Map<any>>('properties');
-
-    const nodeProps = propertiesMap.get(nodeId)
-    if (!nodeProps) {throw new GraphError(`Node ${nodeId} not found - cannot update something that does not exist`);}
     
-    const label = nodeProps.get('label');
+    // Check existence via Registry (nodesMap)
+    if (!nodesMap.has(nodeId)) {throw new GraphError(`Node ${nodeId} not found - cannot update something that does not exist`);}
+
+    // Access Top-Level Map
+    const nodePropsYMap = graph.getMap(`n_${nodeId}`);
+    const nodeProps = new DualKeyMap(nodePropsYMap);
+    
+    const label = nodeProps.get('label') as labelTypes || nodeProps.get('init_label') as labelTypes;
     
     // find more compact solution!!
-    const currentProps = this.getNodeProps({ nodeId, graph }) || {};
+    const currentProps = nodeProps.getAll() || {};
     const mergedProps = { ...currentProps, ...props };
     
     // Validate the FINAL state, not just the update
@@ -322,24 +232,27 @@ export class SchemaGraph implements Graph {
     graph.transact(() => {
       for (const [k, v] of Object.entries(props)) {
         const expectedType = schemaProps[k];
-        this.setNormalizedValueUpdate({k,v,expectedType, nodeProps, graph});
+        nodeProps.setUpdate(k, v, expectedType, graph);
         nodesMap.set(nodeId, Date.now());
       }
     });
   }
   deleteNode({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): void {
     const nodesMap = graph.getMap<any>('nodes')
-    const propertiesMap = graph.getMap<Y.Map<any>>('properties')
-    const node = propertiesMap.get(nodeId);
+    // const propertiesMap = graph.getMap<Y.Map<any>>('properties')
+    const nodeProps = graph.getMap(`n_${nodeId}`);
 
-    if (!node) {throw new GraphError(`Node ${nodeId} not found - cannot delete something that does not exist`);}
+    // If node not in registry, it's considered non-existent
+    if (!nodesMap.has(nodeId)) {throw new GraphError(`Node ${nodeId} not found - cannot delete something that does not exist`);}
 
-    const policy = node.get('policy');
+    const policy = nodeProps.get('policy') || nodeProps.get('init_policy');
     
     graph.transact(() => {
       if (policy === 'REMOVE_WINS') {
         nodesMap.set(nodeId, { removed: true });
-        propertiesMap.delete(nodeId);
+        // propertiesMap.delete(nodeId); 
+        // We cannot delete the top-level map, but we can clear it
+        nodeProps.clear();
       } else if (policy === 'ADD_WINS') {
         nodesMap.delete(nodeId);
       }
@@ -347,41 +260,39 @@ export class SchemaGraph implements Graph {
   }
   getVisibleNodes({ graph }: { graph: graphDoc; }): Array<{ id: NodeId; props: any; policy: Policy; }> {
     const nodesMap = graph.getMap<any>('nodes')
-    const propertiesMap = graph.getMap<Y.Map<any>>('properties')
+    // const propertiesMap = graph.getMap<Y.Map<any>>('properties')
     const visible: any[] = [];
     
     nodesMap.forEach((node: any , id: NodeId) => {
-      if (!propertiesMap.has(id) && !node.removed) {
-        console.error(`Node properties missing for node id: ${id}`);
-        return;
+        // Access Top-Level Map
+        const propsMap = graph.getMap(`n_${id}`);
+      
+      if (node.removed) {
+          // REMOVE_WINS logic preserved in registry
+           return;
       }
-      const props = propertiesMap.get(id);
-      if (!props) return;
-      const policy = props.get('policy');
+      
+      const nodeProps = new DualKeyMap(propsMap);
+      const props = nodeProps.getAll();
+      const policy = props['policy'];
 
       if (policy === 'REMOVE_WINS') {
         if (node.removed) {
           return; // Node is already removed and should not be visible
         }
       }
-        visible.push({ id, ...props.toJSON(), policy });
+        visible.push({ id, ...props, policy });
     });
     
     return visible;
   }
   getNodeProps({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): any | undefined {
-    const propertiesMap = graph.getMap<Y.Map<any>>('properties');
-    const props= propertiesMap.get(nodeId);
-    if (!props) return undefined;
-    const returnProps: any = {};
-    props.forEach((value: any, key: string) => {
-      if (value instanceof Y.Map) {
-        returnProps[key] = value;
-      } else {
-        returnProps[key] = value;
-      }
-    });
-    return returnProps;
+    const nodesMap = graph.getMap<any>('nodes');
+    if (!nodesMap.has(nodeId)) return undefined;
+
+    const propsYMap = graph.getMap(`n_${nodeId}`);
+    const nodeProps = new DualKeyMap(propsYMap);
+    return nodeProps.getAll();
   }
   addEdge({ sourceId, targetId, label, initialProps, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps: EdgeData; graph: graphDoc; }): void {
     const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');

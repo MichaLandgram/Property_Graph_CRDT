@@ -1,12 +1,12 @@
 /* Import the graph classes */
-import { SGraphV4 } from './Version1/V4/SimpleGraph';
-import { SchemaGraph } from './Version2_Schema_Introduced/V1/SchemaGraph';
-import { SchemaGraphV2 } from './Version2_Schema_Introduced/V2/SchemaGraph';
-import { SchemaGraphV3 } from './Version2_Schema_Introduced/V3/SchemaGraph';
+import { SGraphV4 } from './PG_Graph_Schema_Less/V4/SimpleGraph';
+import { SchemaGraph } from './PG_Graph_Schema_Introduced/V1/SchemaGraph';
+import { SchemaGraphV2 } from './PG_Graph_Schema_Introduced/V2/SchemaGraph';
+import { SchemaGraphV3 } from './PG_Graph_Schema_Introduced/V3/SchemaGraph';
 import { Graph } from './Helper/types_interfaces/graph';
 
 /* Import the schema classes */
-import { Schema_1 } from './Schema/schema_1';
+import { Schema_1 } from './PG_Graph_Schema/schema_1';
 import { Schema_Interface } from './Helper/types_interfaces/schema';
 
 

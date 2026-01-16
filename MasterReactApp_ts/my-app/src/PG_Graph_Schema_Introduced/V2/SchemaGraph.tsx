@@ -12,7 +12,7 @@ import { NodeId,
          } from '../../Helper/types_interfaces/types';
 import { dataTypes } from '../../Helper/types_interfaces/types';
 import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreComplexTypes';
-import { Schema_1 as SchemaInstance } from '../../Schema/schema_1';
+import { Schema_1 as SchemaInstance } from '../../PG_Graph_Schema/schema_1';
 import { GraphError } from '../../Helper/Vizuals/GraphError';
 
 /* This is a SCHEMA APPROACH TO A GRAPH BASED ON YJS */
