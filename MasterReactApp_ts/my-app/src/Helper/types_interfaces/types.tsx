@@ -60,8 +60,8 @@ export type AlwaysNodeData = {
     id: NodeId;
     label: string;
     policy: Policy;
-    position: XYPosition;
-    color: string;
+    position: XYPosition; // uses this for the position of the node - currently only needed in GraphViz V1
+    color: string; // TODO: change this only for vizualization based on Policy 
 }
 
 // Edge Types

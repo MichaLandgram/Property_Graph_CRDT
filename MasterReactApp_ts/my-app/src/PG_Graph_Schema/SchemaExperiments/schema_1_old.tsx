@@ -4,7 +4,7 @@ import {
     labelTypes, 
     edgeLabelTypes, 
     dataTypes,
-    boolKeys } from '../Helper/types_interfaces/types';
+    boolKeys } from '../../Helper/types_interfaces/types';
 
 
 // Node Types

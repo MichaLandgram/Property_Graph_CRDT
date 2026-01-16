@@ -5,7 +5,7 @@ import { getDoc } from '../../Helper/YJS_helper/creator';
 import { graphDoc, Graph } from '../../Helper/types_interfaces/graph';
 import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreComplexTypes';
 
-describe('Schema Graph Add Node Test', () => {
+describe('Does addNode add a node correctly to the graph?', () => {
     let graph : graphDoc;
     let graph2 : graphDoc;
     let schemaGraph : Graph;
@@ -13,20 +13,25 @@ describe('Schema Graph Add Node Test', () => {
     let color = 'red';
     beforeEach(() => {
         console.log('beforeEach', getActiveGraphClass()); 
-        // need to set the  clientID to control the tie breaking for deterministic results
+        // need to set the clientID to control the tie breaking for deterministic results
         graph = getDoc(1);
         graph2 = getDoc(2); 
         const GraphClass = getActiveGraphClass();
         schemaGraph = new GraphClass();
     })
     test('Add Node with missing props (label)', () => {
+        // basic Array generation
         const array = new Y.Array<string>();
         array.push(['item1', 'item2']);
+
+        // basic Map generation
         const map = new Y.Map<any>();
         const innerMap = new Y.Map<any>();
         innerMap.set('key1', 'value1');
         map.set('key1', innerMap);
+
         const counter = new Y.Map<number>();
+
         const initialProps = {
             testString: 'hello',
             testNumber: 42,
@@ -37,14 +42,9 @@ describe('Schema Graph Add Node Test', () => {
             testMap: map,
         }
         schemaGraph.addNode({ alwaysProps: { id: '1', label: 'TEST', policy: 'ADD_WINS', position, color }, initialProps, graph });
-        // expect(() => {
-        //     console.log(schemaGraph.addNode({ alwaysProps: { id: '1', label: 'TEST', policy: 'ADD_WINS', position, color }, initialProps, graph }));
-        // }).toThrow();
         const nodesMap = graph.getMap<any>('nodes');
         const propertiesMap = graph.getMap<Y.Map<any>>('properties');
         expect(nodesMap.has('1')).toBe(true);
-        // expect(propertiesMap.has('1')).toBe(true);
-        // V2 uses top-level maps
         expect(graph.getMap('n_1').size).toBeGreaterThan(0);
         schemaGraph.getVisibleNodes({ graph }).forEach(node => {
             const props = schemaGraph.getNodeProps({ nodeId: node.id, graph });
@@ -57,11 +57,6 @@ describe('Schema Graph Add Node Test', () => {
             expect((props['testArray'].get(0) as string)).toBe('item1');
             expect((props['testArray'].get(1) as string)).toBe('item2');
             expect((props['testMap'].get('key1') as Y.Map<any>).get('key1') as string).toBe('value1');
-            // expect((props['testPoint'] as Point).x).toBe(1);
-            // expect((props['testPoint'] as Point).y).toBe(2);
-            // expect((props['testVector'] as OurVector).x).toBe(2);
-            // expect((props['testVector'] as OurVector).y).toBe(5);
-            // expect((props['testVector'] as OurVector).z).toBe(6);
     });
 
     });
@@ -149,7 +144,7 @@ describe('Schema Graph Add Node Test', () => {
 
         bidirectionalSync(graph, graph2);
 
-
+        // should have a combination of both updates -- my decision
         expect(schemaGraph.getVisibleNodes({ graph })).toHaveLength(1);
         expect(schemaGraph.getVisibleNodes({ graph: graph2 })).toHaveLength(1);
         expect(schemaGraph.getNodeProps({ nodeId: '1', graph }).testNumber).toBe(2);

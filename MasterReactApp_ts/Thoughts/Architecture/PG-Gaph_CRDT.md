@@ -3,6 +3,19 @@
 - speed and storage usage (Additionally test maybe loro, bc automerge is to slow - based on Evelyns Thesis)
 - synchronazation delay
 
+## Open Design Questions
+
+How is the correct Logic of adding a node? 
+Will a newly added node have basic values for its necessary properties or will alredy be filled with an value? 
+Scenario:
+
+
+        C1 -> add -> Update -> Sync
+        
+        C2 -> add -> Sync
+
+Should Update or Add Win?
+
 # Evelyns Thesis Version [Adjacency Map With Faster Node Deletion]
 
 ```mermaid
@@ -68,7 +81,6 @@ classDiagram
 ```
 YJS Map - Add is Add - Win Semantic. BUT an Update on an internal sturcture does not count as an Add => therefore achiving concurrent update relations and remove Operations are in an **Remove Win** correlation. 
 Next Step Changing the YJS Structure to be a Add/Update Win Map.
-
 
 
 ## Version 3 {Changed Remove Win to Observed Remove Win} -- current main idea.
