@@ -1,6 +1,6 @@
 
 import { getDoc } from "../../Helper/YJS_helper/creator";
-import { syncDocs } from "../../Helper/YJS_helper/sync";
+import { bidirectionalSync, syncDocs } from "../../Helper/YJS_helper/sync";
 import * as Y from 'yjs'
 
 describe('Basis YJS Tests', () => {
@@ -64,10 +64,30 @@ describe('Basis YJS Tests', () => {
     });
     test('Playground', () => {
         const doc = getDoc();
-        doc.on('update', () => {
-            console.log('update');
-        });
-        doc.getMap<any>('TEST').set('TEST', 'TEST');
-        expect(true).toBe(true);
+        const doc2 = getDoc();
+        const testMap = doc.getMap<any>('TEST');
+        const testMap2 = doc2.getMap<any>('TEST');
+
+        testMap.set('TEST', 'TEST');
+        testMap2.set('TEST2', 'TEST2');
+
+        bidirectionalSync(doc, doc2);
+        expect(testMap.get('TEST')).toBe('TEST');
+        expect(testMap.get('TEST2')).toBe('TEST2');
+        expect(testMap2.get('TEST')).toBe('TEST');
+        expect(testMap2.get('TEST2')).toBe('TEST2');
+
+        testMap2.set('TEST3', 'TEST3');
+        testMap.clear();
+
+        bidirectionalSync(doc, doc2);
+
+        // not what we want but this test symbolizes the problem
+        expect(testMap.get('TEST')).toBeUndefined();
+        expect(testMap.get('TEST2')).toBeUndefined();
+        expect(testMap2.get('TEST')).toBeUndefined();
+        expect(testMap2.get('TEST2')).toBeUndefined();
+        expect(testMap.get('TEST3')).toBe('TEST3');
+        expect(testMap2.get('TEST3')).toBe('TEST3');
     });
 });
