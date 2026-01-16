@@ -84,27 +84,29 @@ export class SchemaGraphV3 implements Graph {
             //       typeCheck(value, expectedType.value);
             //  });
         }
-        // TODO Point or Vector Just ideas
-     } else if ('dimensions' in expectedType) {
-          if (typeof incomingValue !== 'object' || incomingValue === null) {
-              throw new GraphError(`Expected Point/Vector structure but got ${typeof incomingValue}`);
-          }
-          const isPoint = incomingValue instanceof Point; // from complex types
-          const isVector = incomingValue instanceof OurVector;
-          const isSimpleObj = 'x' in incomingValue && 'y' in incomingValue; 
-          if (!isPoint && !isVector && !isSimpleObj) {
-               throw new GraphError(`Expected Point/Vector but got incompatible object`);
-          }
-     }
-  } else if (expectedType === 'vector') {
-     if (!(incomingValue instanceof OurVector)) {
-      throw new GraphError(`Expected type Vector but got ${typeof incomingValue}`);
-    }
-  } else if (expectedType === 'point') {
-    if (!(incomingValue instanceof Point)) {
-      throw new GraphError(`Expected type Point but got ${typeof incomingValue}`);
-    }
-  }
+        // TODO Point or Vector Just ideas - would like to keep this for Future Work
+     } 
+    //  else if ('dimensions' in expectedType) {
+    //       if (typeof incomingValue !== 'object' || incomingValue === null) {
+    //           throw new GraphError(`Expected Point/Vector structure but got ${typeof incomingValue}`);
+    //       }
+    //       const isPoint = incomingValue instanceof Point; // from complex types
+    //       const isVector = incomingValue instanceof OurVector;
+    //       const isSimpleObj = 'x' in incomingValue && 'y' in incomingValue; 
+    //       if (!isPoint && !isVector && !isSimpleObj) {
+    //            throw new GraphError(`Expected Point/Vector but got incompatible object`);
+    //       }
+    //  }
+  } 
+  // else if (expectedType === 'vector') {
+  //    if (!(incomingValue instanceof OurVector)) {
+  //     throw new GraphError(`Expected type Vector but got ${typeof incomingValue}`);
+  //   }
+  // } else if (expectedType === 'point') {
+  //   if (!(incomingValue instanceof Point)) {
+  //     throw new GraphError(`Expected type Point but got ${typeof incomingValue}`);
+  //   }
+  // }
 };
 
   testLabel(label: labelTypes | edgeLabelTypes, edgeNodeToken: edgeNodeToken): void {

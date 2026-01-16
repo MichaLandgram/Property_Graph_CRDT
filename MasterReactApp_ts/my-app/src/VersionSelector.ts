@@ -1,7 +1,7 @@
 /* Import the graph classes */
 import { SGraphV4 } from './PG_Graph_Schema_Less/V4/SimpleGraph';
 import { SchemaGraph } from './PG_Graph_Schema_Introduced/V1/SchemaGraph';
-import { SchemaGraphV2 } from './PG_Graph_Schema_Introduced/V2/SchemaGraph';
+import { SchemaGraphV2 } from './PG_Graph_Schema_Introduced/Experimental_Versions/V2/SchemaGraph';
 import { SchemaGraphV3 } from './PG_Graph_Schema_Introduced/V3/SchemaGraph';
 import { Graph } from './Helper/types_interfaces/graph';
 

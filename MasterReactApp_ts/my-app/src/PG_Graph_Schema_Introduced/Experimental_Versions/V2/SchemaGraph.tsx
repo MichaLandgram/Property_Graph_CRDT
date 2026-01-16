@@ -1,5 +1,5 @@
 import * as Y from 'yjs'
-import { Graph, graphDoc } from '../../Helper/types_interfaces/graph';
+import { Graph, graphDoc } from '../../../Helper/types_interfaces/graph';
 import { NodeId, 
           EdgeId, 
           EdgeData, 
@@ -9,11 +9,11 @@ import { NodeId,
           labelTypes, 
           boolKeys, 
           edgeNodeToken
-         } from '../../Helper/types_interfaces/types';
-import { dataTypes } from '../../Helper/types_interfaces/types';
-import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreComplexTypes';
-import { Schema_1 as SchemaInstance } from '../../PG_Graph_Schema/schema_1';
-import { GraphError } from '../../Helper/Vizuals/GraphError';
+         } from '../../../Helper/types_interfaces/types';
+import { dataTypes } from '../../../Helper/types_interfaces/types';
+import { GrowOnlyCounter, OurVector, Point } from '../../../Helper/YJS_helper/moreComplexTypes';
+import { Schema_1 as SchemaInstance } from '../../../PG_Graph_Schema/schema_1';
+import { GraphError } from '../../../Helper/Vizuals/GraphError';
 
 /* This is a SCHEMA APPROACH TO A GRAPH BASED ON YJS */
 // const ydoc = new Y.Doc()
