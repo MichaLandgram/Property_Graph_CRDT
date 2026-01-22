@@ -89,6 +89,8 @@ graph LR
 
 ### 3.1 Gateway Architecture with optimized Read
 
+** IDEA**: Look at KazueDB
+
 ```mermaid
 graph LR
     subgraph C1
