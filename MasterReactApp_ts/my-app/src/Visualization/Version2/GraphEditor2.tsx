@@ -6,7 +6,7 @@ import { dumpGraphToNeo4j } from '../../Helper/Vizuals/Neo4jConnector';
 import { edgeLabelTypes, AlwaysNodeData } from '../../Helper/types_interfaces/types';
 import { getGraphInstance, getSchemaInstance } from '../../VersionSelector';
 import { useGraphErrorHandler } from '../../Helper/Vizuals/useGraphErrorHandler';
-import { allowedNodePropeerties } from '../../Schema/schema_1_old';
+import { allowedNodePropeerties } from '../../PG_Graph_Schema/SchemaExperiments/schema_1_old';
 import { GrowOnlyCounter } from '../../Helper/YJS_helper/moreComplexTypes';
 
 interface GraphEditorProps {

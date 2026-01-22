@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
-import { SchemaGraph } from '../Version2_Schema_Introduced/V1/SchemaGraph';
-import { SchemaGraphV2 } from '../Version2_Schema_Introduced/V2/SchemaGraph';
-import { SchemaGraphV3 } from '../Version2_Schema_Introduced/V3/SchemaGraph';
+import { SchemaGraph } from '../PG_Graph_Schema_Introduced/V1/SchemaGraph';
+import { SchemaGraphV2 } from '../PG_Graph_Schema_Introduced/Experimental_Versions/V2/SchemaGraph';
+import { SchemaGraphV3 } from '../PG_Graph_Schema_Introduced/V3/SchemaGraph';
 import { simulateLoad } from './runStorageBenchmark';
 import { performance } from 'perf_hooks';
 import * as fs from 'fs';

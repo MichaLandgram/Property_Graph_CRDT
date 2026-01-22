@@ -32,3 +32,6 @@ These databases prioritize **Consistency and Structure**. You *must* define type
 
 ---
 > **Note:** "Schema-less" does not mean "No Structure". It means the structure is **Implicit** (in the data) rather than **Explicit** (in the database engine).
+
+## 3 Graph Databases that are able to be used in a browser.
+

@@ -1,4 +1,4 @@
-import { installFix } from './fixResizeObserver';
+import { installFix } from './Helper/Vizuals/fixResizeObserver';
 
 
 import React from 'react';

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 // import { SGraphV3 } from '../../Version1/V3_idea/SimpleGraph';
 // import { SGraphV4 as GraphInstance } from '../../Version1/V4/SimpleGraph';
-import { SchemaGraph as GraphInstance } from '../../Version2_Schema_Introduced/V1/SchemaGraph';
+import { SchemaGraph as GraphInstance } from '../../PG_Graph_Schema_Introduced/V1/SchemaGraph';
 import * as Y from 'yjs';
 import { Node, Edge, NodeChange, EdgeChange, Connection } from 'reactflow';
 
