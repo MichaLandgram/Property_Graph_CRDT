@@ -14,19 +14,21 @@ import { dataTypes } from '../../Helper/types_interfaces/types';
 import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreComplexTypes';
 import { Schema_1 as SchemaInstance } from '../../PG_Graph_Schema/schema_1';
 import { GraphError } from '../../Helper/Vizuals/GraphError';
-import { DualKeyMap } from '../../Helper/YJS_helper/DualKeyMap';
+import { DualKeyMap } from './DualKeyMap';
 
 /* This is a SCHEMA APPROACH TO A GRAPH BASED ON YJS */
 // const ydoc = new Y.Doc()
 
-// const ydoc = new Y.Doc() // Represents the collaborative graph | TOP LEVEL
-// const nodesMap = ydoc.getMap('nodes') // Map of nodeId to touch timestamps and removed node information
-// const nodePropsMap = ydoc.getMap('nodeProps') // Map of nodeId to node properties TOP LEVEL BECAUSE OF MERGING BEHAVIOUR
-// const edgesTargetsMap = ydoc.getMap('edgesTargets') // Map of nodeId to EdgeYJSMap [target maps to EdgeMap]
-// const edgesMap = inside edgesTargetsMap // Map of target to EdgeProperties
+/*
+const ydoc = new Y.Doc() // Represents the collaborative graph | TOP LEVEL
+const nodesMap = ydoc.getMap('nodes') // Map of nodeId to touch timestamps and removed node information
+const nodePropsMap = ydoc.getMap('nodeProps') // Map of nodeId to node properties TOP LEVEL BECAUSE OF MERGING BEHAVIOUR
+const edgesTargetsMap = ydoc.getMap('edgesTargets') // Map of nodeId to EdgeYJSMap [target maps to EdgeMap]
+const edgesMap = inside edgesTargetsMap // Map of target to EdgeProperties
+
+*/
 
 const schemaInstance = new SchemaInstance();
-
 
 // Normalize values before inserting into Yjs maps to avoid embedding
 // unsupported types (e.g., native Map or class instances holding Y.Doc).
