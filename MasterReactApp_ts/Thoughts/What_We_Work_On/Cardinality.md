@@ -2,9 +2,9 @@
 
 Distinct approaches to enforcing **cardinality constraints** in a CRDT-based property graph:
 
-- **Max N (`≤ N`):** "At most N edges"
-- **Min N (`≥ N`):** "At least N edges"
-- **Exact N (`= N`):** "Exactly N edges" - maybe just use property to solve this => Only Change possible if replace operation therefore.
+- **Max N (`≤ N`):** "At most N edges" 
+- **Min N (`≥ N`):** "At least N edges" - How to solve *creation-time* of node?
+- **Exact N (`= N`):** "Exactly N edges" - maybe just use property to solve this => Only Change possible if replace operation therefore. - allow an replace opteration instead of an remove + add
 
 Each trades off differently against three key dimensions:
 
@@ -16,8 +16,8 @@ Each trades off differently against three key dimensions:
 
 | Operation | Max N | Min N | Exact N |
 |-----------|-------|-------|---------|
-| **Add edge** |  Problem (exceeds limit) |  Always safe |  Problem (if at limit) |
-| **Remove edge** |  Always safe |  Problem (drops below limit) |  Problem (if at minimum) |
+| **Add edge** |  Problem (exceeds limit) |  Always safe |  Problem (replace needed) |
+| **Remove edge** |  Always safe |  Problem (drops below limit) |  Problem (replace needed) |
 | **Repair strategy** | Drop oldest/excess edges | Add default edge or readd edge | Drop + add (contradictory) |
 
 ## Option A: Pure CRDT with Soft Constraints & Deterministic Repair
@@ -45,12 +45,12 @@ Each trades off differently against three key dimensions:
    - Pro: Simple to implement, reproducible.
    - Con: Biased toward certain replicas or times.
 
-   ## Option B: Escrow / Bounded Counters with Quota Management
+## Option B: Escrow / Bounded Counters with Quota Management or move Token (N)
 
 ### Core Idea
 - Treat "Max N" as a **scarce resource** that must be budgeted across replicas.
 - Each replica gets a **quota** (how many edges it's allowed to add before coordination).
-- Summing all quotas ≤ N guarantees that total committed edges never exceed N.
+- Summing all quotas < N guarantees that total committed edges never exceed N.
 - When a replica exhausts its quota, it must coordinate (rebalance, request more quota, or block).
 
 ### Quota Strategies
@@ -72,7 +72,7 @@ Each trades off differently against three key dimensions:
    - Pros: Minimizes coordination; simple.
    - Cons: Users may see "quota exceeded" errors; latency between request and grant.
 
-   ## Option C: Hybrid Approach (Escrow + Repair Fallback)
+## Option C: Hybrid Approach (Escrow + Repair Fallback)
 
 ### Core Idea
 - Use **escrow as the primary mechanism** (fast, coordination-free path when quota available).
