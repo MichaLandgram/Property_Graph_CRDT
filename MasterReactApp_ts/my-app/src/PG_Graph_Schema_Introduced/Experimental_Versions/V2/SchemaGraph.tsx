@@ -413,7 +413,7 @@ export class SchemaGraphV2 implements Graph {
 
     return returnProps;
   }
-  addEdge({ sourceId, targetId, label, initialProps, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps: EdgeData; graph: graphDoc; }): void {
+  addEdge({ sourceId, targetId, label, initialProps, graph, edgeId }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps: EdgeData; graph: graphDoc; edgeId?: EdgeId }): void {
     const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');
     const nodesMap = graph.getMap<any>('nodes');
 
@@ -444,10 +444,10 @@ export class SchemaGraphV2 implements Graph {
       nodesMap.set(targetId, Date.now());
     }); 
   }
-  updateEdge({ sourceId, targetId, props, graph }: { sourceId: NodeId; targetId: NodeId; props: Partial<EdgeData>; graph: graphDoc; }): void {
+  updateEdge({ sourceId, targetId, props, graph, edgeId }: { sourceId: NodeId; targetId: NodeId; props: Partial<EdgeData>; graph: graphDoc; edgeId?: EdgeId }): void {
     throw new Error('Method not implemented.');
   }
-  deleteEdge({ sourceId, targetId, graph }: { sourceId: NodeId; targetId: NodeId; graph: graphDoc; }): void {
+  deleteEdge({ sourceId, targetId, graph, edgeId }: { sourceId: NodeId; targetId: NodeId; graph: graphDoc; edgeId?: EdgeId}): void {
     const edgesMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets')
     const edgeMap = edgesMap.get(sourceId);
     if (!edgeMap) {

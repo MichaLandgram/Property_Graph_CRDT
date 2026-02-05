@@ -27,7 +27,6 @@ import { DualKeyMap } from '../../Helper/YJS_helper/DualKeyMap';
 
 const schemaInstance = new SchemaInstance();
 
-
 // Normalize values before inserting into Yjs maps to avoid embedding
 // unsupported types (e.g., native Map or class instances holding Y.Doc).
 
@@ -172,8 +171,6 @@ export class SchemaGraphV3 implements Graph {
       }
   }
 
-
-
   /* Graph Main Interaction Interface */
 
   addNode({ alwaysProps, initialProps, graph }: { alwaysProps: AlwaysNodeData; initialProps: any; graph: graphDoc; }): void {
@@ -184,23 +181,20 @@ export class SchemaGraphV3 implements Graph {
       this.testProps(initialProps, alwaysProps.label, 'notNull', 'Node');
       this.testProps(initialProps, alwaysProps.label, 'nullable', 'Node');
       const allProps = {...alwaysProps, ...initialProps};
-      
+
       const schemaProps = {
         ...(schemaInstance.allowedNodePropeerties[alwaysProps.label]?.['notNull'] || {}),
         ...(schemaInstance.allowedNodePropeerties[alwaysProps.label]?.['nullable'] || {})
     }; 
       graph.transact(() => {
         nodesMap.set(alwaysProps.id, Date.now());
-        
         const nodePropsYMap = graph.getMap(`n_${alwaysProps.id}`);
         const nodeProps = new DualKeyMap(nodePropsYMap);
-        
         for (const [key, value] of Object.entries(alwaysProps)) {
              nodePropsYMap.set(key, value); 
         }
 
         for (const [key, value] of Object.entries(initialProps)) {
-          // const expectedType = schemaProps[key];
           nodeProps.setInitial(key, value);
         }
       });
@@ -241,7 +235,6 @@ export class SchemaGraphV3 implements Graph {
   }
   deleteNode({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): void {
     const nodesMap = graph.getMap<any>('nodes')
-    // const propertiesMap = graph.getMap<Y.Map<any>>('properties')
     const nodeProps = graph.getMap(`n_${nodeId}`);
 
     // If node not in registry, it's considered non-existent
@@ -255,6 +248,7 @@ export class SchemaGraphV3 implements Graph {
         // propertiesMap.delete(nodeId); 
         // We cannot delete the top-level map, but we can clear it
         nodeProps.clear();
+        // models an Add/Update Win structure.
       } else if (policy === 'ADD_WINS') {
         nodesMap.delete(nodeId);
       }
@@ -296,69 +290,170 @@ export class SchemaGraphV3 implements Graph {
     const nodeProps = new DualKeyMap(propsYMap);
     return nodeProps.getAll();
   }
-  addEdge({ sourceId, targetId, label, initialProps, graph }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps: EdgeData; graph: graphDoc; }): void {
-    const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');
-    const nodesMap = graph.getMap<any>('nodes');
 
+  addEdge({ sourceId, targetId, label, initialProps, graph, edgeId }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps: EdgeData; graph: graphDoc; edgeId?: EdgeId }): void {
+    // 1. Validate Schema
     this.testLabel(label, 'Edge');
     this.testConnectivity({sourceId, targetId, edgeLabel: label, graph});
-    
+
+    const nodesMap = graph.getMap<any>('nodes');
+    // Ensure Source/Target Exist
+    if (!nodesMap.has(sourceId)) throw new GraphError(`Source Node ${sourceId} does not exist`);
+    if (!nodesMap.has(targetId)) throw new GraphError(`Target Node ${targetId} does not exist`);
+
+   // 2. For Test purposes, we allow edgeId to be passed in, otherwise generate a new one
+   const edgeUUID = edgeId || crypto.randomUUID();
+
     graph.transact(() => {
-      let edgesMap = edgesTargetsMap.get(sourceId);
-      if (!edgesMap) {
-        edgesMap = new Y.Map();
-        edgesTargetsMap.set(sourceId, edgesMap);
+      // 3. Store Data in Top-Level Map
+      const edgePropsYMap = graph.getMap(`e_${edgeUUID}`);
+      const edgeProps = new DualKeyMap(edgePropsYMap);
+      
+      // Initialize Properties using DualKey Logic
+      for (const [key, value] of Object.entries(initialProps)) {
+          edgeProps.setInitial(key, value);
+      }
+      // Always store Source/Target/Label in the Data Map (for self-containment)
+      edgePropsYMap.set('sourceId', sourceId);
+      edgePropsYMap.set('targetId', targetId);
+      edgePropsYMap.set('label', label);
+
+      // 4. Update Topology Index (Lightweight References)
+      // Structure: edgesTargets -> sourceId -> targetId -> Y.Array[edgeUUIDs]
+      // Why Array? Multi-Graph support (multiple edges between same nodes)
+      const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<string>>>('edgesTargets');
+      
+      let targetMap = edgesTargetsMap.get(sourceId);
+      if (!targetMap) {
+        targetMap = new Y.Map();
+        edgesTargetsMap.set(sourceId, targetMap);
       }
 
-      let specificTargetEdgesArray = edgesMap.get(targetId);
-      if (!specificTargetEdgesArray) {
-        specificTargetEdgesArray = new Y.Array();
-        edgesMap.set(targetId, specificTargetEdgesArray);
+      let edgeList = targetMap.get(targetId);
+      if (!edgeList) {
+        edgeList = new Y.Array();
+        targetMap.set(targetId, edgeList);
       }
-      
-      const edgeProps = new Y.Map<any>();
-      for (const [key, value] of Object.entries(initialProps)) {
-        // console.log(key, value);
-        edgeProps.set(key, value);
-      }
-      specificTargetEdgesArray.push([edgeProps]);
-      // touch operation on both nodes as if they were updated
+
+      edgeList.push([edgeUUID]);
+
+      // 5. Touch Registry (Nodes) to indicate update
       nodesMap.set(sourceId, Date.now());
       nodesMap.set(targetId, Date.now());
     }); 
   }
-  updateEdge({ sourceId, targetId, props, graph }: { sourceId: NodeId; targetId: NodeId; props: Partial<EdgeData>; graph: graphDoc; }): void {
-    throw new Error('Method not implemented.');
+
+  updateEdge({ edgeId, props, graph }: { edgeId: EdgeId; props: Partial<EdgeData>; graph: graphDoc; }): void {
+    const edgePropsYMap = graph.getMap(`e_${edgeId}`);
+    const edgeProps = new DualKeyMap(edgePropsYMap);
+    
+    graph.transact(() => {
+      // Update Properties using DualKey Logic
+      for (const [key, value] of Object.entries(props)) {
+          edgeProps.setUpdate(key, value);
+      }
+    });
   }
-  deleteEdge({ sourceId, targetId, graph }: { sourceId: NodeId; targetId: NodeId; graph: graphDoc; }): void {
-    const edgesMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets')
-    const edgeMap = edgesMap.get(sourceId);
-    if (!edgeMap) {
-      console.error(`Edge map for sourceId ${sourceId} does not exist.`);
-      return;
-    }
-    edgeMap.delete(targetId);
+
+  deleteEdge({ edgeId, graph }: { edgeId: EdgeId; graph: graphDoc; }): void {
+    const edgePropsYMap = graph.getMap(`e_${edgeId}`);
+    
+    graph.transact(() => {
+      edgePropsYMap.clear();
+    });
   }
+
   getEdges({ graph }: { graph: graphDoc; }): Array<{ sourceId: NodeId; targetId: NodeId; props: EdgeData; }> {
-    const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<any>>>('edgesTargets');
+    const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<string>>>('edgesTargets');
     const nodesMap = graph.getMap<any>('nodes');
     const edges: any[] = [];
+    
+    // Iterate Topology (Source -> Target -> UUIDs)
     for (let sourceId of Array.from(nodesMap.keys())) {
-      const edgeMap = edgesTargetsMap.get(sourceId);
-      if (!edgeMap) {
-        // console.log("No edge targets map for sourceId:", sourceId);
-        continue;
-      }
+      const sourceMap = edgesTargetsMap.get(sourceId);
+      if (!sourceMap) continue;
       
-      for (const targetId of Array.from(edgeMap.keys())) {
-          const edgeList = edgeMap.get(targetId);
+      for (const targetId of Array.from(sourceMap.keys())) {
+          const edgeList = sourceMap.get(targetId);
           if (edgeList) {
-              edgeList.forEach((edgeProps: any) => {
-                  edges.push({ sourceId, targetId, ...edgeProps.toJSON() as EdgeData });
+              edgeList.forEach((edgeUUID: string) => {
+                  // Resolve UUID to Data Map
+                  const edgePropsMap = graph.getMap(`e_${edgeUUID}`);
+                  
+                  // If map is empty (was cleared/deleted), skip it
+                  if (edgePropsMap.size === 0) return;
+
+                  const edgeProps = new DualKeyMap(edgePropsMap);
+                  const props = edgeProps.getAll();
+
+                  // Reconstruct Edge Object
+                  edges.push({ 
+                      id: edgeUUID, // Exposed ID for future updates
+                      sourceId, 
+                      targetId, 
+                      ...props 
+                  });
               });
           }
       }
     }
     return edges;
+  }
+
+  /* Referential Integrity / Ghost Nodes */
+
+  private isNodeAlive(nodeId: NodeId, nodesMap: any): boolean {
+      if (!nodesMap.has(nodeId)) return false;
+      const meta = nodesMap.get(nodeId);
+      // In V3, we store { removed: true } or a timestamp
+      if (typeof meta === 'object' && meta.removed) return false;
+      return true;
+  }
+
+  /**
+   * Identifies "Ghost Nodes": Nodes that are referenced by an Edge but are considered "Dead" (removed or non-existent).
+   * This is the "Loose" Referential Integrity Strategy (Strategy B).
+   */
+  getGhostNodes({ graph }: { graph: graphDoc; }): Set<NodeId> {
+      const ghosts = new Set<NodeId>();
+      const nodesMap = graph.getMap<any>('nodes');
+      const allEdges = this.getEdges({ graph }); // Notes: getEdges currently returns ALL edges, even from dead sources
+
+      allEdges.forEach(edge => {
+          // Check Target
+          if (!this.isNodeAlive(edge.targetId, nodesMap)) {
+              ghosts.add(edge.targetId);
+          }
+          // Check Source (If getEdges returns edges from dead sources)
+          if (!this.isNodeAlive(edge.sourceId, nodesMap)) {
+              ghosts.add(edge.sourceId);
+          }
+      });
+      return ghosts;
+  }
+
+  /**
+   * Strategy C: Reactive / Cascading Delete.
+   * Removes all edges that point to or from "Ghost Nodes".
+   */
+  garbageCollectGhosts({ graph }: { graph: graphDoc; }): void {
+      const ghosts = this.getGhostNodes({ graph });
+      if (ghosts.size === 0) return;
+
+      const allEdges = this.getEdges({ graph });
+      
+      graph.transact(() => {
+          allEdges.forEach(edge => {
+              if (ghosts.has(edge.sourceId) || ghosts.has(edge.targetId)) {
+                  // Delete this edge
+                  console.log(`[GC] Deleting Dangling Edge ${edge.sourceId} -> ${edge.targetId}`);
+                  this.deleteEdge({ 
+                      sourceId: edge.sourceId, 
+                      targetId: edge.targetId, 
+                      graph 
+                  });
+              }
+          });
+      });
   }
 }
