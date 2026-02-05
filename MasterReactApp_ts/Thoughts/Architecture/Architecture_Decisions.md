@@ -3,7 +3,8 @@
 This document summarizes the architectural options explored for integrating **Yjs (Real-time Collaboration)** with **Graph Databases (Neo4j, ArangoDB, ...)**.
 
 ## 0. Abstraction
-- Small sketch that scheme is indipendent of the basic Y-PG implementation.
+- Small sketch that scheme is indipendent of the basic Y-PG implementation. \
+Showing that CRDT Structure in independent of the underlying Schema.
 ```mermaid
 graph TD
 
@@ -11,12 +12,9 @@ graph TD
     Schema[Schema Validation] <-->|Validate| Y-PG
 ```
 
-
-
-### 3 Gateway Architecture with optimized Read
+### 1. Gateway Architecture with optimized Read
 **Concept:** A centralized **Node.js Sync Server** acts as the *Single Source of Truth*. It holds the Yjs document in RAM and acts as the **Sole Writer** to the Graph Database.
 
-** IDEA**: Look at KazueDB
 
 ```mermaid
 graph LR
@@ -42,7 +40,7 @@ graph LR
 *   **Optimizes:**
     *   **Offline Querying:** Implement a YJS Graph Traversal Layer that can run locally. -> **CON** Not really efficient and limited.
 
-## 5. Distributed / Local-First (Thick Gateway)
+## 2. Distributed / Local-First (Thick Gateway)
 **Concept:** Each client runs a **Local Graph Database** instance + a **Local Sync Server**.
 Read from the Graph Database directly. Write via the Sync Server.
 

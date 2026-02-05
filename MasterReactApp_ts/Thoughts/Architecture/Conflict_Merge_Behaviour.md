@@ -91,7 +91,7 @@ graph LR
 *   **Remove**: `Tombstones.add(t1)`
 *   **Visibility**: Visible if `entry.Tag` is NOT in `Tombstones`.
 
-### Scenario A: Update to Dead Version vs Re-Add (Resurrection)
+### Update to Dead Version vs Re-Add (Resurrection)
 Context: 
 1. **Replica B** removes `N1` (adding tag `t1` to Tombstones). 
 2. **Replica A** concurrent update acts on *dead* tag `t1`.
@@ -99,10 +99,6 @@ Context:
 
 ```mermaid
 graph LR
-    %% Styles
-    classDef state fill:#f9f9f9,stroke:#333,stroke-width:1px;
-    classDef tomb fill:#ffcdd2,stroke:#c62828,stroke-width:2px;
-    classDef merge fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
 
     Start("{ Key: N1, Tag: t1 }")
 
@@ -121,12 +117,15 @@ graph LR
         C0(State: Has t1) -- "re-add(N1) -> New Tag t2" --> C1("{ Key: N1, Val: 3, Tag: t2 }")
     end
 
+    Start -. "sync" .-> A0
+    Start -. "sync" .-> B0
+    Start -. "sync" .-> C0
     %% Merge Logic
     A1 -. "sync" .-> Merge
     B1 -. "sync" .-> Merge
     C1 -. "sync" .-> Merge
 
-    Merge("Result: { Key: N1, Val: 3, Tag: t2 } \n (t1 is dead, t2 wins)"):::merge
+    Merge("Result: { Key: N1, Val: 3, Tag: t2 } (t1 is dead, t2 wins)"):::merge
 
     %% Explanation
     class A0,A1,B0,C0,C1 state;
@@ -135,15 +134,11 @@ graph LR
 > *   Update from **A** refers to `t1`. Since `t1` is in `Tombstones` (from **B**), this entry is **Hidden/Ignored**.
 > *   Re-Add from **C** generated `t2`. `t2` is NOT in Tombstones. **N1 is visible (Resurrected) with value 3.**
 
-### Scenario B: Concurrent Adds (Convergent Merge)
+## Concurrent Adds (Convergent Merge)
 Context: Both clients add the same Node/Edge with **Deterministic ID**, generating the *same* Tag (or just sharing the Key and merging properties).
 
 ```mermaid
 graph LR
-    %% Styles
-    classDef state fill:#f9f9f9,stroke:#333,stroke-width:1px;
-    classDef merge fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
-
     subgraph Replica A
         direction LR
         A0("{ }") -- "add(N1, color:red)" --> A1("{ N1: {color:red} }")

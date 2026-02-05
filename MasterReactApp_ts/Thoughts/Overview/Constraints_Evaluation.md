@@ -39,27 +39,27 @@ Basic Schema
 ## Tier 2 Conflict
 ### DeletePolicy
 ### Cardinality (General Case) 
-(e.g., Min 1, Max 1, Min 10).
-        *   **Cardinality (Papoc Example):** Arbitrary Bounds (Min N / Max N).
-            *   *(Reactive Design):* Why is `size` set by humans? Why not calculate it on the fly?
-            *   *Strategy D (Avoidance):* Use **Computed Properties**. Don't store `size: large`. Calculate `count(edges)` on the fly. This eliminates the constraint entirely.
-    *   *The "Merge Trap":* All of these suffer from the same problem: User A satisfies the rule, User B breaks it (concurrently).
-    *   *Repair Strategy (Architectural Trade-off):*
-        *   **Hybrid Relay (Opt 5.2):** Server Authority. The Relay sees the conflict and fixes it.
-        *   **Pure P2P (Opt 5.1):** Deterministic Consensus. All clients must agree on a "Tie-Breaker" rule (e.g., "Lowest Client ID wins") - Update Storm / Ping Pong CRDT Updates.
-        *   **Max N:** 1. Idea: Deterministic Drop (remove excess edges). 2. Idea: RICH-CRDT Escrow - right exchange or compensation.
-        *   **Min N:** 1. Idea: Server/Consensus-Assisted (create placeholder edges or revert) 2. Idea: RICH-CRDT Escrow - right exchange or compensation.
+(e.g., Min 1, Max 1, Min 10). 
+*   **Cardinality (Papoc Example):** Arbitrary Bounds (Min N / Max N). 
+    *   *(Reactive Design):* Why is `size` set by humans? Why not calculate it on the fly? 
+    *   *Strategy D (Avoidance):* Use **Computed Properties**. Don't store `size: large`. Calculate `count(edges)` on the fly. This eliminates the constraint entirely. 
+*   *The "Merge Trap":* All of these suffer from the same problem: User A satisfies the rule, User B breaks it (concurrently).  
+*   *Repair Strategy (Architectural Trade-off):*
+    *   **Hybrid Relay (Opt 5.2):** Server Authority. The Relay sees the conflict and fixes it. 
+    *   **Pure P2P (Opt 5.1):** Deterministic Consensus. All clients must agree on a "Tie-Breaker" rule (e.g., "Lowest Client ID wins") - Update Storm / Ping Pong CRDT Updates. 
+    *   **Max N:** 1. Idea: Deterministic Drop (remove excess edges). 2. Idea: RICH-CRDT Escrow - right exchange or compensation. 
+    *   **Min N:** 1. Idea: Server/Consensus-Assisted (create placeholder edges or revert) 2. Idea: RICH-CRDT Escrow - right exchange or compensation. 
 
 ### Degree In / Out  (e.g., "Max 5 in/out edges" - independent of label of edge) (baisically Cardinality only more general).
-    *   *Problem:* User A adds edge nr. 5. User B adds edge nr. 5. Both valid locally. Merge -> 7 edges.
-    *   *Repair:* 1. Idea: Deterministic Drop (remove excess edges). 2. Idea: RICH-CRDT Escrow - right exchange or compensation. 
+*   *Problem:* User A adds edge nr. 5. User B adds edge nr. 5. Both valid locally. Merge -> 7 edges.
+*   *Repair:* 1. Idea: Deterministic Drop (remove excess edges). 2. Idea: RICH-CRDT Escrow - right exchange or compensation. 
 ### Referential Integrity
-    *   *Problem:* Client A deletes Node. Client B connects to Node. Sync -> Dangling Edge.
-    *   *Repair:* "Cascade Delete" or "Resurrect Node" (Ghost Node). (More to be seen in Add-wins vs Remove-observe-wins)
+*   *Problem:* Client A deletes Node. Client B connects to Node. Sync -> Dangling Edge.
+*   *Repair:* "Cascade Delete" or "Resurrect Node" (Ghost Node). (More to be seen in Add-wins vs Remove-observe-wins)
 
 ### Bidirectional Edges
-    *   *Problem:* `(A)-[:FRIEND]->(B)` implies `(B)-[:FRIEND]->(A)`.
-    *   *Repair:* "Cascading Write" (Auto-Create). If I write `A->B`, I also write `B->A`. Same for deletion.
+*   *Problem:* `(A)-[:FRIEND]->(B)` implies `(B)-[:FRIEND]->(A)`.
+*   *Repair:* "Cascading Write" (Auto-Create). If I write `A->B`, I also write `B->A`. Same for deletion.
 
 ## Tier 3 Global
 *   **Schema Evolution:** (R7/8/9/10/11)

@@ -20,7 +20,7 @@ Will a newly added node have basic values for its necessary properties or will a
 Okay this is a bit more complex. I have three Ideas what would be a good ide to support:
 
 ### 1. Simple Solution
-**Add wins** - Always keep the date and a concurrent add reinserts the visibility - all updates will be reseved and update the data. \
+**Add wins** - Always keep the data and a concurrent add reinserts the visibility - all updates will be reseved and update the data. \
 **Remove wins** - A node will be *forever* removed. - no reinsertion possible.
 
 ### 2. Medium Solution
