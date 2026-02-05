@@ -3,25 +3,6 @@
 - speed and storage usage (Additionally test maybe loro, bc automerge is to slow - based on Evelyns Thesis)
 - synchronazation delay
 
-## Open Design Questions
-
-### Add Update Concurrency Race
-How is the correct Logic of adding a node? 
-Will a newly added node have basic values for its necessary properties or will alredy be filled with an value? 
-Scenario:
-
-
-        C1 -> add -> Update -> Sync
-        
-        C2 -> add -> Sync
-
-### What is the  remove policy for edges? 
-My Decision: Add wins -> meaning
-
-Should Update or Add Win?
-
-**Overall:** Discuss over what policies to support?
-
 # Evelyns Thesis Version [Adjacency Map With Faster Node Deletion]
 
 ```mermaid

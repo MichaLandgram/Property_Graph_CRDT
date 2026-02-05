@@ -5,6 +5,7 @@ import GraphEditor from './Visualization/Version1/GraphEditor';
 import GraphEditor2 from './Visualization/Version2/GraphEditor2';
 import { GraphErrorBoundary } from './Helper/Vizuals/GraphErrorBoundary';
 import { getGraphInstance } from './VersionSelector';
+import { KuzuTestComponent } from './Kuzu/KuzuTestComponent';
 
 
 const graph = new Y.Doc();
@@ -48,7 +49,7 @@ function App() {
           </div>
           
           <GraphErrorBoundary>
-            <GraphEditor2 ydoc={graph2} />
+            <KuzuTestComponent />
           </GraphErrorBoundary>
         </div>
 

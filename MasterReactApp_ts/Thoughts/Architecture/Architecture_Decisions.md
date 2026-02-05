@@ -16,6 +16,8 @@ graph TD
 ### 3 Gateway Architecture with optimized Read
 **Concept:** A centralized **Node.js Sync Server** acts as the *Single Source of Truth*. It holds the Yjs document in RAM and acts as the **Sole Writer** to the Graph Database.
 
+** IDEA**: Look at KazueDB
+
 ```mermaid
 graph LR
     subgraph C1
