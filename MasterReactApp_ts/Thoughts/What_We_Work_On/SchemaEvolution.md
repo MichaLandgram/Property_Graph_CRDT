@@ -2,7 +2,7 @@
 
 Mainly based on [Lens Mechanisms for Schema Evolution](https://dspace.mit.edu/bitstream/handle/1721.1/145983/3447865.3457963.pdf?sequence=1&isAllowed=y)
 
-## What should be evovlable?
+## What should be evovlable? - open to discussion.
 * 1. Add, Remove, Rename Properties
 * 2. Change [Optional] to [Required]
 * 3. Change Type of Property
