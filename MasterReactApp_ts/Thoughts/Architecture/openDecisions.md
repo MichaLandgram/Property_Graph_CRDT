@@ -63,6 +63,8 @@ graph LR
 * 6. Change allowed connections
 * 7. Change Cardinality
 
+# When changing the schema should the data change on touch or immediately everything? (UpdateStorm etc.)
+
 ## Scalability requirements
 About what Graph Sizes to we argue about?
 
