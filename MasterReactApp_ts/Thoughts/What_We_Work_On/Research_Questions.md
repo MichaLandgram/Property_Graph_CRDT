@@ -4,19 +4,7 @@
 
 **Property Graph CRDT: Enforcing Schema and Structural Constraints on replicated Graph Data** -- Main Focus but allows flexibility for secondary options
 
-**A Middleware Architecture for Replicated Property Graphs with Schema Guarantees** -- Includes directly the middleware Architecture Idea
 
-**Enforcing Structural and Semantic Constraints in Local-First Property Graphs** -- Ok 
-
-**Enforcing Graph Constraints in Local-First Property Graphs using CRDTs** -- ok
-
-## Secondary Options:
-
-**The Merge Trap: Managing Schema Evolution and Constraints in Offline-First Graph Systems**
-
-**Schema-Aware CRDTs for Property Graphs: From Structural Invariants to Schema Evolution**
-
-**Beyond Eventually Consistent: Enforcing Strict Graph Semantics on Relaxed CRDT Structures**
 
 
 # Thesis Research Questions (Suggestions)
@@ -81,7 +69,21 @@ Keep as "if time option" {RQ5, RQ7} ... maybe as a small section to not analize 
 | RQ4 | Benchmarks | Ops/sec, Storage bytes (I think storage can be ignored) |
 
 
+# Alternative Thesis Titles
 
+**A Middleware Architecture for Replicated Property Graphs with Schema Guarantees** -- Includes directly the middleware Architecture Idea
+
+**Enforcing Structural and Semantic Constraints in Local-First Property Graphs** -- Ok 
+
+**Enforcing Graph Constraints in Local-First Property Graphs using CRDTs** -- ok
+
+## Secondary Options:
+
+**The Merge Trap: Managing Schema Evolution and Constraints in Offline-First Graph Systems**
+
+**Schema-Aware CRDTs for Property Graphs: From Structural Invariants to Schema Evolution**
+
+**Beyond Eventually Consistent: Enforcing Strict Graph Semantics on Relaxed CRDT Structures**
 
 # Different RQ Ideas currently not planned to be included
 
