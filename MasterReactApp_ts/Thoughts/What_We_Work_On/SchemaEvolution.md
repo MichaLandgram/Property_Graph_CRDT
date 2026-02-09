@@ -1,8 +1,8 @@
-# Schema Evolution Ideas
+<!-- # Schema Evolution Ideas
 
 Mainly based on [Lens Mechanisms for Schema Evolution](https://dspace.mit.edu/bitstream/handle/1721.1/145983/3447865.3457963.pdf?sequence=1&isAllowed=y)
 
-## What should be evovlable?
+## What should be evovlable? - open to discussion.
 * 1. Add, Remove, Rename Properties
 * 2. Change [Optional] to [Required]
 * 3. Change Type of Property
@@ -13,33 +13,35 @@ Mainly based on [Lens Mechanisms for Schema Evolution](https://dspace.mit.edu/bi
 
 How should evolable be defined? Restart the property? Base on the old property?
 
-## 0. The "No-Version" Concept (Continuous Evolution)
-In a CRDT system, "v1 -> v2" is not a discrete step. It is a continuous stream of updates.
-*   **Concurrent Schema Edits:** Since the Schema itself is a Y.Map (`CollaborativeSchema`), concurrent edits **merge automatically**.
+The two Options I think about: 
+# 1. Versioning (Idea based on RxDB)
+### RxDB (Document-Based)
+*   **Model:** Data is a JSON Document.
+*   **Migration:** `v1 -> v2`. A function `migrate(doc)` **rewrites** the document.
+*    They prioritize **Query Performance**. Indexes require the data on disk to match the schema exactly.
+*   **Tradeoff:** Migration often requires re-writing the database. In a P2P system, if I rewrite my DB to V2, I can no longer easily sync with your V1 DB without complex conflict logic.
+
+# 2. The "No-Version" Concept (Continuous Evolution)
+"v1 -> v2" is not a discrete step. It is a continuous stream of updates.
+*   **Concurrent Schema Edits:** Schema as a YMap
     *   User A adds `age` (Number).
     *   User B adds `email` (String).
     *   **Result:** The Schema contains *both*. No conflict logic needed (unless they redefine the *same* property name with different types).
 
-### Mixed-Version Clients (The "Forward Compatibility" Rule)
+ ### Mixed-Version Clients (The "Forward Compatibility" Rule)
 What happens if Client V1 (Old Code) and Client V2 (New Code) collaborate?
 1.  **V2 writes `email`:** The Node CRDT now has an `email` field.
 2.  **V1 reads the Node:**
     *   V1's code doesn't know about `email`.
     *   **CRITICAL:** V1 must **ignore** unknown properties but **preserve** them when saving.
     *   *Yjs Default:* Yjs Maps preserve unknown keys automatically. If V1 modifies `name`, `email` stays in the map untouched.
-3.  **Result:** V1 clients can safely participate in V2 graphs without corruption, provided they don't *delete* unknown keys.
+3.  V1 clients can safely participate in V2 graphs without corruption, provided they don't *delete* unknown keys.
 
 ### Backward Compatibility (V2 reads V1 Data)
 This is the **Main Purpose of the Lens**.
-*   **Scenario:** V1 Client creates a Node (no `email` property).
-*   **V2 Client reads it:**
-    *   V2 Schema says: `Person.email` is Optional (or Required with Default).
-    *   **Lens Logic:** `node.has('email')` is false.
-    *   **Action:** Lens returns the **Default Value** (`""` or `null`) defined in the V2 Schema.
-*   **Result:** V2 code runs fine, seeing a "default" email, even though the V1 data doesn't have the field.
 
-## 1. Lens Schema Evolution (The "Lazy" Approach) -- My recommendation
-Instead of rewriting data (difficult), using **Lenses** to transform data *on read* and *on write*.
+## 1. Lens Schema Evolution (The "Lazy" Approach)
+Instead of rewriting data , using **Lenses** to transform data *on read* and *on write*.
 
 ### A. The Coercion Matrix (Lens Definition - Read)
 The Schema defines allowed "Safe" transformations. The **Read Layer** applies `coerceValue(storedVal, validSchemaType)` on the fly.
@@ -163,26 +165,7 @@ You need **Schema-Aware Storage** (e.g. `{"v1:addr": ..., "v2:addr": ...}`).
     *   **Reasoning:** In-place Type conversion of a CRDT (e.g. YArray becoming YMap) is technically impossible without deleting the object and creating a new one with the same key (which breaks concurrent merges).
 
 ---
-## Comparison: Eager vs Lazy for Types
-
-| Feature | Eager (Migration Ops) | Lazy (Lens Coercion) | Lazy (Migrate-on-Write) |
-| :--- | :--- | :--- | :--- |
-| **Type Safety** | Enforced in Storage | Enforced in Application | Enforced eventually |
-| **History Size** | **High** (O(N) growth) | **Zero** | **Low** (Only active nodes) |
-| **Conflict Resilience** | Low | High | High |
-| **Consistency** | Immediate | Eventual (Virtual) | Eventual (Materialized) |
 
 ## 6. Comparison: Why RxDB/CouchDB use "Versions" vs CRDTs
-You asked: *Why do systems like RxDB use distinct versions (v1, v2) and migration scripts?*
 
-### RxDB (Document-Based)
-*   **Model:** Data is a JSON Document.
-*   **Migration:** `v1 -> v2`. A function `migrate(doc)` **rewrites** the document.
-*   **Why:** They prioritize **Query Performance**. Indexes require the data on disk to match the schema exactly.
-*   **Trade-off:** Migration often requires re-writing the database. In a P2P system, if I rewrite my DB to V2, I can no longer easily sync with your V1 DB without complex conflict logic.
-
-### CRDTs (Operation-Based)
-*   **Model:** Data is a History of Operations.
-*   **Constraint:** You cannot "rewrite" history without breaking concurrent merges.
-*   **Why Lens?** It allows us to "simulate" a migration (V2 view) without breaking the ability to merge with V1 clients.
-*   **Thesis Argument:** In Local-First, **Availability and Merge-Safety** > **Storage Layout**. Therefore, Lenses are superior to Hard Versioning for this specific use case.
+ -->

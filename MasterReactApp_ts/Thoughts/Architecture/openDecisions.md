@@ -53,6 +53,18 @@ graph LR
 
 ```
 
+## What Schema Evolution Operations do we want to support?
+## What should be evovlable? - open to discussion.
+* 1. Add, Remove, Rename Properties
+* 2. Change [Optional] to [Required]
+* 3. Change Type of Property
+* 4. Change Default Value of Property
+* 5. Change allowed Labels (Nodes/Edges)
+* 6. Change allowed connections
+* 7. Change Cardinality
+
+# When changing the schema should the data change on touch or immediately everything? (UpdateStorm etc.)
+
 ## Scalability requirements
 About what Graph Sizes to we argue about?
 
