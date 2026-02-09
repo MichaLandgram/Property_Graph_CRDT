@@ -3,13 +3,14 @@
 
 We define as basis of our Graph an CRDT Map that supports: 
 
-* **Add** - Adds a new entry to the map
+* **Create** - Adds a new entry to the map
 * **Update** - Updates an existing entry in the map.
 * **Remove** - Removes an entry from the map.
 
-
 This gives us the Question: How does it behave in different merging scenarios?
 
+
+![alt text](/MasterReactApp_ts/Thoughts/images/NodeConcurrencyMatrix.png)
 
 The two I want to focus on are:
 

@@ -75,9 +75,10 @@ Next Step Changing the YJS Structure to be a Add/Update Win Map.
 
 Assumptions:
 - A Node has an ID that makes it unique.
-- A Edge has an ID that makes it unique.
+- A Edge has an ID that makes it unique. e.g.: Source + Target + Label + uuid or a fixed Id as test of merging.
 - A Node can have multiple edges to the same node.
 - A Node can have edge(s) to itself.
+- 
 
 Guarantees:
 - Merging of the same node/edge when added concurently. (Keeping a combination of the properties and not overwriting one with the other) [this is why we have nodes and egdes as top level keys in the YDoc]

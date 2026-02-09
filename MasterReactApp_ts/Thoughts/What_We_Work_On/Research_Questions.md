@@ -33,7 +33,7 @@ Keep as "if time option" {RQ5, RQ7} ... maybe as a small section to not analize 
 ## RQ1: Property Graph Design with CRDTs -- I think necessary as an basis
 **Question:**
 > *How can CRDT-based replicated types for property graphs be composed to guarantee convergence while enforcing basic structural and typing constraints (e.g., node/edge labels, property type, referential integrity)?* 
-
+*   **Evaluation:** 
 ---
 
 ## RQ2: Distributed Schema Integration -- Also necessary for arguing about exactly and easy integration of an Schema to enhance simple Property Graph to an Property Graph with CRDTs (could be integrated into RQ1)
@@ -51,6 +51,38 @@ Keep as "if time option" {RQ5, RQ7} ... maybe as a small section to not analize 
 ## RQ4: Distributed Schema Evolution / Living Schema -- good for arguing about the usability of the system
 **Question:**
 > *How can schema evolution operations be performed without breaking offline clients, while preserving eventual convergence to a schema-valid graph?*
+
+## Evaluation Plan
+
+### RQ1 
+
+
+
+
+
+| RQ | Evaluation Method | Key Metric |
+|----|----|----|
+| RQ1 | Property-Based Testing | 100% State(A) == State(B) across random scenarios | 
+| RQ1 | Commutativity Verification | All operation pairs commute: op1;op2 ≡ op2;op1 |
+| RQ1 | Benchmarks | Ops/sec, Storage bytes (I think storage can be ignored) |
+| ---- | ---- | ---- |
+| RQ2 | Unit Tests | Invalid ops are rejected |
+| RQ2 | Validation | isSchemaCorrect(graph) returns true after sync |
+| RQ2 | Feature Matrix | Document what constraints are supported |
+| RQ2 | Integration Overhead | Validation time added to operations |
+| ---- | ---- | ---- |
+| RQ3 | Comparative Analysis | Conflict-free vs. reservation-based: latency, coordination overhead |
+| RQ3 | Constraint Violation Test | Pass/Fail + how many violations occur |
+| RQ3 | Availability Test | Operations succeeded during partition (conflict-free) vs. blocked (reservation) |
+| RQ3 | Benchmarks | Ops/sec, Storage bytes (I think storage can be ignored) |
+| ---- | ---- | ---- |
+| RQ4 | Offline Client Test | Client offline during evolution: violations after sync? |
+| RQ4 | Benchmarks | Ops/sec, Storage bytes (I think storage can be ignored) |
+
+
+
+
+# Different RQ Ideas currently not planned to be included
 
 ---
 
