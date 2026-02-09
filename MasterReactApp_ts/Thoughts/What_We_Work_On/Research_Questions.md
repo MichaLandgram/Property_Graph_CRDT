@@ -42,15 +42,16 @@ Keep as "if time option" {RQ5, RQ7} ... maybe as a small section to not analize 
 
 ---
 
-## RQ3: Distributed Cardinality Constraints -- enhances the research to a more complex Property Graph with CRDTs
+## RQ3: Distributed Schema Evolution / Living Schema -- good for arguing about the usability of the system
+**Question:**
+> *How can schema evolution operations be performed without breaking offline clients, while preserving eventual convergence to a schema-valid graph?*
+
+## RQ4: Distributed Cardinality Constraints -- enhances the research to a more complex Property Graph with CRDTs
 **Question:**
 > *What are the trade-offs between conflict-free and reservation-based approaches (e.g., escrow, bounded counters) for enforcing edge/property cardinality constraints in a local-first graph database?*
 
 ---
 
-## RQ4: Distributed Schema Evolution / Living Schema -- good for arguing about the usability of the system
-**Question:**
-> *How can schema evolution operations be performed without breaking offline clients, while preserving eventual convergence to a schema-valid graph?*
 
 ## Evaluation Plan
 
