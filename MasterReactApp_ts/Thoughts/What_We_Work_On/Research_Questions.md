@@ -2,9 +2,9 @@
 
 ## Michas Favourits:
 
-**Coordination-Free Property Graphs: Enforcing Schema and Structural Constraints with CRDTs** -- Main Focus but allows flexibility for secondary options
+**Property Graph CRDT: Enforcing Schema and Structural Constraints on replicated Graph Data** -- Main Focus but allows flexibility for secondary options
 
-**A Middleware Architecture for Replicated Property Graphs with Semantic Guarantees** -- Includes directly the middleware Architecture Idea
+**A Middleware Architecture for Replicated Property Graphs with Schema Guarantees** -- Includes directly the middleware Architecture Idea
 
 **Enforcing Structural and Semantic Constraints in Local-First Property Graphs** -- Ok 
 
