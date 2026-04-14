@@ -38,15 +38,6 @@ export class DualKeyMap {
             this.map.set(initKey, value.toISOString());
             return;
         }
-        // do not support Point and OurVector - my plan
-        // if (value instanceof Point) {
-        //     this.map.set(initKey, { x: value.x, y: value.y });
-        //     return;
-        // }
-        // if (value instanceof OurVector) {
-        //     this.map.set(initKey, { x: value.x, y: value.y, z: value.z });
-        //     return;
-        // }
 
         // Standard primitive (string, number, boolean)
         this.map.set(initKey, value);

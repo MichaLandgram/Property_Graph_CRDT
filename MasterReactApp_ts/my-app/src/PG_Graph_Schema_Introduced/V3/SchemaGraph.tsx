@@ -15,6 +15,9 @@ import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreC
 import { Schema_1 as SchemaInstance } from '../../PG_Graph_Schema/schema_1';
 import { GraphError } from '../../Helper/Vizuals/GraphError';
 import { DualKeyMap } from './DualKeyMap';
+import { ORSetRegistry } from '../../Helper/YJS_helper/ORSetRegistry';
+
+const DEFAULT_POLICY: Policy = 'OBSERVED_REMOVE';
 
 /* This is a SCHEMA APPROACH TO A GRAPH BASED ON YJS */
 // const ydoc = new Y.Doc()
@@ -35,6 +38,34 @@ const schemaInstance = new SchemaInstance();
 
 export class SchemaGraphV3 implements Graph {
   hasSchema : boolean = true;
+
+  // Lazy-initialized OR-Set registries per doc
+  private _registryCache = new WeakMap<Y.Doc, ORSetRegistry>();
+  
+  private getNodeRegistry(graph: graphDoc): ORSetRegistry {
+    let registry = this._registryCache.get(graph);
+    if (!registry) {
+      registry = new ORSetRegistry(graph, 'nodes');
+      this._registryCache.set(graph, registry);
+    }
+    return registry;
+  }
+
+  /** Simple ADD_WINS registry: nodeId → timestamp */
+  private getNodesSimple(graph: graphDoc): Y.Map<number> {
+    return graph.getMap<number>('nodes_simple');
+  }
+
+  /** Permanent policy map: nodeId → Policy (never cleared) */
+  private getNodesPolicies(graph: graphDoc): Y.Map<string> {
+    return graph.getMap<string>('nodes_policies');
+  }
+
+  /** Get the stored policy for a node (defaults to OBSERVED_REMOVE) */
+  private getNodePolicy(nodeId: NodeId, graph: graphDoc): Policy {
+    const policies = this.getNodesPolicies(graph);
+    return (policies.get(nodeId) as Policy) || DEFAULT_POLICY;
+  }
   isSchemaCorrect(graph: graphDoc): boolean {
     throw new Error('Method not implemented.');
   }
@@ -177,20 +208,25 @@ export class SchemaGraphV3 implements Graph {
   /* Graph Main Interaction Interface */
 
   addNode({ alwaysProps, initialProps, graph }: { alwaysProps: AlwaysNodeData; initialProps: any; graph: graphDoc; }): void {
-      const nodesMap = graph.getMap<any>('nodes');
+      const policy = alwaysProps.policy || DEFAULT_POLICY;
 
       // Validate label and required/optional properties based on schema
       this.testLabel(alwaysProps.label, 'Node');
       this.testProps(initialProps, alwaysProps.label, 'notNull', 'Node');
       this.testProps(initialProps, alwaysProps.label, 'nullable', 'Node');
-      const allProps = {...alwaysProps, ...initialProps};
 
-      const schemaProps = {
-        ...(schemaInstance.allowedNodePropeerties[alwaysProps.label]?.['notNull'] || {}),
-        ...(schemaInstance.allowedNodePropeerties[alwaysProps.label]?.['nullable'] || {})
-    }; 
       graph.transact(() => {
-        nodesMap.set(alwaysProps.id, Date.now());
+        // Store policy permanently (survives deletion)
+        this.getNodesPolicies(graph).set(alwaysProps.id, policy);
+
+        if (policy === 'ADD_WINS') {
+          // Simple: store nodeId → timestamp
+          this.getNodesSimple(graph).set(alwaysProps.id, Date.now());
+        } else {
+          // OBSERVED_REMOVE: add tag to OR-Set registry
+          this.getNodeRegistry(graph).add(alwaysProps.id);
+        }
+
         const nodePropsYMap = graph.getMap(`n_${alwaysProps.id}`);
         const nodeProps = new DualKeyMap(nodePropsYMap);
         for (const [key, value] of Object.entries(alwaysProps)) {
@@ -204,10 +240,10 @@ export class SchemaGraphV3 implements Graph {
   }
 
   updateNode({ nodeId, props, graph }: { nodeId: NodeId; props: any; graph: graphDoc; }): void {
-    const nodesMap = graph.getMap<any>('nodes');
-    
-    // Check existence via Registry (nodesMap)
-    if (!nodesMap.has(nodeId)) {throw new GraphError(`Node ${nodeId} not found - cannot update something that does not exist`);}
+    // Check if node is alive (policy-aware)
+    if (!this.isNodeAlive(nodeId, graph)) {
+      throw new GraphError(`Node ${nodeId} not found or removed - cannot update`);
+    }
 
     // Access Top-Level Map
     const nodePropsYMap = graph.getMap(`n_${nodeId}`);
@@ -215,7 +251,6 @@ export class SchemaGraphV3 implements Graph {
     
     const label = nodeProps.get('label') as labelTypes || nodeProps.get('init_label') as labelTypes;
     
-    // find more compact solution!!
     const currentProps = nodeProps.getAll() || {};
     const mergedProps = { ...currentProps, ...props };
     
@@ -232,62 +267,59 @@ export class SchemaGraphV3 implements Graph {
       for (const [k, v] of Object.entries(props)) {
         const expectedType = schemaProps[k];
         nodeProps.setUpdate(k, v, expectedType, graph);
-        nodesMap.set(nodeId, Date.now());
       }
     });
   }
   deleteNode({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): void {
-    const nodesMap = graph.getMap<any>('nodes')
+    if (!this.isNodeAlive(nodeId, graph)) {
+      throw new GraphError(`Node ${nodeId} not found or already removed`);
+    }
+
+    const policy = this.getNodePolicy(nodeId, graph);
     const nodeProps = graph.getMap(`n_${nodeId}`);
-
-    // If node not in registry, it's considered non-existent
-    if (!nodesMap.has(nodeId)) {throw new GraphError(`Node ${nodeId} not found - cannot delete something that does not exist`);}
-
-    const policy = nodeProps.get('policy') || nodeProps.get('init_policy');
     
     graph.transact(() => {
-      if (policy === 'REMOVE_WINS') {
-        nodesMap.set(nodeId, { removed: true });
-        // propertiesMap.delete(nodeId); 
-        // We cannot delete the top-level map, but we can clear it
+      if (policy === 'ADD_WINS') {
+        // Simple: delete from nodesSimple (Yjs LWW — concurrent add wins)
+        this.getNodesSimple(graph).delete(nodeId);
+      } else {
+        // OBSERVED_REMOVE: tombstone all observed tags
+        this.getNodeRegistry(graph).remove(nodeId);
+        // Clear property data (OR-Set cascade)
         nodeProps.clear();
-        // models an Add/Update Win structure.
-      } else if (policy === 'ADD_WINS') {
-        nodesMap.delete(nodeId);
       }
     });
   }
-  getVisibleNodes({ graph }: { graph: graphDoc; }): Array<{ id: NodeId; props: any; policy: Policy; }> {
-    const nodesMap = graph.getMap<any>('nodes')
-    // const propertiesMap = graph.getMap<Y.Map<any>>('properties')
+  getVisibleNodes({ graph }: { graph: graphDoc; }): Array<{ id: NodeId; props: any; }> {
     const visible: any[] = [];
-    
-    nodesMap.forEach((node: any , id: NodeId) => {
-        // Access Top-Level Map
-        const propsMap = graph.getMap(`n_${id}`);
-      
-      if (node.removed) {
-          // REMOVE_WINS logic preserved in registry
-           return;
-      }
-      
-      const nodeProps = new DualKeyMap(propsMap);
-      const props = nodeProps.getAll();
-      const policy = props['policy'];
+    const seen = new Set<NodeId>();
 
-      if (policy === 'REMOVE_WINS') {
-        if (node.removed) {
-          return; // Node is already removed and should not be visible
-        }
-      }
-        visible.push({ id, ...props, policy });
+    // 1. ADD_WINS nodes (from simple map)
+    const nodesSimple = this.getNodesSimple(graph);
+    nodesSimple.forEach((_ts, id) => {
+      if (this.getNodePolicy(id, graph) !== 'ADD_WINS') return;
+      seen.add(id);
+      const propsMap = graph.getMap(`n_${id}`);
+      if (propsMap.size === 0) return;
+      const nodeProps = new DualKeyMap(propsMap);
+      visible.push({ id, ...nodeProps.getAll() });
     });
+
+    // 2. OBSERVED_REMOVE nodes (from OR-Set registry)
+    const aliveIds = this.getNodeRegistry(graph).getAllAlive();
+    for (const id of aliveIds) {
+      if (seen.has(id)) continue;
+      const propsMap = graph.getMap(`n_${id}`);
+      if (propsMap.size === 0) continue;
+      const nodeProps = new DualKeyMap(propsMap);
+      visible.push({ id, ...nodeProps.getAll() });
+    }
     
     return visible;
   }
+
   getNodeProps({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc; }): any | undefined {
-    const nodesMap = graph.getMap<any>('nodes');
-    if (!nodesMap.has(nodeId)) return undefined;
+    if (!this.isNodeAlive(nodeId, graph)) return undefined;
 
     const propsYMap = graph.getMap(`n_${nodeId}`);
     const nodeProps = new DualKeyMap(propsYMap);
@@ -299,16 +331,25 @@ export class SchemaGraphV3 implements Graph {
     this.testLabel(label, 'Edge');
     this.testConnectivity({sourceId, targetId, edgeLabel: label, graph});
 
-    const nodesMap = graph.getMap<any>('nodes');
-    // Ensure Source/Target Exist
-    if (!nodesMap.has(sourceId)) throw new GraphError(`Source Node ${sourceId} does not exist`);
-    if (!nodesMap.has(targetId)) throw new GraphError(`Target Node ${targetId} does not exist`);
+    // Ensure Source/Target are alive (policy-aware)
+    if (!this.isNodeAlive(sourceId, graph)) throw new GraphError(`Source Node ${sourceId} does not exist or is removed`);
+    if (!this.isNodeAlive(targetId, graph)) throw new GraphError(`Target Node ${targetId} does not exist or is removed`);
 
-   // 2. For Test purposes, we allow edgeId to be passed in, otherwise generate a new one
+    // 2. Snapshot tags for OBSERVED_REMOVE endpoints, empty for ADD_WINS
+    const sourcePolicy = this.getNodePolicy(sourceId, graph);
+    const targetPolicy = this.getNodePolicy(targetId, graph);
+    const sourceTags = sourcePolicy === 'OBSERVED_REMOVE' 
+        ? this.getNodeRegistry(graph).getAliveTags(sourceId) 
+        : [];
+    const targetTags = targetPolicy === 'OBSERVED_REMOVE' 
+        ? this.getNodeRegistry(graph).getAliveTags(targetId) 
+        : [];
+
+   // 3. For Test purposes, we allow edgeId to be passed in, otherwise generate a new one
    const edgeUUID = edgeId || crypto.randomUUID();
 
     graph.transact(() => {
-      // 3. Store Data in Top-Level Map
+      // 4. Store Data in Top-Level Map
       const edgePropsYMap = graph.getMap(`e_${edgeUUID}`);
       const edgeProps = new DualKeyMap(edgePropsYMap);
       
@@ -316,14 +357,14 @@ export class SchemaGraphV3 implements Graph {
       for (const [key, value] of Object.entries(initialProps)) {
           edgeProps.setInitial(key, value);
       }
-      // Always store Source/Target/Label in the Data Map (for self-containment)
+      // Always store Source/Target/Label + observed tags in the Data Map
       edgePropsYMap.set('sourceId', sourceId);
       edgePropsYMap.set('targetId', targetId);
       edgePropsYMap.set('label', label);
+      edgePropsYMap.set('sourceTags', sourceTags);   // Version-bound (OBSERVED_REMOVE) or empty (ADD_WINS)
+      edgePropsYMap.set('targetTags', targetTags);
 
-      // 4. Update Topology Index (Lightweight References)
-      // Structure: edgesTargets -> sourceId -> targetId -> Y.Array[edgeUUIDs]
-      // Why Array? Multi-Graph support (multiple edges between same nodes)
+      // 5. Update Topology Index
       const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<string>>>('edgesTargets');
       
       let targetMap = edgesTargetsMap.get(sourceId);
@@ -339,10 +380,6 @@ export class SchemaGraphV3 implements Graph {
       }
 
       edgeList.push([edgeUUID]);
-
-      // 5. Touch Registry (Nodes) to indicate update
-      nodesMap.set(sourceId, Date.now());
-      nodesMap.set(targetId, Date.now());
     }); 
   }
 
@@ -367,70 +404,90 @@ export class SchemaGraphV3 implements Graph {
   }
 
   getEdges({ graph }: { graph: graphDoc; }): Array<{ sourceId: NodeId; targetId: NodeId; props: EdgeData; }> {
+    const nodeRegistry = this.getNodeRegistry(graph);
     const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<string>>>('edgesTargets');
-    const nodesMap = graph.getMap<any>('nodes');
     const edges: any[] = [];
     
     // Iterate Topology (Source -> Target -> UUIDs)
-    for (let sourceId of Array.from(nodesMap.keys())) {
-      const sourceMap = edgesTargetsMap.get(sourceId);
-      if (!sourceMap) continue;
+    edgesTargetsMap.forEach((sourceMap, sourceId) => {
+      if (!sourceMap) return;
       
-      for (const targetId of Array.from(sourceMap.keys())) {
-          const edgeList = sourceMap.get(targetId);
-          if (edgeList) {
-              edgeList.forEach((edgeUUID: string) => {
-                  // Resolve UUID to Data Map
-                  const edgePropsMap = graph.getMap(`e_${edgeUUID}`);
-                  
-                  // If map is empty (was cleared/deleted), skip it
-                  if (edgePropsMap.size === 0) return;
+      sourceMap.forEach((edgeList, targetId) => {
+          if (!edgeList) return;
+          edgeList.forEach((edgeUUID: string) => {
+              const edgePropsMap = graph.getMap(`e_${edgeUUID}`);
+              
+              // If map is empty (was cleared/deleted), skip it
+              if (edgePropsMap.size === 0) return;
 
-                  const edgeProps = new DualKeyMap(edgePropsMap);
-                  const props = edgeProps.getAll();
+              // Policy-aware endpoint liveness check
+              const storedSourceId = edgePropsMap.get('sourceId') as string;
+              const storedTargetId = edgePropsMap.get('targetId') as string;
+              const sourcePolicy = this.getNodePolicy(storedSourceId, graph);
+              const targetPolicy = this.getNodePolicy(storedTargetId, graph);
 
-                  // Reconstruct Edge Object
-                  edges.push({ 
-                      id: edgeUUID, // Exposed ID for future updates
-                      sourceId, 
-                      targetId, 
-                      ...props 
-                  });
+              // Check source alive
+              if (sourcePolicy === 'ADD_WINS') {
+                if (!this.getNodesSimple(graph).has(storedSourceId)) return;
+              } else {
+                const sourceTags: string[] = edgePropsMap.get('sourceTags') as string[] || [];
+                if (!sourceTags.some(tag => nodeRegistry.isTagAlive(tag))) return;
+              }
+
+              // Check target alive
+              if (targetPolicy === 'ADD_WINS') {
+                if (!this.getNodesSimple(graph).has(storedTargetId)) return;
+              } else {
+                const targetTags: string[] = edgePropsMap.get('targetTags') as string[] || [];
+                if (!targetTags.some(tag => nodeRegistry.isTagAlive(tag))) return;
+              }
+
+              const edgeProps = new DualKeyMap(edgePropsMap);
+              const props = edgeProps.getAll();
+
+              edges.push({ 
+                  id: edgeUUID,
+                  sourceId: storedSourceId, 
+                  targetId: storedTargetId, 
+                  ...props 
               });
-          }
-      }
-    }
+          });
+      });
+    });
     return edges;
   }
 
   /* Referential Integrity / Ghost Nodes */
 
-  private isNodeAlive(nodeId: NodeId, nodesMap: any): boolean {
-      if (!nodesMap.has(nodeId)) return false;
-      const meta = nodesMap.get(nodeId);
-      // In V3, we store { removed: true } or a timestamp
-      if (typeof meta === 'object' && meta.removed) return false;
-      return true;
+  /** Policy-aware node liveness check */
+  private isNodeAlive(nodeId: NodeId, graph: graphDoc): boolean {
+      const policy = this.getNodePolicy(nodeId, graph);
+      if (policy === 'ADD_WINS') {
+        return this.getNodesSimple(graph).has(nodeId);
+      } else {
+        return this.getNodeRegistry(graph).isAlive(nodeId);
+      }
   }
 
   /**
    * Identifies "Ghost Nodes": Nodes that are referenced by an Edge but are considered "Dead" (removed or non-existent).
-   * This is the "Loose" Referential Integrity Strategy (Strategy B).
+   * Note: With OR-Set + version-bound edges, getEdges() already filters dead edges.
+   * This method is kept for optional topology cleanup.
    */
   getGhostNodes({ graph }: { graph: graphDoc; }): Set<NodeId> {
       const ghosts = new Set<NodeId>();
-      const nodesMap = graph.getMap<any>('nodes');
-      const allEdges = this.getEdges({ graph }); // Notes: getEdges currently returns ALL edges, even from dead sources
+      const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<string>>>('edgesTargets');
 
-      allEdges.forEach(edge => {
-          // Check Target
-          if (!this.isNodeAlive(edge.targetId, nodesMap)) {
-              ghosts.add(edge.targetId);
+      edgesTargetsMap.forEach((sourceMap, sourceId) => {
+          if (!this.isNodeAlive(sourceId, graph)) {
+              ghosts.add(sourceId);
           }
-          // Check Source (If getEdges returns edges from dead sources)
-          if (!this.isNodeAlive(edge.sourceId, nodesMap)) {
-              ghosts.add(edge.sourceId);
-          }
+          if (!sourceMap) return;
+          sourceMap.forEach((_, targetId) => {
+              if (!this.isNodeAlive(targetId, graph)) {
+                  ghosts.add(targetId);
+              }
+          });
       });
       return ghosts;
   }
@@ -438,24 +495,26 @@ export class SchemaGraphV3 implements Graph {
   /**
    * Strategy C: Reactive / Cascading Delete.
    * Removes all edges that point to or from "Ghost Nodes".
+   * Note: With version-bound edges, this is optional cleanup (edges are already invisible at read time).
    */
   garbageCollectGhosts({ graph }: { graph: graphDoc; }): void {
       const ghosts = this.getGhostNodes({ graph });
       if (ghosts.size === 0) return;
 
-      const allEdges = this.getEdges({ graph });
+      const edgesTargetsMap = graph.getMap<Y.Map<Y.Array<string>>>('edgesTargets');
       
       graph.transact(() => {
-          allEdges.forEach(edge => {
-              if (ghosts.has(edge.sourceId) || ghosts.has(edge.targetId)) {
-                  // Delete this edge
-                  console.log(`[GC] Deleting Dangling Edge ${edge.sourceId} -> ${edge.targetId}`);
-                  this.deleteEdge({ 
-                      sourceId: edge.sourceId, 
-                      targetId: edge.targetId, 
-                      graph 
-                  });
-              }
+          edgesTargetsMap.forEach((sourceMap, sourceId) => {
+              if (!sourceMap) return;
+              sourceMap.forEach((edgeList, targetId) => {
+                  if (!edgeList) return;
+                  if (ghosts.has(sourceId) || ghosts.has(targetId)) {
+                      edgeList.forEach((edgeUUID: string) => {
+                          console.log(`[GC] Cleaning up edge ${edgeUUID} (${sourceId} -> ${targetId})`);
+                          this.deleteEdge({ edgeId: edgeUUID as EdgeId, graph });
+                      });
+                  }
+              });
           });
       });
   }

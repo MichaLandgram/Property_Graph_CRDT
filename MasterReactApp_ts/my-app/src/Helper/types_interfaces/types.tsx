@@ -46,7 +46,7 @@ export type dataTypes =
 // };
 
 // Policy Types - and Mapping to the corresponding label type
-export type Policy = "ADD_WINS" | "REMOVE_WINS"
+export type Policy = "ADD_WINS" | "OBSERVED_REMOVE"
 
 
 
