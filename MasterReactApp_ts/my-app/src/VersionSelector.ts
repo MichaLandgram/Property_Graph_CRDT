@@ -2,7 +2,7 @@
 import { SGraphV4 } from './PG_Graph_Schema_Less/V4/SimpleGraph';
 import { SchemaGraph } from './PG_Graph_Schema_Introduced/V1/SchemaGraph';
 import { SchemaGraphV2 } from './PG_Graph_Schema_Introduced/Experimental_Versions/V2/SchemaGraph';
-import { SchemaGraphV3 } from './PG_Graph_Schema_Introduced/V3/SchemaGraph';
+// import { SchemaGraphV3 } from './PG_Graph_Schema_Introduced/V3/SchemaGraph';
 import { Graph } from './Helper/types_interfaces/graph';
 
 /* Import the schema classes */
@@ -35,10 +35,10 @@ export const getGraphInstance = (): Graph => {
             return new SGraphV4();
         case GraphImplementation.SCHEMA_V1:
             return new SchemaGraph();
-        case GraphImplementation.SCHEMA_V2:
-            return new SchemaGraphV2();
-        case GraphImplementation.SCHEMA_V3:
-            return new SchemaGraphV3();
+        // case GraphImplementation.SCHEMA_V2:
+        //     return new SchemaGraphV2();
+        // case GraphImplementation.SCHEMA_V3:
+        //     return new SchemaGraphV3();
         default:
             throw new Error(`Unknown graph implementation: ${ACTIVE_GRAPH_IMPLEMENTATION}`);
     }
@@ -51,10 +51,10 @@ export const getActiveGraphClass = () => {
             return SGraphV4;
         case GraphImplementation.SCHEMA_V1:
             return SchemaGraph;
-        case GraphImplementation.SCHEMA_V2:
-            return SchemaGraphV2;
-        case GraphImplementation.SCHEMA_V3:
-            return SchemaGraphV3;
+        // case GraphImplementation.SCHEMA_V2:
+        //     return SchemaGraphV2;
+        // case GraphImplementation.SCHEMA_V3:
+        //     return SchemaGraphV3;
         default:
             throw new Error(`Unknown graph implementation: ${ACTIVE_GRAPH_IMPLEMENTATION}`);
     }

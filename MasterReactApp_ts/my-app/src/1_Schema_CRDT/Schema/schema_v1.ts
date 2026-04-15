@@ -28,18 +28,19 @@ export class Schema_v1 {
     private doc: Y.Doc;
     private nodeTypes: Y.Map<any>;
     private relationshipTypes: Y.Map<any>;
-    constructor(schemaDef?: SchemaDefinition) {
-        this.doc = new Y.Doc();
+    constructor(schemaDef?: SchemaDefinition, doc?: Y.Doc) {
+        // a given doc is necessary for test purposes!
+        this.doc = doc || new Y.Doc();
         this.nodeTypes = this.doc.getMap('nodeTypes');
         this.relationshipTypes = this.doc.getMap('relationshipTypes');
 
         if (schemaDef) {
             this.doc.transact(() => {
                 schemaDef.nodes?.forEach(node => {
-                    this.addNodeType(node.identifyingType, node.labels, node.properties);
+                    this.addNodeType({IdenifyingType: node.identifyingType, labels: node.labels, properties: node.properties});
                 });
                 schemaDef.relationships?.forEach(rel => {
-                    this.addRelationshipType(rel.identifyingEdge, rel.sourceNodeLabel, rel.targetNodeLabel, rel.properties);
+                    this.addRelationshipType({IdenifyingEdge: rel.identifyingEdge, sourceNodeLabel: rel.sourceNodeLabel, targetNodeLabel: rel.targetNodeLabel, properties: rel.properties});
                 });
             });
         }
@@ -48,7 +49,7 @@ export class Schema_v1 {
         NODETYPE Basic Operations
         add, drop, update, get
     */
-    public addNodeType(IdenifyingType: string, labels: string[], properties: any) {
+    public addNodeType({ IdenifyingType, labels, properties, defa }: {IdenifyingType: string, labels: string[], properties: any, defa?: any}) {
         // cannot readd node types
         if (this.nodeTypes.has(IdenifyingType)) {
             throw new SchemaError('Type already exists');
@@ -63,7 +64,9 @@ export class Schema_v1 {
         });
         for (const [key, value] of Object.entries(properties)) {
             const valueMap = new Y.Map<any>();
-            valueMap.set('value', value);
+            const activeTypes = new Y.Map<any>();
+            activeTypes.set(this.doc.clientID.toString(), {value: value, default: defa});
+            valueMap.set('activeTypes', activeTypes);
             valueMap.set('name', key);
             propertiesMap.set(key, valueMap);
         }
@@ -82,7 +85,7 @@ export class Schema_v1 {
         return nodeType;
     }
 
-    private updateNodeProps(IdenifyingType: string, properties: any) {
+    private updateNodeProps(IdenifyingType: string, properties: any, defa?: any) {
         const nodeTypeMap = this.nodeTypes.get(IdenifyingType);
         if (!nodeTypeMap) {
             throw new Error('Node type not found');
@@ -96,8 +99,18 @@ export class Schema_v1 {
             throw new Error('Node type properties not found');
         }
         for (const [key, value] of Object.entries(properties)) {
-            // each property will be updated on itself
-            propertiesMap.set(key, value);
+            let valueMap = propertiesMap.get(key);
+            if (!valueMap) {
+                valueMap = new Y.Map<any>();
+                valueMap.set('name', key);
+                const activeTypes = new Y.Map<any>();
+                activeTypes.set(this.doc.clientID.toString(), {value: value, default: defa});
+                valueMap.set('activeTypes', activeTypes);
+                propertiesMap.set(key, valueMap);
+            } else {
+                const activeTypes = getOrThrow(valueMap.get('activeTypes'), 'activeTypes map not found');
+                activeTypes.set(this.doc.clientID.toString(), value);
+            }
         }
     }
     private updateNodeLabels(IdenifyingType: string, labels: string[]) {
@@ -129,7 +142,7 @@ export class Schema_v1 {
         RELATIONSHIPTYPE basic operations
         add, drop, update, get
     */
-    public addRelationshipType(IdenifyingEdge: string, sourceNodeLabel: string, targetNodeLabel: string, properties: any) {
+    public addRelationshipType({IdenifyingEdge, sourceNodeLabel, targetNodeLabel, properties, defa}: {IdenifyingEdge: string, sourceNodeLabel: string, targetNodeLabel: string, properties: any, defa?: any}) {
         // cannot readd relationship types
         if (this.relationshipTypes.has(IdenifyingEdge)) {
             throw new SchemaError('Type already exists');
@@ -138,7 +151,9 @@ export class Schema_v1 {
         const propertiesMap = new Y.Map<any>();
         for (const [key, value] of Object.entries(properties)) {
             const valueMap = new Y.Map<any>();
-            valueMap.set('value', value);
+            const activeTypes = new Y.Map<any>();
+            activeTypes.set(this.doc.clientID.toString(), {value: value, default: defa});
+            valueMap.set('activeTypes', activeTypes);
             valueMap.set('name', key);
             propertiesMap.set(key, valueMap);
         }
@@ -171,9 +186,18 @@ export class Schema_v1 {
             throw new Error('Relationship type properties not found');
         }
         for (const [key, value] of Object.entries(properties)) {
-            const valueMap = getOrThrow(propertiesMap.get(key), 'Property not found');
-            valueMap.set('name', key);
-            valueMap.set('value', value);
+            let valueMap = propertiesMap.get(key);
+            if (!valueMap) {
+                valueMap = new Y.Map<any>();
+                valueMap.set('name', key);
+                const activeTypes = new Y.Map<any>();
+                activeTypes.set(this.doc.clientID.toString(), value);
+                valueMap.set('activeTypes', activeTypes);
+                propertiesMap.set(key, valueMap);
+            } else {
+                const activeTypes = getOrThrow(valueMap.get('activeTypes'), 'activeTypes map not found');
+                activeTypes.set(this.doc.clientID.toString(), value);
+            }
         }
 
     }
@@ -226,7 +250,7 @@ export class Schema_v1 {
 
 
     public SMO_addNodeType(IdenifyingType: string, labels: string[], properties: any) {
-        this.addNodeType(IdenifyingType, labels, properties);
+        this.addNodeType({ IdenifyingType, labels, properties });
     }
     public SMO_dropNodeType(IdenifyingType: string) {
         this.dropNodeType(IdenifyingType);
@@ -257,7 +281,7 @@ export class Schema_v1 {
             // do we support this? or do we just do a you have to add a new relationship type?
         }
     }
-    public SMO_AddPropertyType({Idenifying, newProperty, whatToChange}: {Idenifying: string, newProperty: {key: string, value: any}, whatToChange: whatToChange } ) {
+    public SMO_AddPropertyType({Idenifying, newProperty, defa, whatToChange}: {Idenifying: string, newProperty: {key: string, value: any}, defa?: any, whatToChange: whatToChange } ) {
         let Type;
         if (whatToChange === "NodeType") {
             Type = this.getNodeType(Idenifying);
@@ -267,7 +291,9 @@ export class Schema_v1 {
         }
         const properties = getOrThrow(Type.get('properties'), 'Properties not found');
         const valueMap = new Y.Map<any>();
-        valueMap.set('value', newProperty.value);
+        const activeTypes = new Y.Map<any>();
+        activeTypes.set(this.doc.clientID.toString(), {value: newProperty.value, default: defa});
+        valueMap.set('activeTypes', activeTypes);
         valueMap.set('name', newProperty.key);
         this.doc.transact(() => {
             properties.set(newProperty.key, valueMap);
@@ -286,19 +312,42 @@ export class Schema_v1 {
             properties.delete(propertyKey);
         });
     }
-    public SMO_ChangePropertyType({Idenifying, oldPropertyType, newPropertyType, whatToChange}: {Idenifying: string, oldPropertyType: dataTypes, newPropertyType: dataTypes, whatToChange: whatToChange } ) {
-        let Type;
-        if (whatToChange === "NodeType") {
-            Type = this.getNodeType(Idenifying);
-        } 
-        else if (whatToChange === "RelationshipType") {
-            Type = this.getRelationshipType(Idenifying);
-        }
-        const properties = getOrThrow(Type.get('properties'), 'Properties not found');
-        const oldPropertyTypeMap = getOrThrow(properties.get(oldPropertyType), 'Property not found');
+    public SMO_ChangePropertyType({Idenifying, propertyKey, oldTags, newPropertyType, whatToChange}: {Idenifying: string, propertyKey: string, oldTags: string[], newPropertyType: dataTypes, whatToChange: whatToChange } ) {
+        const Type = whatToChange === "NodeType" 
+            ? this.getNodeType(Idenifying) 
+            : this.getRelationshipType(Idenifying);
         
-
+        const properties = getOrThrow(Type.get('properties'), 'Properties not found');
+        const propertyMap = getOrThrow(properties.get(propertyKey), 'Property map not found');
+        const activeTypes = getOrThrow(propertyMap.get('activeTypes'), 'activeTypes map not found');
+        
+        this.doc.transact(() => {
+            for (const tag of oldTags) {
+                activeTypes.delete(tag);
+            }
+            activeTypes.set(this.doc.clientID.toString(), newPropertyType);
+        });
     }
 
+    public getResolvedPropertyType(Idenifying: string, propertyKey: string, whatToChange: whatToChange): dataTypes {
+        const Type = whatToChange === "NodeType" 
+            ? this.getNodeType(Idenifying) 
+            : this.getRelationshipType(Idenifying);
+            
+        const properties = getOrThrow(Type.get('properties'), 'Properties not found');
+        const propertyMap = getOrThrow(properties.get(propertyKey), 'Property map not found');
+        const activeTypesMap = getOrThrow(propertyMap.get('activeTypes'), 'activeTypes map not found');
+        
+        const survivingTypes = Array.from(activeTypesMap.values()) as dataTypes[];
+
+        if (survivingTypes.length === 0) return 'string' as unknown as dataTypes;
+        if (survivingTypes.length === 1) return survivingTypes[0];
+
+        if (survivingTypes.includes('number' as unknown as dataTypes)) {
+            return 'number' as unknown as dataTypes; 
+        }
+
+        return survivingTypes[0];
+    }
 
 }

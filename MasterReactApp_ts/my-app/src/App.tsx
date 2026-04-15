@@ -1,22 +1,25 @@
 import './App.css';
-import * as Y from 'yjs';
-import { syncDocs } from './Helper/YJS_helper/sync';
-import GraphEditor from './Visualization/Version1/GraphEditor';
-import GraphEditor2 from './Visualization/Version2/GraphEditor2';
-import { GraphErrorBoundary } from './Helper/Vizuals/GraphErrorBoundary';
-import { getGraphInstance } from './VersionSelector';
-import { KuzuTestComponent } from './Kuzu/KuzuTestComponent';
+// import * as Y from 'yjs';
+// import { syncDocs } from './Helper/YJS_helper/sync';
+// import GraphEditor from './Visualization/Version1/GraphEditor';
+// import GraphEditor2 from './Visualization/Version2/GraphEditor2';
+// import { GraphErrorBoundary } from './Helper/Vizuals/GraphErrorBoundary';
+// import { KuzuTestComponent } from './Kuzu/KuzuTestComponent';
+// import { getGraphInstance } from './VersionSelector';
+import { SchemaVisualizer } from './1_Schema_CRDT/ExperimentHelper/SchemaVisualizer';
+import { bon19SchemaDef } from './1_Schema_CRDT/ExperimentHelper/Bon19_Schema';
+import { base } from './1_Schema_CRDT/ExperimentHelper/baseSchema';
 
 
-const graph = new Y.Doc();
-const graph2 = new Y.Doc();
+// const graph = new Y.Doc();
+// const graph2 = new Y.Doc();
 
 function App() {
-  const graphInstance = getGraphInstance();
+  // const graphInstance = getGraphInstance();
   return (
     <div className="App">
       <>
-      <button onClick={() => { syncDocs(graph, graph2); }}>Sync User 1 → User 2</button>
+      {/* <button onClick={() => { syncDocs(graph, graph2); }}>Sync User 1 → User 2</button>
       <button onClick={() => { syncDocs(graph2, graph); }}>Sync User 2 → User 1</button>
       <button onClick={() => { syncDocs(graph, graph2); syncDocs(graph2, graph); }}>Bidirectional Sync</button>
       </>
@@ -53,7 +56,12 @@ function App() {
           </GraphErrorBoundary>
         </div>
 
-      </div>
+      </div> */}
+      <div style={{ padding: '20px' }}>
+            <h1>Schema Topology Viewer</h1>
+            <SchemaVisualizer schemaDef={base} />
+        </div>
+      </>
     </div>
   );
 }
