@@ -1,5 +1,5 @@
-import { Schema_Interface } from '../Helper/types_interfaces/schema';
-import { labelTypes, edgeLabelTypes, dataTypes, boolKeys, Policy } from '../Helper/types_interfaces/types';
+import { Schema_Interface } from '../../Helper/types_interfaces/schema';
+import { labelTypes, edgeLabelTypes, dataTypes, boolKeys, Policy } from '../../Helper/types_interfaces/types';
 
 export class Schema_1 implements Schema_Interface {
     labelTypeValues: labelTypes[] = ['Loan', 'Account', 'Medium', 'Person', 'Company', 'TEST'];

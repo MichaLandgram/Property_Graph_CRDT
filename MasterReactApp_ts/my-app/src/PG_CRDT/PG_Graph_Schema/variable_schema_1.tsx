@@ -1,4 +1,4 @@
-import { Policy, dataTypes, labelTypes, edgeLabelTypes, boolKeys, AllowedConnectivity, AllowedNodeProperties } from "../Helper/types_interfaces/types";
+import { Policy, dataTypes, labelTypes, edgeLabelTypes, boolKeys, AllowedConnectivity, AllowedNodeProperties } from "../../Helper/types_interfaces/types";
 import { Schema_1 as SchemaInstance } from "./schema_1";
 import * as Y from 'yjs';
 

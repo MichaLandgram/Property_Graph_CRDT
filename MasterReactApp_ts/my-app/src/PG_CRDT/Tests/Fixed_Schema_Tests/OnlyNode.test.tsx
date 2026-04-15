@@ -1,9 +1,9 @@
 import * as Y from 'yjs';
-import { getActiveGraphClass } from '../../VersionSelector';
-import { syncDocs, bidirectionalSync } from '../../Helper/YJS_helper/sync';
-import { getDoc } from '../../Helper/YJS_helper/creator';
-import { graphDoc, Graph } from '../../Helper/types_interfaces/graph';
-import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreComplexTypes';
+import { getActiveGraphClass } from '../../../VersionSelector';
+import { syncDocs, bidirectionalSync } from '../../../Helper/YJS_helper/sync';
+import { getDoc } from '../../../Helper/YJS_helper/creator';
+import { graphDoc, Graph } from '../../../Helper/types_interfaces/graph';
+import { GrowOnlyCounter, OurVector, Point } from '../../../Helper/YJS_helper/moreComplexTypes';
 
 describe('Does addNode add a node correctly to the graph?', () => {
     let graph : graphDoc;

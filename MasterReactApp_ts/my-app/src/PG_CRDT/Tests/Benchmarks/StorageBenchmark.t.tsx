@@ -1,8 +1,8 @@
 
 import * as Y from 'yjs';
-import { SchemaGraph } from '../../PG_Graph_Schema_Introduced/V1/SchemaGraph';
-import { SchemaGraphV2 } from '../../PG_Graph_Schema_Introduced/Experimental_Versions/V2/SchemaGraph';
-import { graphDoc } from '../../Helper/types_interfaces/graph';
+import { SchemaGraph } from '../../../PG_Graph_Schema_Introduced/V1/SchemaGraph';
+import { SchemaGraphV2 } from '../../../PG_Graph_Schema_Introduced/Experimental_Versions/V2/SchemaGraph';
+import { graphDoc } from '../../../Helper/types_interfaces/graph';
 
 const simulateLoad = (graphImpl: any, doc: graphDoc, opCount: number, deleteRate: number) => {
     const ids: string[] = [];

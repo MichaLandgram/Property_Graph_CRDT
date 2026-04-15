@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
-import { ORSetRegistry } from '../../Helper/YJS_helper/ORSetRegistry';
-import { bidirectionalSync } from '../../Helper/YJS_helper/sync';
+import { ORSetRegistry } from '../../../Helper/YJS_helper/ORSetRegistry';
+import { bidirectionalSync } from '../../../Helper/YJS_helper/sync';
 
 describe('ORSetRegistry', () => {
     

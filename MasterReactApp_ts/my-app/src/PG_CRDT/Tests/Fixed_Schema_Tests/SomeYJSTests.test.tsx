@@ -1,6 +1,6 @@
 
-import { getDoc } from "../../Helper/YJS_helper/creator";
-import { bidirectionalSync, syncDocs, trialSync } from "../../Helper/YJS_helper/sync";
+import { getDoc } from "../../../Helper/YJS_helper/creator";
+import { bidirectionalSync, syncDocs, trialSync } from "../../../Helper/YJS_helper/sync";
 import * as Y from 'yjs'
 
 describe('Basis YJS Tests', () => {
