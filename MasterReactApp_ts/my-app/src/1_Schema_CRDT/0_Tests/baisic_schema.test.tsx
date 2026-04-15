@@ -36,12 +36,12 @@ describe("Sequential Schema Tests", () => {
     })
     test("Add node type", () => {
         const schema = new Schema_v1();
-        schema.addNodeType('Person', ['Person'], { name: 'string' });
+        schema.addNodeType({IdenifyingType: 'Person', labels: ['Person'], properties: { name: 'string' }});
         console.log(schema.transformToJSONFullSchema());
         expect(schema.getNodeType('Person')).toBeDefined();
 
 
-        expect(() => schema.addNodeType('Person', ['Person'], { name: 'string' })).toThrow(SchemaError);
+        expect(() => schema.addNodeType({IdenifyingType: 'Person', labels: ['Person'], properties: { name: 'string' }})).toThrow(SchemaError);
         console.log(schema.transformToJSONFullSchema());
         expect(schema.getNodeType('Person')).toBeDefined();
     });
