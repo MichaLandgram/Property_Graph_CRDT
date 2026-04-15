@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
 import { SchemaGraph } from '../PG_Graph_Schema_Introduced/V1/SchemaGraph';
 import { SchemaGraphV2 } from '../PG_Graph_Schema_Introduced/Experimental_Versions/V2/SchemaGraph';
-import { SchemaGraphV3 } from '../PG_Graph_Schema_Introduced/V3/SchemaGraph';
+// import { SchemaGraphV3 } from '../PG_Graph_Schema_Introduced/V3/SchemaGraph';
 import { simulateLoad } from './runStorageBenchmark';
 import { performance } from 'perf_hooks';
 import * as fs from 'fs';
@@ -95,19 +95,19 @@ const measureBenchmark = (opCount: number, deleteRate: number, updateRate: numbe
         lastSizeV2Snapshot = snapshotUpdate2.byteLength;
 
         // --- Test V3 (DualKeyMap Wrapper) ---
-        const start3 = performance.now();
-        const doc3 = new Y.Doc();
-        const v3 = new SchemaGraphV3();
-        simulateLoad(v3, doc3, opCount, deleteRate, updateRate);
-        const end3 = performance.now();
-        const update3 = Y.encodeStateAsUpdate(doc3);
-        lastSizeV3 = update3.byteLength;
-        totalTimeV3 += (end3 - start3);
+        // const start3 = performance.now();
+        // const doc3 = new Y.Doc();
+        // const v3 = new SchemaGraphV3();
+        // simulateLoad(v3, doc3, opCount, deleteRate, updateRate);
+        // const end3 = performance.now();
+        // const update3 = Y.encodeStateAsUpdate(doc3);
+        // lastSizeV3 = update3.byteLength;
+        // totalTimeV3 += (end3 - start3);
         
-        // --- Snapshot V3 ---
-        const snapshotDoc3 = createSnapshot(doc3);
-        const snapshotUpdate3 = Y.encodeStateAsUpdate(snapshotDoc3);
-        lastSizeV3Snapshot = snapshotUpdate3.byteLength;
+        // // --- Snapshot V3 ---
+        // const snapshotDoc3 = createSnapshot(doc3);
+        // const snapshotUpdate3 = Y.encodeStateAsUpdate(snapshotDoc3);
+        // lastSizeV3Snapshot = snapshotUpdate3.byteLength;
     }
 
     return {

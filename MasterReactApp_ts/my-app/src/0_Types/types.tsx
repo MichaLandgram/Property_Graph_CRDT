@@ -20,11 +20,11 @@ export type Point = { dimensions: number[]; };
 
 export type dataTypes =
     | PrimitiveData
-    | YArrayType
-    | YMapType
-    | YCounter
-    | Vector
-    | Point
+    // | YArrayType
+    // | YMapType
+    // | YCounter
+    // | Vector
+    // | Point
 
 // // Data Types
 // export type dataTypes = 
@@ -82,3 +82,6 @@ export type edgeNodeToken = "Node" | "Edge";
 export type AllowedConnectivity = Record<labelTypes, Record<labelTypes, edgeLabelTypes[]>>;
 
 export type AllowedNodeProperties = Record<labelTypes, Record<boolKeys, Record<string, dataTypes>>>;
+
+
+export type whatToChange = "NodeType" | "RelationshipType";

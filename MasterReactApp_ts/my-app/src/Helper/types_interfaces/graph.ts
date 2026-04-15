@@ -25,8 +25,8 @@ export interface Graph {
     getNodeProps({ nodeId, graph }: { nodeId: NodeId; graph: graphDoc}): any | undefined;
 
     addEdge({ sourceId, targetId, label, initialProps, graph, edgeId }: { sourceId: NodeId; targetId: NodeId; label: edgeLabelTypes; initialProps?: EdgeData; graph: graphDoc; edgeId?: EdgeId}): void;
-    updateEdge({ edgeId, props, graph }: { edgeId: EdgeId; props: Partial<EdgeData>; graph: graphDoc}): void;
-    deleteEdge({ edgeId, graph }: { edgeId: EdgeId; graph: graphDoc}): void;
+    updateEdge({ sourceId, targetId, props, graph }: { sourceId: NodeId; targetId: NodeId; props: Partial<EdgeData>; graph: graphDoc}): void;
+    deleteEdge({ sourceId, targetId, graph }: { sourceId: NodeId; targetId: NodeId; graph: graphDoc}): void;
 
     getEdges({ graph }: { graph: graphDoc}): Array<{ sourceId: NodeId; targetId: NodeId; props: EdgeData }>;
 
