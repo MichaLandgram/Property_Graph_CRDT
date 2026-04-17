@@ -106,21 +106,23 @@ describe("Sequential Evolution - basic", () => {
     describe("Rename", () => {
         test("Rename Property Key of NodeType and Edge", () => {
             schema.SMO_renamePropertyKey({Idenifying: "Person", oldPropertyKey: "firstName", newPropertyKey: "name", whatToChange: "NodeType"});
-            // expect(schema.getNodeTypeJSON("Person").get("labels").toArray()).toEqual(["resident", "citizen"]);
             expect(schema.getNodeTypeJSON("Person").properties).toEqual(
                 {firstName: {name: 'name', activeTypes: { '1': {value: 'string', default: undefined} }}, 
                 lastName: {name: 'lastName', activeTypes: { '1': {value: 'string', default: undefined} }}});
+        });
+        test("Rename Property Key of RelationshipType", () => {
             schema.SMO_renamePropertyKey({Idenifying: "KNOWS", oldPropertyKey: "since", newPropertyKey: "seit", whatToChange: "RelationshipType"});
-            // expect(schema.getRelationshipTypeJSON("KNOWS").get("sourceNodeLabel")).toEqual("Person");
-            // expect(schema.getRelationshipTypeJSON("KNOWS").get("targetNodeLabel")).toEqual("Person");
             expect(schema.getRelationshipTypeJSON("KNOWS").properties).toEqual(
                 {since: {name: 'seit', activeTypes: { '1': {value: 'string', default: undefined} }}});
         });
-        test("Rename Label of NodeType and Edge", () => {
+        test("Rename Label of NodeType", () => {
+            expect(true);
+        });
+        test("Rename Label of RelationshipType", () => {
             expect(true);
         });
     });
-    describe.only("Change", () => {
+    describe("Change", () => {
         test("Add Property to NodeType", () => {
             schema.SMO_AddPropertyType({Idenifying: "Person", newProperty: {key: "age", value: "number"}, whatToChange: "NodeType"});
             expect(schema.getNodeTypeJSON("Person").properties).toEqual(
@@ -129,19 +131,34 @@ describe("Sequential Evolution - basic", () => {
                 age: {name: 'age', activeTypes: { '1': {value: 'number', default: undefined} }}});
         });
         test("Add Property to RelationshipType", () => {
-            expect(true);
+            schema.SMO_AddPropertyType({Idenifying: "KNOWS", newProperty: {key: "since", value: "string"}, whatToChange: "RelationshipType"});
+            expect(schema.getRelationshipTypeJSON("KNOWS").properties).toEqual(
+                {since: {name: 'since', activeTypes: { '1': {value: 'string', default: undefined} }}});
         });
         test("Drop Property from NodeType", () => {
-            expect(true);
+            schema.SMO_DropPropertyType({Idenifying: "Person", propertyKey: "firstName", whatToChange: "NodeType"});
+            expect(schema.getNodeTypeJSON("Person").properties).toEqual(
+                {lastName: {name: 'lastName', activeTypes: { '1': {value: 'string', default: undefined} }}});
         });
         test("Drop Property from RelationshipType", () => {
-            expect(true);
+            schema.SMO_DropPropertyType({Idenifying: "KNOWS", propertyKey: "since", whatToChange: "RelationshipType"});
+            expect(schema.getRelationshipTypeJSON("KNOWS").properties).toEqual({});
         });
         test("Change Property Type of NodeType", () => {
-            expect(true);
+            const tags = schema.getPropertyTypeTags("Message", "mood", "NodeType");
+            const transformerMap = {
+                "happy": "10",
+                "sad": "0",
+                "neutral": "5",
+                "default": "-1"
+            }   
+            schema.SMO_ChangePropertyType({Idenifying: "Message", propertyKey: "mood", oldTags: tags, newPropertyType: "number", defaultVal: {default: -1, transformerMap: transformerMap}, whatToChange: "NodeType"});
+            expect(schema.getNodeTypeJSON("Message").properties.mood).toEqual({ name: 'mood', activeTypes: { '1': {value: 'number', default: -1, transformerMap: transformerMap} } });
         });
         test("Change Property Type of RelationshipType", () => {
-            expect(true);
+            const tags = schema.getPropertyTypeTags("KNOWS", "since", "RelationshipType");
+            schema.SMO_ChangePropertyType({Idenifying: "KNOWS", propertyKey: "since", oldTags: tags, newPropertyType: "number", defaultVal: {default: 2000}, whatToChange: "RelationshipType"});
+            expect(schema.getRelationshipTypeJSON("KNOWS").properties.since).toEqual({ name: 'since', activeTypes: { '1': {value: 'number', default: 2000} } });
         });
     });
 });
