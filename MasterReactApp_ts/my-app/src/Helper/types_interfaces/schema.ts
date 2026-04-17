@@ -1,4 +1,4 @@
-import { Policy, labelTypes, edgeLabelTypes, dataTypes, boolKeys } from '../types_interfaces/types';
+import { Policy, labelTypes, edgeLabelTypes, dataTypes, boolKeys } from './types';
 
 export interface Schema_Interface {
     labelTypeValues: labelTypes[];

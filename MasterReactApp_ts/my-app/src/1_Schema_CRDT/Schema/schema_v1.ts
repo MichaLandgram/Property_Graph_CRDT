@@ -24,6 +24,11 @@ export interface SchemaDefinition {
     }>;
 }
 
+/**
+ * Defines a schema for a graph database.
+ * @param schemaDef A optional schema definition to start from in a JSON format.
+ * @param doc FOR TESTS. The Y.Doc to use for the schema. If not provided, a new Y.Doc will be created. 
+ */
 export class Schema_v1 {
     private doc: Y.Doc;
     private nodeTypes: Y.Map<any>;
@@ -49,7 +54,7 @@ export class Schema_v1 {
         NODETYPE Basic Operations
         add, drop, update, get
     */
-    public addNodeType({ IdenifyingType, labels, properties, defa }: {IdenifyingType: string, labels: string[], properties: any, defa?: any}) {
+    private addNodeType({ IdenifyingType, labels, properties, defa }: {IdenifyingType: string, labels: string[], properties: any, defa?: any}) {
         // cannot readd node types
         if (this.nodeTypes.has(IdenifyingType)) {
             throw new SchemaError('Type already exists');
@@ -77,12 +82,16 @@ export class Schema_v1 {
             this.nodeTypes.set(IdenifyingType, nodeTypeMap);
         });
     }
-    public dropNodeType(IdenifyingType: string) {
+    private dropNodeType(IdenifyingType: string) {
         this.nodeTypes.delete(IdenifyingType);
     }
-    public getNodeType(IdenifyingType: string) {
+    private getNodeType(IdenifyingType: string) {
         const nodeType = getOrThrow(this.nodeTypes.get(IdenifyingType), 'Node type not found');
         return nodeType;
+    }
+    public getNodeTypeJSON(IdenifyingType: string) {
+        const nodeType = getOrThrow(this.nodeTypes.get(IdenifyingType), 'Node type not found');
+        return nodeType.toJSON();
     }
 
     private updateNodeProps(IdenifyingType: string, properties: any, defa?: any) {
@@ -127,7 +136,7 @@ export class Schema_v1 {
         });
     }
 
-    public updateNodeType({IdenifyingType, labels, properties}: {IdenifyingType: string, labels: string[], properties: any}) {
+    private updateNodeType({IdenifyingType, labels, properties}: {IdenifyingType: string, labels: string[], properties: any}) {
         this.doc.transact(() => {
             if (labels) {
                 this.updateNodeLabels(IdenifyingType, labels);
@@ -142,7 +151,7 @@ export class Schema_v1 {
         RELATIONSHIPTYPE basic operations
         add, drop, update, get
     */
-    public addRelationshipType({IdenifyingEdge, sourceNodeLabel, targetNodeLabel, properties, defa}: {IdenifyingEdge: string, sourceNodeLabel: string, targetNodeLabel: string, properties: any, defa?: any}) {
+    private addRelationshipType({IdenifyingEdge, sourceNodeLabel, targetNodeLabel, properties, defa}: {IdenifyingEdge: string, sourceNodeLabel: string, targetNodeLabel: string, properties: any, defa?: any}) {
         // cannot readd relationship types
         if (this.relationshipTypes.has(IdenifyingEdge)) {
             throw new SchemaError('Type already exists');
@@ -165,15 +174,16 @@ export class Schema_v1 {
             this.relationshipTypes.set(IdenifyingEdge, relationshipTypeMap);
         });
     }
-    public deleteRelationshipType(IdenifyingEdge: string) {
+    private deleteRelationshipType(IdenifyingEdge: string) {
         this.relationshipTypes.delete(IdenifyingEdge);
     }
-    public getRelationshipType(IdenifyingEdge: string) {
-        const relationshipType = this.relationshipTypes.get(IdenifyingEdge);
-        if (!relationshipType) {
-            throw new SchemaError('Relationship type not found');
-        }
+    private getRelationshipType(IdenifyingEdge: string) {
+        const relationshipType = getOrThrow(this.relationshipTypes.get(IdenifyingEdge), 'Relationship type not found');
         return relationshipType;
+    }
+    public getRelationshipTypeJSON(IdenifyingEdge: string) {
+        const relationshipType = getOrThrow(this.relationshipTypes.get(IdenifyingEdge), 'Relationship type not found');
+        return relationshipType.toJSON();
     }
 
     private updateRelationshipProperties(IdenifyingLabel: string, properties: any) {
@@ -216,7 +226,7 @@ export class Schema_v1 {
         relationshipType.set('targetNodeLabel', targetNodeLabel);
     }
 
-    public updateRelationshipType({IdenifyingLabel, sourceNodeLabel, targetNodeLabel, properties}: {IdenifyingLabel: string, sourceNodeLabel: string, targetNodeLabel: string, properties: any}) {
+    private updateRelationshipType({IdenifyingLabel, sourceNodeLabel, targetNodeLabel, properties}: {IdenifyingLabel: string, sourceNodeLabel: string, targetNodeLabel: string, properties: any}) {
         this.doc.transact(() => {
             if (sourceNodeLabel) {
                 this.updateRelationshipSourceNodeLabel(IdenifyingLabel, sourceNodeLabel);
@@ -248,13 +258,25 @@ export class Schema_v1 {
                 Schema Modification Operations
 */
 
-
+    // CREATE 
     public SMO_addNodeType(IdenifyingType: string, labels: string[], properties: any) {
         this.addNodeType({ IdenifyingType, labels, properties });
     }
+
+    public SMO_addRelationshipType(IdenifyingEdge: string, sourceNodeLabel: string, targetNodeLabel: string, properties: any) {
+        this.addRelationshipType({ IdenifyingEdge, sourceNodeLabel, targetNodeLabel, properties });
+    }
+
+    // DROP
     public SMO_dropNodeType(IdenifyingType: string) {
         this.dropNodeType(IdenifyingType);
     }
+
+    public SMO_dropRelationshipType(IdenifyingEdge: string) {
+        this.deleteRelationshipType(IdenifyingEdge);
+    }
+
+    // RENAME
     public SMO_renamePropertyKey({Idenifying, oldPropertyKey, newPropertyKey, whatToChange}: {Idenifying: string, oldPropertyKey: string, newPropertyKey: string, whatToChange: whatToChange } ) {
         let Type;
         if (whatToChange === "NodeType") {
@@ -269,6 +291,7 @@ export class Schema_v1 {
             valueMap.set('name', newPropertyKey);
         });
     }
+
     public SMO_renameLabel({Idenifying, oldLabel, newLabel, whatToChange}: {Idenifying: string, oldLabel: string, newLabel: string, whatToChange: whatToChange } ) {
         let Type;
         if (whatToChange === "NodeType") {
@@ -281,6 +304,8 @@ export class Schema_v1 {
             // do we support this? or do we just do a you have to add a new relationship type?
         }
     }
+
+    // CHANGE - ADD | DROP | RETYPE
     public SMO_AddPropertyType({Idenifying, newProperty, defa, whatToChange}: {Idenifying: string, newProperty: {key: string, value: any}, defa?: any, whatToChange: whatToChange } ) {
         let Type;
         if (whatToChange === "NodeType") {
@@ -299,6 +324,7 @@ export class Schema_v1 {
             properties.set(newProperty.key, valueMap);
         });
     }
+
     public SMO_DropPropertyType({Idenifying, propertyKey, whatToChange}: {Idenifying: string, propertyKey: string, whatToChange: whatToChange } ) {
         let Type;
         if (whatToChange === "NodeType") {
@@ -312,6 +338,7 @@ export class Schema_v1 {
             properties.delete(propertyKey);
         });
     }
+
     public SMO_ChangePropertyType({Idenifying, propertyKey, oldTags, newPropertyType, whatToChange}: {Idenifying: string, propertyKey: string, oldTags: string[], newPropertyType: dataTypes, whatToChange: whatToChange } ) {
         const Type = whatToChange === "NodeType" 
             ? this.getNodeType(Idenifying) 
