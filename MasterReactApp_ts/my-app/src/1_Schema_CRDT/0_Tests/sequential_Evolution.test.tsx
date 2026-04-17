@@ -120,9 +120,13 @@ describe("Sequential Evolution - basic", () => {
             expect(true);
         });
     });
-    describe("Change", () => {
+    describe.only("Change", () => {
         test("Add Property to NodeType", () => {
-            expect(true);
+            schema.SMO_AddPropertyType({Idenifying: "Person", newProperty: {key: "age", value: "number"}, whatToChange: "NodeType"});
+            expect(schema.getNodeTypeJSON("Person").properties).toEqual(
+                {firstName: {name: 'firstName', activeTypes: { '1': {value: 'string', default: undefined} }}, 
+                lastName: {name: 'lastName', activeTypes: { '1': {value: 'string', default: undefined} }}, 
+                age: {name: 'age', activeTypes: { '1': {value: 'number', default: undefined} }}});
         });
         test("Add Property to RelationshipType", () => {
             expect(true);
