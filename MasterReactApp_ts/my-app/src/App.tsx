@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import { LiveSchemaDemo } from './1_Schema_CRDT/ExperimentHelper/LiveSchemaDemo';
+import { LivePGDemo } from './3_PG_CRDT/0_Vizualization/LivePGDemo';
 
 type Tab = 'schema' | 'lens' | 'raw';
 
@@ -34,7 +35,7 @@ function App() {
             Lens Result (Dummy)
           </div>
           <div style={tabStyle('raw')} onClick={() => setActiveTab('raw')}>
-            Raw Data (Dummy)
+            Raw Property Graph
           </div>
         </div>
       </div>
@@ -52,8 +53,8 @@ function App() {
         )}
         
         {activeTab === 'raw' && (
-          <div style={{ padding: '30px', textAlign: 'center', color: '#8b949e', height: '100%', boxSizing: 'border-box' }}>
-            <h2>Raw CRDT Data - TODO :D</h2>
+          <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+            <LivePGDemo />
           </div>
         )}
       </div>

@@ -36,7 +36,7 @@
 // // Normalize values before inserting into Yjs maps to avoid embedding
 // // unsupported types (e.g., native Map or class instances holding Y.Doc).
 
-// export class SchemaGraphV3 implements Graph {
+// export class SchemaGraphV3 {
 //   hasSchema : boolean = true;
 
 //   // Lazy-initialized OR-Set registries per doc

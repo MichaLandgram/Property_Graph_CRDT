@@ -24,7 +24,7 @@ export enum SchemaImplementation {
 }
 
 // Change this value to switch between implementations
-const ACTIVE_GRAPH_IMPLEMENTATION: GraphImplementation = GraphImplementation.SCHEMA_V3 as GraphImplementation;
+const ACTIVE_GRAPH_IMPLEMENTATION: GraphImplementation = GraphImplementation.SCHEMA_V2 as GraphImplementation;
 const ACTIVE_SCHEMA_IMPLEMENTATION: SchemaImplementation = SchemaImplementation.SCHEMA_1 as SchemaImplementation;
 
 
@@ -35,8 +35,8 @@ export const getGraphInstance = (): Graph => {
             return new SGraphV4();
         case GraphImplementation.SCHEMA_V1:
             return new SchemaGraph();
-        // case GraphImplementation.SCHEMA_V2:
-        //     return new SchemaGraphV2();
+        case GraphImplementation.SCHEMA_V2:
+            return new SchemaGraphV2();
         // case GraphImplementation.SCHEMA_V3:
         //     return new SchemaGraphV3();
         default:
@@ -51,8 +51,8 @@ export const getActiveGraphClass = () => {
             return SGraphV4;
         case GraphImplementation.SCHEMA_V1:
             return SchemaGraph;
-        // case GraphImplementation.SCHEMA_V2:
-        //     return SchemaGraphV2;
+        case GraphImplementation.SCHEMA_V2:
+            return SchemaGraphV2;
         // case GraphImplementation.SCHEMA_V3:
         //     return SchemaGraphV3;
         default:

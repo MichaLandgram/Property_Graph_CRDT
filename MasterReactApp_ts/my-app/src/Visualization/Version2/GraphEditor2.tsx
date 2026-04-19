@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { GraphCanvas, GraphCanvasRef, useSelection } from 'reagraph';
+import { useSelection } from 'reagraph';
+import { VisGraphCanvas } from '../../3_PG_CRDT/0_Vizualization/VisGraphCanvas';
 import * as Y from 'yjs';
 import { useYjsGraphReagraph, ReagraphNode } from '../../Helper/Hook/YJS_hook_Reagraph';
 import { dumpGraphToNeo4j } from '../../Helper/Vizuals/Neo4jConnector';
@@ -42,7 +43,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
   const [showNodeDialog, setShowNodeDialog] = useState(false);
   const [newNodeLabel, setNewNodeLabel] = useState<string>(schemaInstance.labelTypeValues[0] || 'Person');
 
-  const graphRef = React.useRef<GraphCanvasRef | null>(null);
+  const graphRef = React.useRef<any | null>(null);
 
   const fetchLiveProps = useCallback((nodeId: string, label: string) => {
     try {
@@ -364,8 +365,7 @@ const GraphEditor2: React.FC<GraphEditorProps> = ({ ydoc }) => {
     <div style={{ display: 'flex', height: '100vh', width: '100%', position: 'relative' }}>
       
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        <GraphCanvas
-          // ref={graphRef}
+        <VisGraphCanvas
           nodes={visualNodes}
           edges={edges}
           onNodeClick={handleNodeClick}
