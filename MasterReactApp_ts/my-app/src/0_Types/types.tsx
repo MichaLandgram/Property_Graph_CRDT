@@ -26,6 +26,13 @@ export type dataTypes =
     // | Vector
     // | Point
 
+export interface PropertyLensMap {
+    value: dataTypes;  // The target data type -> e.g., 'number', 'boolean'
+    default?: any;     // Fallback value
+    transformerMap?: Record<string, string>; // The automated mapping dictionary e.g.: { "sad": "0", "happy": "10", "default": "-1" }
+}
+
+
 // // Data Types
 // export type dataTypes = 
 //   | string 
@@ -85,3 +92,8 @@ export type AllowedNodeProperties = Record<labelTypes, Record<boolKeys, Record<s
 
 
 export type whatToChange = "NodeType" | "RelationshipType";
+
+export type defaultVal = {
+    default: number | string | boolean | Date;
+    transformerMap?: Record<string, string>;
+}

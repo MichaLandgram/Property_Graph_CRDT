@@ -103,4 +103,4 @@ export const base: SchemaDefinition = {
     ]
 };
 
-export const baseSchema = new Schema_v1(base);
+export const baseSchema = base;

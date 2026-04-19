@@ -6,10 +6,7 @@ import './App.css';
 // import { GraphErrorBoundary } from './Helper/Vizuals/GraphErrorBoundary';
 // import { KuzuTestComponent } from './Kuzu/KuzuTestComponent';
 // import { getGraphInstance } from './VersionSelector';
-import { SchemaVisualizer } from './1_Schema_CRDT/ExperimentHelper/SchemaVisualizer';
-import { bon19SchemaDef } from './1_Schema_CRDT/ExperimentHelper/Bon19_Schema';
-import { base } from './1_Schema_CRDT/ExperimentHelper/baseSchema';
-
+import { LiveSchemaDemo } from './1_Schema_CRDT/ExperimentHelper/LiveSchemaDemo';
 
 // const graph = new Y.Doc();
 // const graph2 = new Y.Doc();
@@ -17,53 +14,12 @@ import { base } from './1_Schema_CRDT/ExperimentHelper/baseSchema';
 function App() {
   // const graphInstance = getGraphInstance();
   return (
-    <div className="App">
-      <>
-      {/* <button onClick={() => { syncDocs(graph, graph2); }}>Sync User 1 → User 2</button>
-      <button onClick={() => { syncDocs(graph2, graph); }}>Sync User 2 → User 1</button>
-      <button onClick={() => { syncDocs(graph, graph2); syncDocs(graph2, graph); }}>Bidirectional Sync</button>
-      </>
-      <div style={{ 
-          display: 'flex',
-          flexDirection: 'row',
-          height: '100vh',
-          width: '100%' 
-      }}>
-        
-
-        <div style={{ 
-            flex: 1,
-            borderRight: '2px solid #ccc',
-            position: 'relative'
-        }}>
-          <GraphErrorBoundary>
-            <GraphEditor2 ydoc={graph} />
-          </GraphErrorBoundary>
+    <div className="App" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <h1 style={{ margin: '10px' }}>Dynamic Schema Topology Viewer</h1>
+        <div style={{ flex: 1, position: 'relative' }}>
+            <LiveSchemaDemo />
         </div>
-
-        <div style={{ 
-            flex: 1,
-            position: 'relative',
-            backgroundColor: '#f4f4f4'
-        }}>
-
-          <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, background: 'white', padding: '5px' }}>
-            User 2 (New Reagraph Viz {graphInstance.constructor.name})
-          </div>
-          
-          <GraphErrorBoundary>
-            <KuzuTestComponent />
-          </GraphErrorBoundary>
-        </div>
-
-      </div> */}
-      <div style={{ padding: '20px' }}>
-            <h1>Schema Topology Viewer</h1>
-            <SchemaVisualizer schemaDef={base} />
-        </div>
-      </>
     </div>
   );
 }
-
 export default App;

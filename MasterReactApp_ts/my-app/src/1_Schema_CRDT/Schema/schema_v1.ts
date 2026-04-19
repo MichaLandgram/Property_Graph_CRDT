@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
 import { SchemaError } from '../0_Helper/SchemaError';
-import { dataTypes,whatToChange } from '../../0_Types/types';
+import { dataTypes,defaultVal,whatToChange } from '../../0_Types/types';
 import { getOrThrow } from '../0_Helper/SchemaError';
 
 
@@ -60,13 +60,13 @@ export class Schema_v1 {
             throw new SchemaError('Type already exists');
         }
         const nodeTypeMap = new Y.Map<any>();
-        const labelsMap = new Y.Map<string>();
         const propertiesMap = new Y.Map<any>();
 
-
+        const labelsMap = new Y.Map<string>();
         labels.forEach(label => {
             labelsMap.set(label, label);
         });
+
         for (const [key, value] of Object.entries(properties)) {
             const valueMap = new Y.Map<any>();
             const activeTypes = new Y.Map<any>();
@@ -92,6 +92,22 @@ export class Schema_v1 {
     public getNodeTypeJSON(IdenifyingType: string) {
         const nodeType = getOrThrow(this.nodeTypes.get(IdenifyingType), 'Node type not found');
         return nodeType.toJSON();
+    }
+
+    /**
+     * Dynamically extracts all active distinct labels currently surviving in the CRDT schema.
+     */
+    public getAllNodeLabels(): Set<string> {
+        const allLabels = new Set<string>();
+        this.nodeTypes.forEach((nodeTypeMap: any) => {
+            const labelsMap = nodeTypeMap.get('labels');
+            if (labelsMap) {
+                labelsMap.forEach((label: string) => {
+                    allLabels.add(label);
+                });
+            }
+        });
+        return allLabels;
     }
 
     private updateNodeProps(IdenifyingType: string, properties: any, defa?: any) {
@@ -315,6 +331,10 @@ export class Schema_v1 {
             Type = this.getRelationshipType(Idenifying);
         }
         const properties = getOrThrow(Type.get('properties'), 'Properties not found');
+        // cannot readd the same Property
+        if (properties.has(newProperty.key)) {
+            throw new SchemaError('Property already exists');
+        }
         const valueMap = new Y.Map<any>();
         const activeTypes = new Y.Map<any>();
         activeTypes.set(this.doc.clientID.toString(), {value: newProperty.value, default: defa});
@@ -339,7 +359,16 @@ export class Schema_v1 {
         });
     }
 
-    public SMO_ChangePropertyType({Idenifying, propertyKey, oldTags, newPropertyType, whatToChange}: {Idenifying: string, propertyKey: string, oldTags: string[], newPropertyType: dataTypes, whatToChange: whatToChange } ) {
+    public getPropertyTypeTags(Idenifying: string, propertyKey: string, whatToChange: whatToChange): string[] {
+        const Type = whatToChange === "NodeType" 
+            ? this.getNodeType(Idenifying) 
+            : this.getRelationshipType(Idenifying);
+        const properties = getOrThrow(Type.get('properties'), 'Properties not found');
+        const propertyMap = getOrThrow(properties.get(propertyKey), 'Property map not found');
+        const activeTypes = getOrThrow(propertyMap.get('activeTypes'), 'activeTypes map not found');
+        return Array.from(activeTypes.keys());
+    }
+    public SMO_ChangePropertyType({Idenifying, propertyKey, oldTags, newPropertyType, defaultVal, whatToChange}: {Idenifying: string, propertyKey: string, oldTags: string[], newPropertyType: dataTypes, defaultVal: defaultVal, whatToChange: whatToChange } ) {
         const Type = whatToChange === "NodeType" 
             ? this.getNodeType(Idenifying) 
             : this.getRelationshipType(Idenifying);
@@ -352,7 +381,7 @@ export class Schema_v1 {
             for (const tag of oldTags) {
                 activeTypes.delete(tag);
             }
-            activeTypes.set(this.doc.clientID.toString(), newPropertyType);
+            activeTypes.set(this.doc.clientID.toString(), {value: newPropertyType, ...defaultVal});
         });
     }
 
@@ -365,7 +394,14 @@ export class Schema_v1 {
         const propertyMap = getOrThrow(properties.get(propertyKey), 'Property map not found');
         const activeTypesMap = getOrThrow(propertyMap.get('activeTypes'), 'activeTypes map not found');
         
-        const survivingTypes = Array.from(activeTypesMap.values()) as dataTypes[];
+        // Support both old string format and new object (PropertyLensMap) format
+        const mapOrStringArray = Array.from(activeTypesMap.values());
+        
+        const survivingTypes = mapOrStringArray.map((item: any) => {
+            if (typeof item === 'string') return item as dataTypes;
+            // Assumes it follows PropertyLensMap interface structure
+            return (item && item.value) ? item.value as dataTypes : 'string' as unknown as dataTypes;
+        });
 
         if (survivingTypes.length === 0) return 'string' as unknown as dataTypes;
         if (survivingTypes.length === 1) return survivingTypes[0];
