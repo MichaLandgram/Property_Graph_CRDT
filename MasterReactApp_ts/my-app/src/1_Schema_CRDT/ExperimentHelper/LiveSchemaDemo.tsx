@@ -1,20 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import * as Y from 'yjs';
 import { Schema_v1, SchemaDefinition } from '../Schema/schema_v1';
-import { VisVisualizer } from   '../0_Vizualizer/VisVisualizer';
+import { VisVisualizer } from '../0_Vizualizer/VisVisualizer';
 import { bon19SchemaDef } from '../../1_Schema_CRDT/ExperimentHelper/Bon19_Schema';
 import { baseSchema } from './baseSchema';
+import { getDoc } from '../../Helper/YJS_helper/creator';
 
-export const LiveSchemaDemo: React.FC = () => {
-    // Initialize CRDT and Schema wrapper instance exactly once
-    const { doc, schemaModel } = useMemo(() => {
-        const ydoc = new Y.Doc();
-        const schema = new Schema_v1(baseSchema, ydoc);
-        
-        return { doc: ydoc, schemaModel: schema };
-    }, []);
-
-    // React State that will hold the visual mapping
+const ConnectedClient: React.FC<{ doc: Y.Doc, title: string, schemaModel: Schema_v1 }> = ({ doc, title, schemaModel }) => {
     const [renderSchema, setRenderSchema] = useState<SchemaDefinition>({ nodes: [], relationships: [] });
 
     // The Lens mapping function!
@@ -43,11 +35,8 @@ export const LiveSchemaDemo: React.FC = () => {
 
         // Map RelationshipTypes
         if (fullJSON.relationshipTypes) {
-            const activeLabels = new Set(schemaModel.getAllNodeLabels()); // Referential Integrity Lens
-
             for (const [edgeId, _data] of Object.entries(fullJSON.relationshipTypes)) {
                 const data: any = _data;
-                
                 const resolvedProps: Record<string, string> = {};
                 if (data.properties) {
                     Object.keys(data.properties).forEach(propId => {
@@ -69,43 +58,81 @@ export const LiveSchemaDemo: React.FC = () => {
     // observer
     useEffect(() => {
         extractSchema(); // initial extraction
-
-        const handler = () => {
-            extractSchema(); // extract schema on update
-        };
-
+        const handler = () => extractSchema();
         doc.on('update', handler);
         return () => doc.off('update', handler);
     }, [doc]);
 
-    // Handlers for Live Edits
+    return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: '2px solid #30363d' }}>
+            <div style={{ padding: '10px 15px', background: '#21262d', color: '#c9d1d9', fontWeight: 'bold', borderBottom: '1px solid #30363d', display: 'flex', justifyContent: 'space-between' }}>
+                <span>{title}</span>
+                <span style={{ color: '#8b949e', fontSize: '12px' }}>[ClientID: {doc.clientID}]</span>
+            </div>
+            <div style={{ flex: 1, position: 'relative' }}>
+                <VisVisualizer schemaDef={renderSchema} schemaModel={schemaModel} />
+            </div>
+        </div>
+    );
+};
 
-    const simulateNewType = () => {
-        doc.transact(() => {
-            schemaModel.SMO_addNodeType("Account", ["System"], { email: "string", verified: "boolean" });
-            schemaModel.SMO_addRelationshipType("HAS_ACCOUNT", "Person", "Account", { role: "string" });
-        }, "user-click");
+export const LiveSchemaDemo: React.FC = () => {
+    // Initialize 2 CRDTs and setup sync explicitly once
+    const { doc1, doc2, schema1, schema2 } = useMemo(() => {
+        const y1 = getDoc(1);
+        const y2 = getDoc(2);
+
+        const s1 = new Schema_v1(baseSchema, y1);
+        const s2 = new Schema_v1({nodes: [], relationships: []}, y2);
+        
+        return { doc1: y1, doc2: y2, schema1: s1, schema2: s2 };
+    }, []);
+
+    const handleSyncAtoB = () => {
+        const update = Y.encodeStateAsUpdate(doc1);
+        Y.applyUpdate(doc2, update);
     };
 
-    const simulateSelfLoop = () => {
-        doc.transact(() => {
-            schemaModel.SMO_addRelationshipType("KNOWS", "Person", "Person", { since: "number" });
-        }, "user-click");
+    const handleBidirectionalSync = () => {
+        const updateA = Y.encodeStateAsUpdate(doc1);
+        const updateB = Y.encodeStateAsUpdate(doc2);
+        Y.applyUpdate(doc2, updateA);
+        Y.applyUpdate(doc1, updateB);
+    };
+
+    const handleReload = () => {
+        window.location.reload();
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
-            <div style={{ padding: '10px', background: '#2c3e50', color: 'white', display: 'flex', gap: '10px' }}>
-                <button onClick={simulateNewType} style={{ padding: '10px', cursor: 'pointer' }}>
-                    + Live Collaborate: Create "Account" Node
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100vh', background: '#0d1117' }}>
+            
+            {/* Sync Toolbar */}
+            <div style={{ background: '#161b22', padding: '10px 20px', borderBottom: '1px solid #30363d', display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: '#8b949e', fontSize: '13px', marginRight: '10px' }}>Network Controls:</span>
+                <button 
+                    onClick={handleSyncAtoB}
+                    style={{ background: '#21262d', color: '#c9d1d9', border: '1px solid #30363d', padding: '6px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                    Sync A &rarr; B
                 </button>
-                <button onClick={simulateSelfLoop} style={{ padding: '10px', cursor: 'pointer' }}>
-                    + Live Collaborate: Add Self-Loop (Person KNOWS Person)
+                <button 
+                    onClick={handleBidirectionalSync}
+                    style={{ background: '#238636', color: '#ffffff', border: '1px solid #2ea043', padding: '6px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                    Bidirectional Sync A &harr; B
+                </button>
+                <button 
+                    onClick={handleReload}
+                    style={{ background: 'transparent', color: '#da3633', border: '1px solid #da3633', padding: '6px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', marginLeft: 'auto' }}
+                >
+                    &#x21bb; Reload
                 </button>
             </div>
-            
-            <div style={{ flex: 1, position: 'relative' }}>
-                <VisVisualizer schemaDef={renderSchema} schemaModel={schemaModel} />
+
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                <ConnectedClient doc={doc1} title="🖥️ Client A" schemaModel={schema1} />
+                <ConnectedClient doc={doc2} title="💻 Client B" schemaModel={schema2} />
             </div>
         </div>
     );
