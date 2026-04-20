@@ -28,6 +28,8 @@ export function seedBon19Graph(doc: Y.Doc, pg: PropertyGraph): void {
             nodeId: 'p1',
             type: 'Person',
             color: '#3fb950',
+            // TODO Rewrite this to use firstName: {value: 'Harry', writeType: 'string'} 
+            // writeType is the type the property is written as in the graph, helpful for the lens engine
             props: {
                 firstName: 'Harry',
                 lastName:  'Hacker',
@@ -94,7 +96,7 @@ export function seedBon19Graph(doc: Y.Doc, pg: PropertyGraph): void {
 
     for (const n of nodeDefs) {
         if (pg.getNodeProps(doc, n.nodeId)) continue;
-        pg.addNode({ doc, nodeId: n.nodeId, label: n.type, props: n.props, color: n.color, policy: 'OBSERVED_REMOVE' });
+        pg.addNode({ doc, nodeId: n.nodeId, type: n.type, props: n.props, color: n.color, policy: 'OBSERVED_REMOVE' });
     }
 
     // Edges

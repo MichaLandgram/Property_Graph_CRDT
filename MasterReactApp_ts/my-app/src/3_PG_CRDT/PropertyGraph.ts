@@ -2,7 +2,7 @@ import * as Y from 'yjs';
 import { ORSetRegistry } from './ORSetRegistry';
 import { DualKeyMap } from './DualKeyMap';
 
-// ─── Core Types ─────────────────────────────────────────────────────────────
+// Core Types
 
 export type NodeId = string;
 export type EdgeId = string;
@@ -28,33 +28,21 @@ export type VisibleEdge = {
     props: EdgeProps;
 };
 
-// ─── External Validator Interface ────────────────────────────────────────────
-
-/**
- * Optional validator that can be injected at construction time.
- * If omitted, all operations are schema-free and permissive.
- *
- * Implement this interface to enforce domain-specific invariants (e.g. label
- * allow-lists, property type constraints, or connectivity rules) without
- * baking any of that logic into the graph itself.
- */
+//  External Validator Interface Just if I need it later
 export interface GraphValidator {
-    /** Called before a node is added. Throw a descriptive Error to reject. */
     validateNodeAdd(label: string, props: NodeProps): void;
-    /** Called before a node is updated. Throw a descriptive Error to reject. */
     validateNodeUpdate(label: string, currentProps: NodeProps, incomingProps: NodeProps): void;
-    /** Called before an edge is added. Throw a descriptive Error to reject. */
     validateEdgeAdd(sourceLabel: string, targetLabel: string, edgeLabel: string, props: EdgeProps): void;
 }
 
-/** A no-op validator used when none is provided. */
+// A no-op validator used when none is provided.
 const PERMISSIVE_VALIDATOR: GraphValidator = {
     validateNodeAdd: () => {},
     validateNodeUpdate: () => {},
     validateEdgeAdd: () => {},
 };
 
-// ─── PropertyGraph ───────────────────────────────────────────────────────────
+// PropertyGraph
 
 const DEFAULT_POLICY: Policy = 'OBSERVED_REMOVE';
 
@@ -66,7 +54,7 @@ const DEFAULT_POLICY: Policy = 'OBSERVED_REMOVE';
  *  2. Version-bound edges: each edge records a snapshot of the observed tags of its
  *     endpoints at creation time. An edge becomes invisible the moment all of those
  *     tags have been tombstoned.
- *  3. Ghost-node detection & cascading garbage collection (optional).
+ *  3. Ghost-node detection & cascading garbage collection.
  *  4. Per-property Dual-Key register: `init_<prop>` (add time) vs `<prop>` (update time),
  *     so concurrent add+update races resolve deterministically.
  *
@@ -82,7 +70,7 @@ export class PropertyGraph {
         this.validator = validator ?? PERMISSIVE_VALIDATOR;
     }
 
-    // ── Private Yjs Accessors ──────────────────────────────────────────────
+    //  Private Yjs Accessors 
 
     private getNodeRegistry(doc: Y.Doc): ORSetRegistry {
         let registry = this._registryCache.get(doc);
@@ -93,22 +81,22 @@ export class PropertyGraph {
         return registry;
     }
 
-    /** ADD_WINS node map: nodeId → timestamp */
+    // ADD_WINS node map: nodeId → timestamp 
     private getNodesSimple(doc: Y.Doc): Y.Map<number> {
         return doc.getMap<number>('pg_nodes_simple');
     }
 
-    /** Permanent policy map: nodeId → Policy (survives deletion) */
+    // Permanent policy map: nodeId → Policy (survives deletion) 
     private getNodesPolicies(doc: Y.Doc): Y.Map<string> {
         return doc.getMap<string>('pg_nodes_policies');
     }
 
-    /** Lookup the stored policy for a node. */
+    // Lookup the stored policy for a node. 
     private getNodePolicy(nodeId: NodeId, doc: Y.Doc): Policy {
         return (this.getNodesPolicies(doc).get(nodeId) as Policy) ?? DEFAULT_POLICY;
     }
 
-    /** Policy-aware liveness check. */
+    // Policy-aware liveness check. 
     private isNodeAlive(nodeId: NodeId, doc: Y.Doc): boolean {
         const policy = this.getNodePolicy(nodeId, doc);
         return policy === 'ADD_WINS'
@@ -116,14 +104,13 @@ export class PropertyGraph {
             : this.getNodeRegistry(doc).isAlive(nodeId);
     }
 
-    // ── Nodes ──────────────────────────────────────────────────────────────
+    //  Nodes 
 
     /**
      * Add a node.
-     *
      * @param doc    - The shared Yjs document.
      * @param nodeId - Stable identifier (must be unique within the doc).
-     * @param label  - Human-readable type label (e.g. "Person", "Movie").
+     * @param type  - Human-readable type label (e.g. "Person", "Movie").
      * @param props  - Initial property values.
      * @param policy - Conflict resolution policy (default: OBSERVED_REMOVE).
      * @param color  - Optional display colour for UI renderers.
@@ -131,19 +118,19 @@ export class PropertyGraph {
     addNode({
         doc,
         nodeId,
-        label,
+        type,
         props = {},
         policy = DEFAULT_POLICY,
         color,
     }: {
         doc: Y.Doc;
         nodeId: NodeId;
-        label: string;
+        type: string;
         props?: NodeProps;
         policy?: Policy;
         color?: string;
     }): void {
-        this.validator.validateNodeAdd(label, props);
+        this.validator.validateNodeAdd(type, props);
 
         doc.transact(() => {
             // Persist policy permanently (must survive node deletion)
@@ -157,7 +144,7 @@ export class PropertyGraph {
 
             const nodeMap = doc.getMap(`pg_n_${nodeId}`);
             // Structural metadata
-            nodeMap.set('__label', label);
+            nodeMap.set('__type', type);
             nodeMap.set('__policy', policy);
             if (color) nodeMap.set('__color', color);
 
@@ -188,10 +175,10 @@ export class PropertyGraph {
 
         const nodeMap = doc.getMap(`pg_n_${nodeId}`);
         const dkm = new DualKeyMap(nodeMap);
-        const label = (nodeMap.get('__label') as string) ?? '';
+        const type = (nodeMap.get('__type') as string) ?? '';
         const currentProps = dkm.getAll();
 
-        this.validator.validateNodeUpdate(label, currentProps, props);
+        this.validator.validateNodeUpdate(type, currentProps, props);
 
         doc.transact(() => {
             for (const [key, value] of Object.entries(props)) {
@@ -240,7 +227,7 @@ export class PropertyGraph {
             const dkm = new DualKeyMap(nodeMap);
             visible.push({
                 id,
-                type: nodeMap.get('__label') as string ?? id,
+                type: nodeMap.get('__type') as string ?? id,
                 policy: 'ADD_WINS',
                 color: nodeMap.get('__color') as string | undefined,
                 props: dkm.getAll(),
@@ -254,7 +241,7 @@ export class PropertyGraph {
             const dkm = new DualKeyMap(nodeMap);
             visible.push({
                 id,
-                type: nodeMap.get('__label') as string ?? id,
+                type: nodeMap.get('__type') as string ?? id,
                 policy: 'OBSERVED_REMOVE',
                 color: nodeMap.get('__color') as string | undefined,
                 props: dkm.getAll(),
@@ -270,7 +257,7 @@ export class PropertyGraph {
         return new DualKeyMap(nodeMap).getAll();
     }
 
-    // ── Edges ──────────────────────────────────────────────────────────────
+    //  Edges 
 
     /**
      * Add a directed edge between two existing (alive) nodes.

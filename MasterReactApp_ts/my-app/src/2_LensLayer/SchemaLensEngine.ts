@@ -43,7 +43,7 @@ export class SchemaLensEngine {
         const rawLens = activeValues[0];
 
         if (typeof rawLens === 'string') {
-            return { value: rawLens as dataTypes };
+            return { value: rawLens as dataTypes, default: rawLens };
         }
 
         return rawLens as PropertyLensMap;

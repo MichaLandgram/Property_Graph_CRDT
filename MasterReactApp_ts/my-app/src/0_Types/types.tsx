@@ -27,8 +27,8 @@ export type dataTypes =
     // | Point
 
 export interface PropertyLensMap {
-    value: dataTypes;  // The target data type -> e.g., 'number', 'boolean'
-    default?: any;     // Fallback value
+    value: dataTypes;  // Current target data type -> e.g., 'number', 'boolean'
+    default: any;     // Default value if no transformerMap is found
     transformerMap?: Record<string, string>; // The automated mapping dictionary e.g.: { "sad": "0", "happy": "10", "default": "-1" }
 }
 
