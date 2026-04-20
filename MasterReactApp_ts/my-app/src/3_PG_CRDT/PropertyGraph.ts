@@ -1,6 +1,7 @@
 import * as Y from 'yjs';
 import { ORSetRegistry } from './ORSetRegistry';
 import { DualKeyMap } from './DualKeyMap';
+import { getOrThrow } from '../1_Schema_CRDT/0_Helper/SchemaError';
 
 // Core Types
 
@@ -70,8 +71,6 @@ export class PropertyGraph {
         this.validator = validator ?? PERMISSIVE_VALIDATOR;
     }
 
-    //  Private Yjs Accessors 
-
     private getNodeRegistry(doc: Y.Doc): ORSetRegistry {
         let registry = this._registryCache.get(doc);
         if (!registry) {
@@ -81,7 +80,6 @@ export class PropertyGraph {
         return registry;
     }
 
-    // ADD_WINS node map: nodeId → timestamp 
     private getNodesSimple(doc: Y.Doc): Y.Map<number> {
         return doc.getMap<number>('pg_nodes_simple');
     }
@@ -251,8 +249,8 @@ export class PropertyGraph {
         return visible;
     }
 
-    getNodeProps(doc: Y.Doc, nodeId: NodeId): NodeProps | undefined {
-        if (!this.isNodeAlive(nodeId, doc)) return undefined;
+    getNodeProps(doc: Y.Doc, nodeId: NodeId): NodeProps {
+        getOrThrow(this.isNodeAlive(nodeId, doc), `PropertyGraph: Node "${nodeId}" not found or already removed.`);
         const nodeMap = doc.getMap(`pg_n_${nodeId}`);
         return new DualKeyMap(nodeMap).getAll();
     }

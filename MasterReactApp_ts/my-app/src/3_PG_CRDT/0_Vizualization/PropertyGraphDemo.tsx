@@ -53,7 +53,7 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
     const [isAddingEdge, setIsAddingEdge] = useState(false);
 
     // Add-Node form
-    const [newNodeLabel, setNewNodeLabel] = useState('');
+    const [newNodeType, setNewNodeType] = useState('');
     const [newNodePolicy, setNewNodePolicy] = useState<'ADD_WINS' | 'OBSERVED_REMOVE'>('OBSERVED_REMOVE');
     const [newNodeProps, setNewNodeProps] = useState<PropRow[]>([]);
 
@@ -107,14 +107,14 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
     }, []);
 
     const handleCreateNode = () => {
-        if (!newNodeLabel.trim()) return;
+        if (!newNodeType.trim()) return;
         const props: Record<string, any> = {};
         newNodeProps.forEach(({ key, value }) => { if (key.trim()) props[key.trim()] = value; });
         pg.addNode({
-            doc, nodeId: `${newNodeLabel.toLowerCase().replace(/\s+/g, '_')}-${Date.now()}`,
-            label: newNodeLabel.trim(), props, policy: newNodePolicy,
+            doc, nodeId: `${newNodeType.toLowerCase().replace(/\s+/g, '_')}-${Date.now()}`,
+            type: newNodeType.trim(), props, policy: newNodePolicy,
         });
-        setIsAddingNode(false); setNewNodeLabel(''); setNewNodeProps([]);
+        setIsAddingNode(false); setNewNodeType(''); setNewNodeProps([]);
     };
 
     const handleCreateEdge = () => {
@@ -164,7 +164,7 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
                         <div style={{ background: PANEL, border: `1px solid ${BORDER}`, borderRadius: 8, padding: 16, width: 290, boxShadow: '0 4px 16px rgba(0,0,0,0.6)' }}>
                             <h4 style={{ margin: '0 0 12px 0', color: BLUE }}>➕ Create Node</h4>
                             <label style={{ color: DIM, fontSize: 12 }}>Label</label>
-                            <input style={{ ...inputStyle, marginBottom: 8 }} value={newNodeLabel} onChange={e => setNewNodeLabel(e.target.value)} placeholder="e.g. Person" />
+                            <input style={{ ...inputStyle, marginBottom: 8 }} value={newNodeType} onChange={e => setNewNodeType(e.target.value)} placeholder="e.g. Person" />
                             <label style={{ color: DIM, fontSize: 12 }}>Policy</label>
                             <select style={{ ...inputStyle, marginBottom: 12 }} value={newNodePolicy} onChange={e => setNewNodePolicy(e.target.value as any)}>
                                 <option value="OBSERVED_REMOVE">OBSERVED_REMOVE</option>
@@ -246,7 +246,7 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
                 </div>
             </div>
 
-            {/* ── Sidebar ───────────────────────────────────────────────── */}
+            {/*  Sidebar  */}
             {hasSelection && (
                 <div style={{
                     width: 320, background: PANEL, borderLeft: `1px solid ${BORDER}`,

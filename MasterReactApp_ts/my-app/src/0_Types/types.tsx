@@ -1,5 +1,3 @@
-import exp from 'constants';
-import * as Y from 'yjs';
 // Node Id Type
 export type NodeId = string;
 // Node Label
@@ -52,7 +50,7 @@ export interface PropertyLensMap {
 //     z?: number;
 // };
 
-// Policy Types - and Mapping to the corresponding label type
+// Policy Types - and Mapping to the corresponding label type - REMOVE_WINS is not only included for downwards compatibility
 export type Policy = "ADD_WINS" | "OBSERVED_REMOVE" | "REMOVE_WINS";
 
 
@@ -67,8 +65,8 @@ export type AlwaysNodeData = {
     id: NodeId;
     label: string;
     policy: Policy;
-    position: XYPosition; // uses this for the position of the node - currently only needed in GraphViz V1
-    color: string; // TODO: change this only for vizualization based on Policy 
+    position: XYPosition; //currently only needed in GraphViz V1
+    color: string;
 }
 
 // Edge Types

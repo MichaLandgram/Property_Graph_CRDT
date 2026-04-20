@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import { GrowOnlyCounter, OurVector, Point } from '../Helper/YJS_helper/moreComplexTypes';
+import { GrowOnlyCounter } from '../Helper/YJS_helper/moreComplexTypes';
 
 /**
  * A wrapper around Y.Map that implements the "Dual-Key Register" pattern.
@@ -9,18 +9,14 @@ import { GrowOnlyCounter, OurVector, Point } from '../Helper/YJS_helper/moreComp
 export class DualKeyMap {
     private map: Y.Map<any>;
 
-    // wrapper around Y.Map
     constructor(map: Y.Map<any>) {
         this.map = map;
     }
 
     /**
      * Sets an initial value. primitive values are prefixed with 'init_'.
-     * Complex shared types (Y.Map, Y.Array, Counter) are set directly 
-     * because they support internal merging.
      */
     setInitial(key: string, value: any) {
-        // Shared Types: No race condition, set directly
         if (value instanceof GrowOnlyCounter) {
             this.map.set(key, value.counter);
             return;
@@ -30,16 +26,12 @@ export class DualKeyMap {
             return;
         }
 
-        // Primitives: Use init_ prefix to avoid overwriting concurrent updates
         const initKey = `init_${key}`;
         
-        // Handle custom objects that need serialization
         if (value instanceof Date) {
             this.map.set(initKey, value.toISOString());
             return;
         }
-
-        // Standard primitive (string, number, boolean)
         this.map.set(initKey, value);
     }
 
@@ -50,6 +42,7 @@ export class DualKeyMap {
      */
     setUpdate(key: string, value: any, expectedType?: any, graph?: any) {
         if (expectedType && typeof expectedType === 'object' && 'kind' in expectedType) { 
+            // currently we are not supporting all types, but we are planning to do so in the future
              if (expectedType.kind === 'counter' && typeof value === 'number') {
                   if (!graph) throw new Error("Graph instance required for Counter update");
                   this.handleCounterUpdate(key, value, graph);

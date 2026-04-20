@@ -1,15 +1,15 @@
 import * as Y from 'yjs';
-import { getActiveGraphClass } from '../../../VersionSelector';
-import { syncDocs, bidirectionalSync } from '../../../Helper/YJS_helper/sync';
-import { getDoc } from '../../../Helper/YJS_helper/creator';
-import { graphDoc, Graph } from '../../../Helper/types_interfaces/graph';
-import { GrowOnlyCounter, OurVector, Point } from '../../../Helper/YJS_helper/moreComplexTypes';
+import { PropertyGraph } from '../PropertyGraph';
+import { getActiveGraphClass } from '../../VersionSelector';
+import { syncDocs, bidirectionalSync } from '../../Helper/YJS_helper/sync';
+import { getDoc } from '../../Helper/YJS_helper/creator';
+import { graphDoc, Graph } from '../../Helper/types_interfaces/graph';
+import { GrowOnlyCounter, OurVector, Point } from '../../Helper/YJS_helper/moreComplexTypes';
 
 describe('Does addNode add a node correctly to the graph?', () => {
     let graph : graphDoc;
     let graph2 : graphDoc;
-    let schemaGraph : Graph;
-    let position = { x: 0, y: 0 };
+    let schemaGraph : PropertyGraph;
     let color = 'red';
     beforeEach(() => {
         console.log('beforeEach', getActiveGraphClass()); 
@@ -17,7 +17,7 @@ describe('Does addNode add a node correctly to the graph?', () => {
         graph = getDoc(1);
         graph2 = getDoc(2); 
         const GraphClass = getActiveGraphClass();
-        schemaGraph = new GraphClass();
+        schemaGraph = new PropertyGraph();
     })
     test('Add Node with missing props (label)', () => {
         // basic Array generation
@@ -41,13 +41,10 @@ describe('Does addNode add a node correctly to the graph?', () => {
             testArray: array,
             testMap: map,
         }
-        schemaGraph.addNode({ alwaysProps: { id: '1', label: 'TEST', policy: 'ADD_WINS', position, color }, initialProps, graph });
-        const nodesMap = graph.getMap<any>('nodes');
-        const propertiesMap = graph.getMap<Y.Map<any>>('properties');
-        expect(nodesMap.has('1')).toBe(true);
-        expect(graph.getMap('n_1').size).toBeGreaterThan(0);
-        schemaGraph.getVisibleNodes({ graph }).forEach(node => {
-            const props = schemaGraph.getNodeProps({ nodeId: node.id, graph });
+        schemaGraph.addNode({ doc: graph, nodeId: '1', type: 'TEST', props: initialProps, policy: 'ADD_WINS', color });
+        expect(graph.getMap('pg_n_1').size).toBeGreaterThan(0);
+        schemaGraph.getVisibleNodes(graph).forEach(node => {
+            const props = schemaGraph.getNodeProps(graph, node.id);
             expect(props['testString']).toBe('hello');
             expect(props['testNumber']).toBe(42);
             expect(props['testBoolean']).toBe(true);
@@ -95,7 +92,6 @@ describe('Does addNode add a node correctly to the graph?', () => {
             id: '1',
             label: 'TEST',
             policy: 'ADD_WINS',
-            position,
             color,
             testString: 'bye',
             testNumber: 2,
@@ -130,29 +126,29 @@ describe('Does addNode add a node correctly to the graph?', () => {
 
 
 
-        schemaGraph.addNode({ alwaysProps: { id: '1', label: 'TEST', policy: 'ADD_WINS', position, color }, initialProps: initialProps1, graph });
-        schemaGraph.addNode({ alwaysProps: { id: '1', label: 'TEST', policy: 'ADD_WINS', position, color }, initialProps: initialProps2, graph: graph2 });
+        schemaGraph.addNode({ doc: graph, nodeId: '1', type: 'TEST', props: initialProps1, policy: 'ADD_WINS', color });
+        schemaGraph.addNode({ doc: graph2, nodeId: '1', type: 'TEST', props: initialProps2, policy: 'ADD_WINS', color });
 
-        schemaGraph.updateNode({ nodeId: '1', props: updateProps1, graph });
-        schemaGraph.updateNode({ nodeId: '1', props: updateProps2, graph: graph2 });
+        schemaGraph.updateNode({ doc: graph, nodeId: '1', props: updateProps1 });
+        schemaGraph.updateNode({ doc: graph2, nodeId: '1', props: updateProps2 });
 
 
         bidirectionalSync(graph, graph2);
 
-        schemaGraph.updateNode({ nodeId: '1', props: updateProps3, graph });
-        schemaGraph.updateNode({ nodeId: '1', props: updateProps4, graph: graph2 });
+        schemaGraph.updateNode({ doc: graph, nodeId: '1', props: updateProps3 });
+        schemaGraph.updateNode({ doc: graph2, nodeId: '1', props: updateProps4 });
 
         bidirectionalSync(graph, graph2);
 
         // should have a combination of both updates -- my decision
-        expect(schemaGraph.getVisibleNodes({ graph })).toHaveLength(1);
-        expect(schemaGraph.getVisibleNodes({ graph: graph2 })).toHaveLength(1);
-        expect(schemaGraph.getNodeProps({ nodeId: '1', graph }).testNumber).toBe(2);
-        expect(schemaGraph.getNodeProps({ nodeId: '1', graph: graph2 }).testNumber).toBe(2);
+        expect(schemaGraph.getVisibleNodes(graph)).toHaveLength(1);
+        expect(schemaGraph.getVisibleNodes(graph2)).toHaveLength(1);
+        expect(schemaGraph.getNodeProps(graph, '1').testNumber).toBe(2);
+        expect(schemaGraph.getNodeProps(graph2, '1').testNumber).toBe(2);
         // it is Hi2 because the id is the tie breaker!
-        expect(schemaGraph.getNodeProps({ nodeId: '1', graph }).testString).toBe('Hi2');
-        expect(schemaGraph.getNodeProps({ nodeId: '1', graph: graph2 }).testString).toBe('Hi2');
-        expect(schemaGraph.getNodeProps({ nodeId: '1', graph }).testBoolean).toBe(false);
-        expect(schemaGraph.getNodeProps({ nodeId: '1', graph: graph2 }).testBoolean).toBe(false);
+        expect(schemaGraph.getNodeProps(graph, '1').testString).toBe('Hi2');
+        expect(schemaGraph.getNodeProps(graph2, '1').testString).toBe('Hi2');
+        expect(schemaGraph.getNodeProps(graph, '1').testBoolean).toBe(false);
+        expect(schemaGraph.getNodeProps(graph2, '1').testBoolean).toBe(false);
     });
 });
