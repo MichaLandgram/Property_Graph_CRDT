@@ -3,7 +3,8 @@ import { Network } from 'vis-network';
 
 interface VisGraphNode {
   id: string;
-  label?: string;
+  type: string;
+  label?: string[];
   fill?: string;
   data?: any;
 }
@@ -12,7 +13,7 @@ interface VisGraphEdge {
   id: string;
   source: string;
   target: string;
-  label?: string;
+  type: string;
   data?: any;
 }
 
@@ -63,8 +64,8 @@ export const VisGraphCanvas: React.FC<VisGraphCanvasProps> = ({
     const { networkNodes, networkEdges } = useMemo(() => {
         const networkNodes = nodes.map(n => ({
             id: n.id,
-            label: n.label || n.id.slice(0, 8),
-            color: { background: n.fill || generateColor(n.label || n.id), border: '#ffffff' },
+            label: n.type || n.id.slice(0, 8),
+            color: { background: n.fill || generateColor(n.type || n.id), border: '#ffffff' },
             font: { color: '#ffffff', size: 16, face: 'monospace' },
             shape: 'circle',
             borderWidth: 2,
@@ -75,7 +76,7 @@ export const VisGraphCanvas: React.FC<VisGraphCanvasProps> = ({
             id: e.id,
             from: e.source,
             to: e.target,
-            label: e.label || '',
+            label: e.type || '',
             arrows: 'to',
             font: {
                 color: '#c9d1d9',

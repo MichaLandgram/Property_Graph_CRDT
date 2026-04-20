@@ -53,8 +53,8 @@ interface LensGraphViewProps {
     engine: SchemaLensEngine;
 }
 
-type LensUINode = VisibleNode & { appProps?: Record<string, any> };
-type LensUIEdge = VisibleEdge & { appProps?: Record<string, any> };
+export type LensUINode = VisibleNode & { label: string[], appProps?: Record<string, any> };
+export type LensUIEdge = VisibleEdge & { appProps?: Record<string, any> };
 
 export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, engine }) => {
 
@@ -90,13 +90,10 @@ export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, 
         };
     }, [pgDoc, schemaDoc, refresh]);
 
-    function buildNodeLabel(n: VisibleNode): string {
-        return n.label;
-    }
-
     const visNodes = nodes.map(n => ({
         id: n.id,
-        label: buildNodeLabel(n),
+        type: n.type,
+        label: n.label,
         fill: n.color,
         data: n,
     }));
@@ -105,17 +102,17 @@ export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, 
         id: e.id,
         source: e.sourceId,
         target: e.targetId,
-        label: e.label,
+        type: e.type,
         data: e,
     }));
 
     const onNodeClick = useCallback((n: any) => {
-        setSelectedNode(n.data as VisibleNode);
+        setSelectedNode(n.data as LensUINode);
         setSelectedEdge(null);
     }, []);
 
     const onEdgeClick = useCallback((e: any) => {
-        setSelectedEdge(e.data as VisibleEdge);
+        setSelectedEdge(e.data as LensUIEdge);
         setSelectedNode(null);
     }, []);
 
@@ -130,7 +127,7 @@ export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, 
         appProps: Record<string, any> = {},
         changeType: 'NodeType' | 'RelationshipType'
     ) {
-        const userProps = Object.entries(props).filter(([k]) => !k.startsWith('__'));
+        const userProps = Object.entries(appProps).filter(([k]) => !k.startsWith('__'));
         if (userProps.length === 0) {
             return <div style={{ color: DIM, fontSize: 12, fontStyle: 'italic' }}>No properties.</div>;
         }
@@ -138,7 +135,6 @@ export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, 
         return userProps.map(([key, rawVal]) => {
             const rawStr  = String(rawVal ?? '');
             
-            // 👇 Read the pre-mapped app value directly from the Lensed object!
             const decoded  = appProps[key] ?? rawStr;
             const lens     = engine.getPropertyLens(identifyingType, key, changeType);
             const typeName = inferType(decoded);
@@ -195,7 +191,6 @@ export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, 
     }
 
     const hasSelection = selectedNode !== null || selectedEdge !== null;
-
     return (
         <div style={{ display: 'flex', height: '100%', width: '100%', background: DARK, overflow: 'hidden' }}>
 
@@ -228,7 +223,7 @@ export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, 
                                 {selectedNode ? '🔵 Node' : '🔗 Edge'}
                                 &nbsp;
                                 <span style={{ color: BRIGHT }}>
-                                    {selectedNode ? selectedNode.label : selectedEdge?.label}
+                                    {selectedNode ? selectedNode.type : selectedEdge?.type}
                                 </span>
                             </h2>
                             <button
@@ -241,6 +236,14 @@ export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, 
                             {selectedNode && (
                                 <>
                                     <div>ID: <span style={{ color: TEXT }}>{selectedNode.id}</span></div>
+                                    
+                                    <div>Labels: <span style={{ color: TEXT }}>
+                                        {Array.isArray(selectedNode.label) 
+                                            ? selectedNode.label.join(', ') 
+                                            : (typeof selectedNode.label === 'object' && selectedNode.label !== null)
+                                                ? Object.keys(selectedNode.label).join(', ')
+                                                : String(selectedNode.label || '')}
+                                    </span></div>
                                     <div>Policy: <span style={{ color: selectedNode.policy === 'ADD_WINS' ? AMBER : GREEN }}>{selectedNode.policy}</span></div>
                                 </>
                             )}
@@ -248,9 +251,9 @@ export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, 
                                 <>
                                     <div>ID: <span style={{ color: TEXT, fontSize: 10 }}>{selectedEdge.id.slice(0, 22)}…</span></div>
                                     <div>
-                                        {nodes.find(n => n.id === selectedEdge.sourceId)?.label ?? selectedEdge.sourceId}
+                                        {nodes.find(n => n.id === selectedEdge.sourceId)?.type ?? selectedEdge.sourceId}
                                         &nbsp;<span style={{ color: BLUE }}>→</span>&nbsp;
-                                        {nodes.find(n => n.id === selectedEdge.targetId)?.label ?? selectedEdge.targetId}
+                                        {nodes.find(n => n.id === selectedEdge.targetId)?.type ?? selectedEdge.targetId}
                                     </div>
                                 </>
                             )}
@@ -268,8 +271,8 @@ export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, 
                         <div style={{ fontSize: 11, color: DIM, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '10px 0 4px' }}>
                             Properties
                         </div>
-                        {selectedNode && renderPropertyRows(selectedNode.label, selectedNode.props, selectedNode.appProps, 'NodeType')}
-                        {selectedEdge && renderPropertyRows(selectedEdge.label, selectedEdge.props, selectedEdge.appProps, 'RelationshipType')}
+                        {selectedNode && renderPropertyRows(selectedNode.type, selectedNode.props, selectedNode.appProps, 'NodeType')}
+                        {selectedEdge && renderPropertyRows(selectedEdge.type, selectedEdge.props, selectedEdge.appProps, 'RelationshipType')}
                     </div>
                 </div>
             )}

@@ -1,5 +1,6 @@
 import { Schema_v1 } from '../1_Schema_CRDT/Schema/schema_v1';
 import { whatToChange, PropertyLensMap, dataTypes } from '../0_Types/types';
+import { SchemaError } from '../1_Schema_CRDT/0_Helper/SchemaError';
 
 // first DRAFT
 export class SchemaLensEngine {
@@ -51,9 +52,7 @@ export class SchemaLensEngine {
 
     public decodeStringFromGraph(identifyingType: string, propertyKey: string, rawString: string, changeType: whatToChange): any {
         const lens = this.getPropertyLens(identifyingType, propertyKey, changeType);
-        
         if (!lens) {
-
             return rawString;
         }
 
@@ -134,57 +133,72 @@ export class SchemaLensEngine {
         return this.cachedSchema.relationshipTypes?.[identifyingEdge] !== undefined;
     }
 
-    /**
-     * Filters an array of Graph Database nodes, returning only those permitted by the schema.
-     * @param nodes The raw graph nodes array
-     * @param getType A callback to extract the IdentifyingType from your custom node structure
-     */
     public filterAllowedNodes<T>(nodes: T[], getType: (node: T) => string): T[] {
         if (!this.cachedSchema) this.refreshCache();
         const allowedNodes = this.cachedSchema.nodeTypes || {};
         return nodes.filter(node => allowedNodes[getType(node)] !== undefined);
     }
 
-    /**
-     * Filters an array of Graph Database relationships, returning only those permitted by the schema.
-     * @param relationships The raw graph relationships array
-     * @param getType A callback to extract the IdentifyingEdge from your custom relationship structure
-     */
     public filterAllowedRelationships<T>(relationships: T[], getType: (rel: T) => string): T[] {
         if (!this.cachedSchema) this.refreshCache();
         const allowedEdges = this.cachedSchema.relationshipTypes || {};
         return relationships.filter(rel => allowedEdges[getType(rel)] !== undefined);
     }
 
-    public decodeProperties(identifyingType: string, rawProps: Record<string, any>, changeType: whatToChange): Record<string, any> {
+    public decodeAndFilterProperties(identifyingType: string, rawProps: Record<string, any>, changeType: whatToChange): Record<string, any> {
+        const filteredProps: Record<string, any> = {};
+        const targetTypes = changeType === "NodeType" 
+            ? this.cachedSchema.nodeTypes 
+            : this.cachedSchema.relationshipTypes;
+        if (!targetTypes || !targetTypes[identifyingType]) throw new SchemaError(`Type ${identifyingType} not found`);
+        const allowedProps = targetTypes[identifyingType].properties;
         const decodedProps: Record<string, any> = {};
+
         for (const [key, rawValue] of Object.entries(rawProps)) {
+            console.log("key", key, !allowedProps[key]);
+
             if (key.startsWith('__')) continue;
+            if (!allowedProps[key]) continue;
             decodedProps[key] = this.decodeStringFromGraph(identifyingType, key, String(rawValue ?? ''), changeType);
         }
+        console.log("rawProps ", identifyingType, rawProps);
+        console.log("allowedProps", identifyingType, allowedProps);
+        console.log("decodedProps", identifyingType, decodedProps);
         return decodedProps;
     }
 
-    public applyLensToGraph<N extends { id: string, label: string, props: Record<string, any> }, 
-                            E extends { id: string, label: string, sourceId: string, targetId: string, props: Record<string, any> }>(
-        rawNodes: N[],
-        rawEdges: E[]
-    ): { lensedNodes: (N & { appProps: Record<string, any> })[], lensedEdges: (E & { appProps: Record<string, any> })[] } {
+    public retriveLabels(identifyingType: string, what: whatToChange): string[] {
+        if (!this.cachedSchema) this.refreshCache();
+        const targetTypes = what === "NodeType" 
+            ? this.cachedSchema.nodeTypes 
+            : this.cachedSchema.relationshipTypes;
+        if (!targetTypes || !targetTypes[identifyingType]) return [];
+        return targetTypes[identifyingType].labels;
+    }
 
-        const validNodes = this.filterAllowedNodes(rawNodes, n => n.label);
+    public applyLensToGraph<VisibleNode extends { id: string, type: string, props: Record<string, any> }, 
+                            VisibleEdge extends { id: string, type: string, sourceId: string, targetId: string, props: Record<string, any> }>(
+        rawNodes: VisibleNode[],
+        rawEdges: VisibleEdge[]
+    ): { lensedNodes: (VisibleNode & { label: string[], appProps: Record<string, any> })[], lensedEdges: (VisibleEdge & { appProps: Record<string, any> })[] } {
+
+        const validNodes = this.filterAllowedNodes(rawNodes, n => n.type);
         const validNodeIds = new Set(validNodes.map(n => n.id));
 
         const lensedNodes = validNodes.map(n => ({
             ...n,
-            appProps: this.decodeProperties(n.label, n.props, 'NodeType')
+            label: this.retriveLabels(n.type, 'NodeType'),
+            appProps: this.decodeAndFilterProperties(n.type, n.props, 'NodeType')
         }));
 
-        const validEdges = this.filterAllowedRelationships(rawEdges, e => e.label)
+        console.log("lensedNodes", lensedNodes);
+
+        const validEdges = this.filterAllowedRelationships(rawEdges, e => e.type)
             .filter(e => validNodeIds.has(e.sourceId) && validNodeIds.has(e.targetId));
 
         const lensedEdges = validEdges.map(e => ({
             ...e,
-            appProps: this.decodeProperties(e.label, e.props, 'RelationshipType')
+            appProps: this.decodeAndFilterProperties(e.type, e.props, 'RelationshipType')
         }));
 
         return { lensedNodes, lensedEdges };

@@ -13,7 +13,8 @@ export type EdgeProps = Record<string, any>;
 
 export type VisibleNode = {
     id: NodeId;
-    label: string;
+    type: string;
+    label?: string[];
     policy: Policy;
     color?: string;
     props: NodeProps;
@@ -21,9 +22,9 @@ export type VisibleNode = {
 
 export type VisibleEdge = {
     id: EdgeId;
+    type: string;
     sourceId: NodeId;
     targetId: NodeId;
-    label: string;
     props: EdgeProps;
 };
 
@@ -239,7 +240,7 @@ export class PropertyGraph {
             const dkm = new DualKeyMap(nodeMap);
             visible.push({
                 id,
-                label: nodeMap.get('__label') as string ?? id,
+                type: nodeMap.get('__label') as string ?? id,
                 policy: 'ADD_WINS',
                 color: nodeMap.get('__color') as string | undefined,
                 props: dkm.getAll(),
@@ -253,7 +254,7 @@ export class PropertyGraph {
             const dkm = new DualKeyMap(nodeMap);
             visible.push({
                 id,
-                label: nodeMap.get('__label') as string ?? id,
+                type: nodeMap.get('__label') as string ?? id,
                 policy: 'OBSERVED_REMOVE',
                 color: nodeMap.get('__color') as string | undefined,
                 props: dkm.getAll(),
@@ -415,7 +416,7 @@ export class PropertyGraph {
                         id: uuid,
                         sourceId: storedSourceId,
                         targetId: storedTargetId,
-                        label: (edgeMap.get('__label') as string) ?? '',
+                        type: (edgeMap.get('__type') as string) ?? '',
                         props: dkm.getAll(),
                     });
                 });

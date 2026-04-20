@@ -4,7 +4,7 @@ export const base: SchemaDefinition = {
     nodes: [
         {
             identifyingType: 'Person',
-            labels: ['Person'],
+            labels: ['Per'],
             properties: {
                 name: 'string',
                 isBlocked: 'boolean',

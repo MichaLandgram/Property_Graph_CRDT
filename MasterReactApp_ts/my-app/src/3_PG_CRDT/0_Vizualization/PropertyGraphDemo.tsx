@@ -81,12 +81,17 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
     }, [doc, refresh]);
 
     const visNodes = nodes.map(n => ({
-        id: n.id, label: n.label,
+        id: n.id,
+        type: n.type,
         fill: n.color ?? POLICY_COLORS[n.policy] ?? BLUE,
         data: n,
     }));
     const visEdges = edges.map(e => ({
-        id: e.id, source: e.sourceId, target: e.targetId, label: e.label, data: e,
+        id: e.id,
+        source: e.sourceId,
+        target: e.targetId, 
+        type: e.type, 
+        data: e,
     }));
 
     const onNodeClick = useCallback((n: any) => {
@@ -203,12 +208,12 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
                             <label style={{ color: DIM, fontSize: 12 }}>Source</label>
                             <select style={{ ...inputStyle, marginBottom: 8 }} value={newEdgeSource} onChange={e => setNewEdgeSource(e.target.value)}>
                                 <option value="">— select —</option>
-                                {nodes.map(n => <option key={n.id} value={n.id}>{n.label}</option>)}
+                                {nodes.map(n => <option key={n.id} value={n.id}>{n.type}</option>)}
                             </select>
                             <label style={{ color: DIM, fontSize: 12 }}>Target</label>
                             <select style={{ ...inputStyle, marginBottom: 12 }} value={newEdgeTarget} onChange={e => setNewEdgeTarget(e.target.value)}>
                                 <option value="">— select —</option>
-                                {nodes.map(n => <option key={n.id} value={n.id}>{n.label}</option>)}
+                                {nodes.map(n => <option key={n.id} value={n.id}>{n.type}</option>)}
                             </select>
 
                             <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 10, marginBottom: 10 }}>
@@ -251,7 +256,7 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
                     <div style={{ padding: '18px 20px 10px', borderBottom: `1px solid ${BORDER}` }}>
                         <h2 style={{ margin: 0, color: selectedNode ? BLUE : GREEN, fontSize: 16 }}>
                             {selectedNode ? '🔵 Node' : '🔗 Edge'}:&nbsp;
-                            <span style={{ color: BRIGHT }}>{selectedNode ? selectedNode.label : selectedEdge?.label}</span>
+                            <span style={{ color: BRIGHT }}>{selectedNode ? selectedNode.type : selectedEdge?.type}</span>
                         </h2>
                         {selectedNode && (
                             <div style={{ marginTop: 8, fontSize: 12, color: DIM }}>
@@ -264,9 +269,9 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
                         {selectedEdge && (
                             <div style={{ marginTop: 8, fontSize: 12, color: DIM }}>
                                 <span>
-                                    ({nodes.find(n => n.id === selectedEdge.sourceId)?.label ?? selectedEdge.sourceId})
+                                    ({nodes.find(n => n.id === selectedEdge.sourceId)?.type ?? selectedEdge.sourceId})
                                     &nbsp;→&nbsp;
-                                    ({nodes.find(n => n.id === selectedEdge.targetId)?.label ?? selectedEdge.targetId})
+                                    ({nodes.find(n => n.id === selectedEdge.targetId)?.type ?? selectedEdge.targetId})
                                 </span>
                                 <br />
                                 <span style={{ wordBreak: 'break-all', fontSize: 11 }}>ID: {selectedEdge.id.slice(0, 20)}…</span>
@@ -321,7 +326,7 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
 
                     <div style={{ padding: '14px 20px', borderTop: `1px solid ${BORDER}` }}>
                         <button style={{ ...btnStyle(RED), width: '100%' }} onClick={handleDelete}>
-                            Delete {selectedNode ? `Node "${selectedNode.label}"` : `Edge "${selectedEdge?.label}"`}
+                            Delete {selectedNode ? `Node "${selectedNode.type}"` : `Edge "${selectedEdge?.type}"`}
                         </button>
                     </div>
                 </div>
