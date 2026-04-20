@@ -1,15 +1,6 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import * as Y from 'yjs';
 import { PropertyGraphDemo } from './PropertyGraphDemo';
-
-function makeDoc(id: number): Y.Doc {
-    const key = `pg_doc_${id}`;
-    const cached = (window as any)[key];
-    if (cached) return cached;
-    const doc = new Y.Doc();
-    (window as any)[key] = doc;
-    return doc;
-}
 
 
 const PGClient: React.FC<{ doc: Y.Doc; title: string; borderRight?: boolean }> = ({ doc, title, borderRight }) => (
@@ -46,11 +37,12 @@ const PGClient: React.FC<{ doc: Y.Doc; title: string; borderRight?: boolean }> =
 );
 
 
-export const LivePGDemo: React.FC = () => {
-    const { doc1, doc2 } = useMemo(() => ({
-        doc1: makeDoc(6),   // IDs 4 & 5 — avoids collision with schema docs 1 & 2 & 3 & 4 :D
-        doc2: makeDoc(7),
-    }), []);
+interface LivePGDemoProps {
+    doc1: Y.Doc;
+    doc2: Y.Doc;
+}
+
+export const LivePGDemo: React.FC<LivePGDemoProps> = ({ doc1, doc2 }) => {
 
     // ── Sync handlers
 

@@ -285,14 +285,14 @@ export class PropertyGraph {
         doc,
         sourceId,
         targetId,
-        label,
+        type,
         props = {},
         edgeId,
     }: {
         doc: Y.Doc;
         sourceId: NodeId;
         targetId: NodeId;
-        label: string;
+        type: string;
         props?: EdgeProps;
         edgeId?: EdgeId;
     }): EdgeId {
@@ -305,7 +305,7 @@ export class PropertyGraph {
 
         const sourceLabel = (doc.getMap(`pg_n_${sourceId}`).get('__label') as string) ?? sourceId;
         const targetLabel = (doc.getMap(`pg_n_${targetId}`).get('__label') as string) ?? targetId;
-        this.validator.validateEdgeAdd(sourceLabel, targetLabel, label, props);
+        this.validator.validateEdgeAdd(sourceLabel, targetLabel, type, props);
         const sourcePolicy = this.getNodePolicy(sourceId, doc);
         const targetPolicy = this.getNodePolicy(targetId, doc);
         const sourceTags = sourcePolicy === 'OBSERVED_REMOVE'
@@ -323,7 +323,7 @@ export class PropertyGraph {
 
             edgeMap.set('__sourceId', sourceId);
             edgeMap.set('__targetId', targetId);
-            edgeMap.set('__label', label);
+            edgeMap.set('__type', type);
             edgeMap.set('__sourceTags', sourceTags);
             edgeMap.set('__targetTags', targetTags);
 

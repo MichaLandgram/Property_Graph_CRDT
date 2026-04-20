@@ -33,6 +33,11 @@ export class Schema_v1 {
     private doc: Y.Doc;
     private nodeTypes: Y.Map<any>;
     private relationshipTypes: Y.Map<any>;
+
+    public get yjsDoc(): Y.Doc {
+        return this.doc;
+    }
+
     constructor(schemaDef?: SchemaDefinition, doc?: Y.Doc) {
         // a given doc is necessary for test purposes!
         this.doc = doc || new Y.Doc();

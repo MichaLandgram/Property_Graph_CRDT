@@ -10,12 +10,13 @@ export class SchemaLensEngine {
     constructor(schemaCRDT: Schema_v1) {
         this.schemaCRDT = schemaCRDT;
         this.refreshCache(); // Initialize cache on startup
+
+        // Automatically invalidate cache on upstream CRDT updates!
+        this.schemaCRDT.yjsDoc.on('update', () => {
+            this.cachedSchema = null;
+        });
     }
 
-    /**
-     * Rebuilds the internal JSON lookup mapping. 
-     * You should call this whenever your CRDT schema receives an update.
-     */
     public refreshCache() {
         this.cachedSchema = this.schemaCRDT.transformToJSONCleanSchema();
     }
@@ -153,5 +154,39 @@ export class SchemaLensEngine {
         if (!this.cachedSchema) this.refreshCache();
         const allowedEdges = this.cachedSchema.relationshipTypes || {};
         return relationships.filter(rel => allowedEdges[getType(rel)] !== undefined);
+    }
+
+    public decodeProperties(identifyingType: string, rawProps: Record<string, any>, changeType: whatToChange): Record<string, any> {
+        const decodedProps: Record<string, any> = {};
+        for (const [key, rawValue] of Object.entries(rawProps)) {
+            if (key.startsWith('__')) continue;
+            decodedProps[key] = this.decodeStringFromGraph(identifyingType, key, String(rawValue ?? ''), changeType);
+        }
+        return decodedProps;
+    }
+
+    public applyLensToGraph<N extends { id: string, label: string, props: Record<string, any> }, 
+                            E extends { id: string, label: string, sourceId: string, targetId: string, props: Record<string, any> }>(
+        rawNodes: N[],
+        rawEdges: E[]
+    ): { lensedNodes: (N & { appProps: Record<string, any> })[], lensedEdges: (E & { appProps: Record<string, any> })[] } {
+
+        const validNodes = this.filterAllowedNodes(rawNodes, n => n.label);
+        const validNodeIds = new Set(validNodes.map(n => n.id));
+
+        const lensedNodes = validNodes.map(n => ({
+            ...n,
+            appProps: this.decodeProperties(n.label, n.props, 'NodeType')
+        }));
+
+        const validEdges = this.filterAllowedRelationships(rawEdges, e => e.label)
+            .filter(e => validNodeIds.has(e.sourceId) && validNodeIds.has(e.targetId));
+
+        const lensedEdges = validEdges.map(e => ({
+            ...e,
+            appProps: this.decodeProperties(e.label, e.props, 'RelationshipType')
+        }));
+
+        return { lensedNodes, lensedEdges };
     }
 }

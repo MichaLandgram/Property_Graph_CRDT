@@ -1,10 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as Y from 'yjs';
 import { Schema_v1, SchemaDefinition } from '../Schema/schema_v1';
 import { VisVisualizer } from '../0_Vizualizer/VisVisualizer';
-import { bon19SchemaDef } from '../../1_Schema_CRDT/ExperimentHelper/Bon19_Schema';
-import { baseSchema } from './baseSchema';
-import { getDoc } from '../../Helper/YJS_helper/creator';
 
 const ConnectedClient: React.FC<{ doc: Y.Doc, title: string, schemaModel: Schema_v1 }> = ({ doc, title, schemaModel }) => {
     const [renderSchema, setRenderSchema] = useState<SchemaDefinition>({ nodes: [], relationships: [] });
@@ -76,17 +73,14 @@ const ConnectedClient: React.FC<{ doc: Y.Doc, title: string, schemaModel: Schema
     );
 };
 
-export const LiveSchemaDemo: React.FC = () => {
-    // Initialize 2 CRDTs and setup sync explicitly once
-    const { doc1, doc2, schema1, schema2 } = useMemo(() => {
-        const y1 = getDoc(1);
-        const y2 = getDoc(2);
+interface LiveSchemaDemoProps {
+    doc1: Y.Doc;
+    doc2: Y.Doc;
+    schema1: Schema_v1;
+    schema2: Schema_v1;
+}
 
-        const s1 = new Schema_v1(baseSchema, y1);
-        const s2 = new Schema_v1({nodes: [], relationships: []}, y2);
-        
-        return { doc1: y1, doc2: y2, schema1: s1, schema2: s2 };
-    }, []);
+export const LiveSchemaDemo: React.FC<LiveSchemaDemoProps> = ({ doc1, doc2, schema1, schema2 }) => {
 
     const handleSyncAtoB = () => {
         const update = Y.encodeStateAsUpdate(doc1);

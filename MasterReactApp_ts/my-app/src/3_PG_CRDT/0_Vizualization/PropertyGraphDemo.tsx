@@ -117,7 +117,7 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
         const props: Record<string, any> = {};
         newEdgeProps.forEach(({ key, value }) => { if (key.trim()) props[key.trim()] = value; });
         try {
-            pg.addEdge({ doc, sourceId: newEdgeSource, targetId: newEdgeTarget, label: newEdgeLabel.trim(), props });
+            pg.addEdge({ doc, sourceId: newEdgeSource, targetId: newEdgeTarget, type: newEdgeLabel.trim(), props });
         } catch (e: any) { alert(e.message); return; }
         setIsAddingEdge(false); setNewEdgeSource(''); setNewEdgeTarget(''); setNewEdgeLabel(''); setNewEdgeProps([]);
     };

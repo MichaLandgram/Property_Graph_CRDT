@@ -21,12 +21,12 @@ import { PropertyGraph } from '../PropertyGraph';
  */
 export function seedBon19Graph(doc: Y.Doc, pg: PropertyGraph): void {
 
-    // ── Nodes ──────────────────────────────────────────────────────────────
+    // Nodes
 
     const nodeDefs = [
         {
             nodeId: 'p1',
-            label: 'Person',
+            type: 'Person',
             color: '#3fb950',
             props: {
                 firstName: 'Harry',
@@ -36,7 +36,7 @@ export function seedBon19Graph(doc: Y.Doc, pg: PropertyGraph): void {
         },
         {
             nodeId: 'p2',
-            label: 'Person',
+            type: 'Person',
             color: '#3fb950',
             props: {
                 firstName: 'Alice',
@@ -46,7 +46,7 @@ export function seedBon19Graph(doc: Y.Doc, pg: PropertyGraph): void {
         },
         {
             nodeId: 'p3',
-            label: 'Person',
+            type: 'Person',
             color: '#3fb950',
             props: {
                 firstName: 'Bob',
@@ -56,7 +56,7 @@ export function seedBon19Graph(doc: Y.Doc, pg: PropertyGraph): void {
         },
         {
             nodeId: 'msg1',
-            label: 'Message',
+            type: 'Message',
             color: '#da3633',
             props: {
                 imageFile:    'photo33711.jpg',
@@ -68,7 +68,7 @@ export function seedBon19Graph(doc: Y.Doc, pg: PropertyGraph): void {
         },
         {
             nodeId: 'msg2',
-            label: 'Message',
+            type: 'Message',
             color: '#da3633',
             props: {
                 imageFile:    'dummy2.jpg',
@@ -80,7 +80,7 @@ export function seedBon19Graph(doc: Y.Doc, pg: PropertyGraph): void {
         },
         {
             nodeId: 'msg3',
-            label: 'Message',
+            type: 'Message',
             color: '#da3633',
             props: {
                 imageFile:    '',
@@ -94,28 +94,28 @@ export function seedBon19Graph(doc: Y.Doc, pg: PropertyGraph): void {
 
     for (const n of nodeDefs) {
         if (pg.getNodeProps(doc, n.nodeId)) continue;
-        pg.addNode({ doc, nodeId: n.nodeId, label: n.label, props: n.props, color: n.color, policy: 'OBSERVED_REMOVE' });
+        pg.addNode({ doc, nodeId: n.nodeId, label: n.type, props: n.props, color: n.color, policy: 'OBSERVED_REMOVE' });
     }
 
-    // ── Edges ──────────────────────────────────────────────────────────────
+    // Edges
 
     const edgeDefs = [
         // HAS_CREATOR: Message → Person
-        { edgeId: 'msg1-p2-hc', sourceId: 'msg1', targetId: 'p2', label: 'HAS_CREATOR', props: {} },
-        { edgeId: 'msg3-p2-hc', sourceId: 'msg3', targetId: 'p2', label: 'HAS_CREATOR', props: {} },
-        { edgeId: 'msg2-p3-hc', sourceId: 'msg2', targetId: 'p3', label: 'HAS_CREATOR', props: {} },
+        { edgeId: 'msg1-p2-hc', sourceId: 'msg1', targetId: 'p2', type: 'HAS_CREATOR', props: {} },
+        { edgeId: 'msg3-p2-hc', sourceId: 'msg3', targetId: 'p2', type: 'HAS_CREATOR', props: {} },
+        { edgeId: 'msg2-p3-hc', sourceId: 'msg2', targetId: 'p3', type: 'HAS_CREATOR', props: {} },
 
         // KNOWS: Person → Person
-        { edgeId: 'p1-p2-knows', sourceId: 'p1', targetId: 'p2', label: 'KNOWS', props: {} },
-        { edgeId: 'p2-p3-knows', sourceId: 'p2', targetId: 'p3', label: 'KNOWS', props: {} },
+        { edgeId: 'p1-p2-knows', sourceId: 'p1', targetId: 'p2', type: 'KNOWS', props: {} },
+        { edgeId: 'p2-p3-knows', sourceId: 'p2', targetId: 'p3', type: 'KNOWS', props: {} },
 
         // LIKES: Person → Message
-        { edgeId: 'p1-msg2-likes', sourceId: 'p1', targetId: 'msg2', label: 'LIKES', props: {} },
-        { edgeId: 'p3-msg2-likes', sourceId: 'p3', targetId: 'msg2', label: 'LIKES', props: {} },
+        { edgeId: 'p1-msg2-likes', sourceId: 'p1', targetId: 'msg2', type: 'LIKES', props: {} },
+        { edgeId: 'p3-msg2-likes', sourceId: 'p3', targetId: 'msg2', type: 'LIKES', props: {} },
 
         // REPLY_OF: Message → Message
-        { edgeId: 'msg3-msg2-reply', sourceId: 'msg3', targetId: 'msg2', label: 'REPLY_OF', props: {} },
-        { edgeId: 'msg2-msg1-reply', sourceId: 'msg2', targetId: 'msg2', label: 'REPLY_OF', props: {} },
+        { edgeId: 'msg3-msg2-reply', sourceId: 'msg3', targetId: 'msg2', type: 'REPLY_OF', props: {} },
+        { edgeId: 'msg2-msg1-reply', sourceId: 'msg2', targetId: 'msg2', type: 'REPLY_OF', props: {} },
     ];
 
     const existingEdgeIds = new Set(pg.getVisibleEdges(doc).map(e => e.id));
