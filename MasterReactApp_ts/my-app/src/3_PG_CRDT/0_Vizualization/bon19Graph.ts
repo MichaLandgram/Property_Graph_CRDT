@@ -22,14 +22,14 @@ import { PropertyGraph } from '../PropertyGraph';
 export function seedBon19Graph(doc: Y.Doc, pg: PropertyGraph): void {
 
     // Nodes
+    // TODO Rewrite this to use firstName: {value: 'Harry', writeType: 'string'} 
+    // writeType is the type the property is written as in the graph, helpful for the lens engine
 
     const nodeDefs = [
         {
             nodeId: 'p1',
             type: 'Person',
             color: '#3fb950',
-            // TODO Rewrite this to use firstName: {value: 'Harry', writeType: 'string'} 
-            // writeType is the type the property is written as in the graph, helpful for the lens engine
             props: {
                 firstName: 'Harry',
                 lastName:  'Hacker',

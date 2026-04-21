@@ -250,7 +250,9 @@ export class PropertyGraph {
     }
 
     getNodeProps(doc: Y.Doc, nodeId: NodeId): NodeProps {
-        getOrThrow(this.isNodeAlive(nodeId, doc), `PropertyGraph: Node "${nodeId}" not found or already removed.`);
+        if (!this.isNodeAlive(nodeId, doc)) {
+            throw new Error(`PropertyGraph: Node "${nodeId}" not found or already removed.`);
+        }
         const nodeMap = doc.getMap(`pg_n_${nodeId}`);
         return new DualKeyMap(nodeMap).getAll();
     }
