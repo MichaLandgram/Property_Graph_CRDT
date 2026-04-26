@@ -30,6 +30,11 @@ export interface PropertyLensMap {
     transformerMap?: Record<string, string>; // The automated mapping dictionary e.g.: { "sad": "0", "happy": "10", "default": "-1" }
 }
 
+export type PropertyStoreObeject = {
+    value: dataTypes;
+    writeType: dataTypes;
+}
+
 
 // // Data Types
 // export type dataTypes = 
@@ -89,7 +94,7 @@ export type AllowedConnectivity = Record<labelTypes, Record<labelTypes, edgeLabe
 export type AllowedNodeProperties = Record<labelTypes, Record<boolKeys, Record<string, dataTypes>>>;
 
 
-export type whatToChange = "NodeType" | "RelationshipType";
+export type whatType = "NodeType" | "RelationshipType";
 
 export type defaultVal = {
     default: number | string | boolean | Date;

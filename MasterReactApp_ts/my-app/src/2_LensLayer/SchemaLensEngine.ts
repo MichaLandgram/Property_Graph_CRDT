@@ -1,5 +1,5 @@
 import { Schema_v1 } from '../1_Schema_CRDT/Schema/schema_v1';
-import { whatToChange, PropertyLensMap, dataTypes } from '../0_Types/types';
+import { whatType, PropertyLensMap, dataTypes } from '../0_Types/types';
 import { SchemaError } from '../1_Schema_CRDT/0_Helper/SchemaError';
 
 // first DRAFT
@@ -22,7 +22,7 @@ export class SchemaLensEngine {
         this.cachedSchema = this.schemaCRDT.transformToJSONCleanSchema();
     }
 
-    public getPropertyLens(identifyingType: string, propertyKey: string, changeType: whatToChange): PropertyLensMap | undefined {
+    public getPropertyLens(identifyingType: string, propertyKey: string, changeType: whatType): PropertyLensMap | undefined {
         if (!this.cachedSchema) this.refreshCache();
 
         const targetTypes = changeType === "NodeType" 
@@ -50,48 +50,50 @@ export class SchemaLensEngine {
     }
 
 
-    public decodeStringFromGraph(identifyingType: string, propertyKey: string, rawString: string, changeType: whatToChange): any {
+    public decodeStringFromGraph(identifyingType: string, propertyKey: string, rawString: string, changeType: whatType): any {
         const lens = this.getPropertyLens(identifyingType, propertyKey, changeType);
         if (!lens) {
             return rawString;
         }
 
-        let translatedString = rawString;
-
+        let toBeTranslatedString = rawString;
 
         if (lens.transformerMap) {
             if (lens.transformerMap[rawString] !== undefined) {
-                translatedString = lens.transformerMap[rawString];
-            } else if (lens.transformerMap['default'] !== undefined) {
-                translatedString = lens.transformerMap['default'];
-            } else if (lens.default !== undefined) {
-                translatedString = lens.default;
+                toBeTranslatedString = lens.transformerMap[rawString];
             }
-        }
-
-
+        } else {
+            // 2. try to make an automatic transformation from the data
+            // type the property is supposed to have
+            // 3. if the auto transform fails -> use the lens.default value
+            
         switch (lens.value) {
             case 'number': {
-                const parsedNum = Number(translatedString);
-                return isNaN(parsedNum) ? translatedString : parsedNum;
+                const parsedNum = Number(toBeTranslatedString);
+                // if the parsed number is not a number -> use the lens.default value
+                return isNaN(parsedNum) ? lens.default : parsedNum;
             }
             case 'boolean': {
-                if (translatedString === 'true' || translatedString === '1') return true;
-                if (translatedString === 'false' || translatedString === '0') return false;
-                return Boolean(translatedString); // Fallback
+                
+                if (toBeTranslatedString.toLowerCase() === 'true' || toBeTranslatedString === '1') return true;
+                if (toBeTranslatedString.toLowerCase() === 'false' || toBeTranslatedString === '0') return false;
+                // exsisting String (e.g. "Hello") are "true" in boolean - empty string is false. GOOD "autotranslate"?
+                return Boolean(toBeTranslatedString);
             }
             case 'date': {
-                const parsedDate = new Date(translatedString);
-                return isNaN(parsedDate.getTime()) ? translatedString : parsedDate;
+                const parsedDate = new Date(toBeTranslatedString);
+                // empty string is invalid date -> returns the default value.
+                return isNaN(parsedDate.getTime()) ? lens.default : parsedDate;
             }
             case 'string':
             default:
-                return translatedString;
+                return toBeTranslatedString;
+            }
         }
     }
 
 
-    public encodeValueForGraph(identifyingType: string, propertyKey: string, rawAppValue: any, changeType: whatToChange): string {
+    public encodeValueForGraph(identifyingType: string, propertyKey: string, rawAppValue: any, changeType: whatType): string {
         const lens = this.getPropertyLens(identifyingType, propertyKey, changeType);
         
         let stringifiedValue = String(rawAppValue);
@@ -145,7 +147,7 @@ export class SchemaLensEngine {
         return relationships.filter(rel => allowedEdges[getType(rel)] !== undefined);
     }
 
-    public decodeAndFilterProperties(identifyingType: string, rawProps: Record<string, any>, changeType: whatToChange): Record<string, any> {
+    public decodeAndFilterProperties(identifyingType: string, rawProps: Record<string, any>, changeType: whatType): Record<string, any> {
         const filteredProps: Record<string, any> = {};
         const targetTypes = changeType === "NodeType" 
             ? this.cachedSchema.nodeTypes 
@@ -167,7 +169,7 @@ export class SchemaLensEngine {
         return decodedProps;
     }
 
-    public retriveLabels(identifyingType: string, what: whatToChange): string[] {
+    public retriveLabels(identifyingType: string, what: whatType): string[] {
         if (!this.cachedSchema) this.refreshCache();
         const targetTypes = what === "NodeType" 
             ? this.cachedSchema.nodeTypes 

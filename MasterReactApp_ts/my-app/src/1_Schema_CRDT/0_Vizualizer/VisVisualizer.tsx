@@ -176,7 +176,7 @@ export const VisVisualizer: React.FC<{ schemaDef: SchemaDefinition, schemaModel:
         try {
             schemaModel.SMO_AddPropertyType({
                 Idenifying: activeIdentifyingName,
-                whatToChange: activeItemType as any,
+                whatType: activeItemType as any,
                 newProperty: { key: newPropKey.trim(), value: newPropType as any }
             });
         } catch (error) {
@@ -190,7 +190,7 @@ export const VisVisualizer: React.FC<{ schemaDef: SchemaDefinition, schemaModel:
         try {
             schemaModel.SMO_DropPropertyType({
                 Idenifying: activeIdentifyingName,
-                whatToChange: activeItemType as any,
+                whatType: activeItemType as any,
                 propertyKey: key
             });
         } catch (error) {
@@ -204,7 +204,7 @@ export const VisVisualizer: React.FC<{ schemaDef: SchemaDefinition, schemaModel:
             const tags = schemaModel.getPropertyTypeTags(activeIdentifyingName, key, activeItemType as any);
             schemaModel.SMO_ChangePropertyType({
                 Idenifying: activeIdentifyingName,
-                whatToChange: activeItemType as any,
+                whatType: activeItemType as any,
                 propertyKey: key,
                 oldTags: tags,
                 newPropertyType: newType as any,

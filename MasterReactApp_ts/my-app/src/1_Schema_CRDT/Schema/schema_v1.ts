@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
 import { SchemaError } from '../0_Helper/SchemaError';
-import { dataTypes,defaultVal,whatToChange } from '../../0_Types/types';
+import { dataTypes,defaultVal,whatType } from '../../0_Types/types';
 import { getOrThrow } from '../0_Helper/SchemaError';
 
 
@@ -298,12 +298,12 @@ export class Schema_v1 {
     }
 
     // RENAME
-    public SMO_renamePropertyKey({Idenifying, oldPropertyKey, newPropertyKey, whatToChange}: {Idenifying: string, oldPropertyKey: string, newPropertyKey: string, whatToChange: whatToChange } ) {
+    public SMO_renamePropertyKey({Idenifying, oldPropertyKey, newPropertyKey, whatType}: {Idenifying: string, oldPropertyKey: string, newPropertyKey: string, whatType: whatType } ) {
         let Type;
-        if (whatToChange === "NodeType") {
+        if (whatType === "NodeType") {
             Type = this.getNodeType(Idenifying);
         } 
-        else if (whatToChange === "RelationshipType") {
+        else if (whatType === "RelationshipType") {
             Type = this.getRelationshipType(Idenifying);
         }
         const properties = getOrThrow(Type.get('properties'), 'Properties not found');
@@ -313,26 +313,26 @@ export class Schema_v1 {
         });
     }
 
-    public SMO_renameLabel({Idenifying, oldLabel, newLabel, whatToChange}: {Idenifying: string, oldLabel: string, newLabel: string, whatToChange: whatToChange } ) {
+    public SMO_renameLabel({Idenifying, oldLabel, newLabel, whatType}: {Idenifying: string, oldLabel: string, newLabel: string, whatType: whatType } ) {
         let Type;
-        if (whatToChange === "NodeType") {
+        if (whatType === "NodeType") {
             Type = this.getNodeType(Idenifying);
             const labels = getOrThrow(Type.get('labels'), 'Labels not found');
             this.doc.transact(() => {
                 labels.set(newLabel, newLabel);
             });
-        } else if (whatToChange === "RelationshipType") {
+        } else if (whatType === "RelationshipType") {
             // do we support this? or do we just do a you have to add a new relationship type?
         }
     }
 
     // CHANGE - ADD | DROP | RETYPE
-    public SMO_AddPropertyType({Idenifying, newProperty, defa, whatToChange}: {Idenifying: string, newProperty: {key: string, value: any}, defa?: any, whatToChange: whatToChange } ) {
+    public SMO_AddPropertyType({Idenifying, newProperty, defa, whatType}: {Idenifying: string, newProperty: {key: string, value: any}, defa?: any, whatType: whatType } ) {
         let Type;
-        if (whatToChange === "NodeType") {
+        if (whatType === "NodeType") {
             Type = this.getNodeType(Idenifying);
         } 
-        else if (whatToChange === "RelationshipType") {
+        else if (whatType === "RelationshipType") {
             Type = this.getRelationshipType(Idenifying);
         }
         const properties = getOrThrow(Type.get('properties'), 'Properties not found');
@@ -350,12 +350,12 @@ export class Schema_v1 {
         });
     }
 
-    public SMO_DropPropertyType({Idenifying, propertyKey, whatToChange}: {Idenifying: string, propertyKey: string, whatToChange: whatToChange } ) {
+    public SMO_DropPropertyType({Idenifying, propertyKey, whatType}: {Idenifying: string, propertyKey: string, whatType: whatType } ) {
         let Type;
-        if (whatToChange === "NodeType") {
+        if (whatType === "NodeType") {
             Type = this.getNodeType(Idenifying);
         } 
-        else if (whatToChange === "RelationshipType") {
+        else if (whatType === "RelationshipType") {
             Type = this.getRelationshipType(Idenifying);
         }
         const properties = getOrThrow(Type.get('properties'), 'Properties not found');
@@ -364,8 +364,8 @@ export class Schema_v1 {
         });
     }
 
-    public getPropertyTypeTags(Idenifying: string, propertyKey: string, whatToChange: whatToChange): string[] {
-        const Type = whatToChange === "NodeType" 
+    public getPropertyTypeTags(Idenifying: string, propertyKey: string, whatType: whatType): string[] {
+        const Type = whatType === "NodeType" 
             ? this.getNodeType(Idenifying) 
             : this.getRelationshipType(Idenifying);
         const properties = getOrThrow(Type.get('properties'), 'Properties not found');
@@ -373,8 +373,8 @@ export class Schema_v1 {
         const activeTypes = getOrThrow(propertyMap.get('activeTypes'), 'activeTypes map not found');
         return Array.from(activeTypes.keys());
     }
-    public SMO_ChangePropertyType({Idenifying, propertyKey, oldTags, newPropertyType, defaultVal, whatToChange}: {Idenifying: string, propertyKey: string, oldTags: string[], newPropertyType: dataTypes, defaultVal: defaultVal, whatToChange: whatToChange } ) {
-        const Type = whatToChange === "NodeType" 
+    public SMO_ChangePropertyType({Idenifying, propertyKey, oldTags, newPropertyType, defaultVal, whatType}: {Idenifying: string, propertyKey: string, oldTags: string[], newPropertyType: dataTypes, defaultVal: defaultVal, whatType: whatType } ) {
+        const Type = whatType === "NodeType" 
             ? this.getNodeType(Idenifying) 
             : this.getRelationshipType(Idenifying);
         
@@ -390,8 +390,8 @@ export class Schema_v1 {
         });
     }
 
-    public getResolvedPropertyType(Idenifying: string, propertyKey: string, whatToChange: whatToChange): dataTypes {
-        const Type = whatToChange === "NodeType" 
+    public getResolvedPropertyType(Idenifying: string, propertyKey: string, whatType: whatType): dataTypes {
+        const Type = whatType === "NodeType" 
             ? this.getNodeType(Idenifying) 
             : this.getRelationshipType(Idenifying);
             

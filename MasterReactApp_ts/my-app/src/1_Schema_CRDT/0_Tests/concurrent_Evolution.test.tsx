@@ -261,7 +261,7 @@ describe("Sequential Evolution - basic", () => {
         test("Drop NodeType Concurrent (Drop vs Update)", () => {
              bidirectionalSync(doc, doc2);
              schema.SMO_dropNodeType("Message");
-             schema2.SMO_AddPropertyType({Idenifying: "Message", newProperty: {key: "newProp", value: "string"}, whatToChange: "NodeType"});
+             schema2.SMO_AddPropertyType({Idenifying: "Message", newProperty: {key: "newProp", value: "string"}, whatType: "NodeType"});
              bidirectionalSync(doc, doc2);
              // The drop of the entire Map should cascade and result in undefined
              expect(schema.transformToJSONFullSchema().nodeTypes.Message).toBeUndefined();
@@ -286,8 +286,8 @@ describe("Sequential Evolution - basic", () => {
     describe("RENAME - RENAME", () => {
         test("Rename Property Key of NodeType Concurrent (Both rename)", () => {
             bidirectionalSync(doc, doc2);
-            schema.SMO_renamePropertyKey({Idenifying: "Person", oldPropertyKey: "lastName", newPropertyKey: "familyName", whatToChange: "NodeType"});
-            schema2.SMO_renamePropertyKey({Idenifying: "Person", oldPropertyKey: "lastName", newPropertyKey: "surname", whatToChange: "NodeType"});
+            schema.SMO_renamePropertyKey({Idenifying: "Person", oldPropertyKey: "lastName", newPropertyKey: "familyName", whatType: "NodeType"});
+            schema2.SMO_renamePropertyKey({Idenifying: "Person", oldPropertyKey: "lastName", newPropertyKey: "surname", whatType: "NodeType"});
             bidirectionalSync(doc, doc2);
             // Y.Map ensures both end up with the same string via LWW
             const props = schema.transformToJSONFullSchema().nodeTypes.Person.properties;
@@ -297,16 +297,16 @@ describe("Sequential Evolution - basic", () => {
         });
         test("Rename Property Key of RelationshipType Concurrent", () => {
             bidirectionalSync(doc, doc2);
-            schema.SMO_renamePropertyKey({Idenifying: "KNOWS", oldPropertyKey: "since", newPropertyKey: "seit", whatToChange: "RelationshipType"});
-            schema2.SMO_renamePropertyKey({Idenifying: "KNOWS", oldPropertyKey: "since", newPropertyKey: "startDate", whatToChange: "RelationshipType"});
+            schema.SMO_renamePropertyKey({Idenifying: "KNOWS", oldPropertyKey: "since", newPropertyKey: "seit", whatType: "RelationshipType"});
+            schema2.SMO_renamePropertyKey({Idenifying: "KNOWS", oldPropertyKey: "since", newPropertyKey: "startDate", whatType: "RelationshipType"});
             bidirectionalSync(doc, doc2);
             const props = schema.transformToJSONFullSchema().relationshipTypes.KNOWS.properties;
             expect(["seit", "startDate"]).toContain(props.since.name);
         });
         test("Rename Label of NodeType Concurrent", () => {
             bidirectionalSync(doc, doc2);
-            schema.SMO_renameLabel({Idenifying: "Message", oldLabel: "note", newLabel: "memo", whatToChange: "NodeType"});
-            schema2.SMO_renameLabel({Idenifying: "Message", oldLabel: "note", newLabel: "messageDoc", whatToChange: "NodeType"});
+            schema.SMO_renameLabel({Idenifying: "Message", oldLabel: "note", newLabel: "memo", whatType: "NodeType"});
+            schema2.SMO_renameLabel({Idenifying: "Message", oldLabel: "note", newLabel: "messageDoc", whatType: "NodeType"});
             bidirectionalSync(doc, doc2);
             const labels = schema.transformToJSONFullSchema().nodeTypes.Message.labels;
             expect(labels.memo || labels.messageDoc).toBeDefined();
@@ -322,8 +322,8 @@ describe("Sequential Evolution - basic", () => {
     describe("CHANGE - CHANGE", () => {
         test("Add Property to NodeType Concurrent", () => {
             bidirectionalSync(doc, doc2);
-            schema.SMO_AddPropertyType({Idenifying: "Person", newProperty: {key: "age", value: "number"}, whatToChange: "NodeType"});
-            schema2.SMO_AddPropertyType({Idenifying: "Person", newProperty: {key: "city", value: "string"}, whatToChange: "NodeType"});
+            schema.SMO_AddPropertyType({Idenifying: "Person", newProperty: {key: "age", value: "number"}, whatType: "NodeType"});
+            schema2.SMO_AddPropertyType({Idenifying: "Person", newProperty: {key: "city", value: "string"}, whatType: "NodeType"});
             bidirectionalSync(doc, doc2);
             const props = schema.transformToJSONFullSchema().nodeTypes.Person.properties;
             expect(props.age).toBeDefined();
@@ -332,8 +332,8 @@ describe("Sequential Evolution - basic", () => {
         });
         test("Add Property to RelationshipType Concurrent", () => {
             bidirectionalSync(doc, doc2);
-            schema.SMO_AddPropertyType({Idenifying: "KNOWS", newProperty: {key: "strength", value: "number"}, whatToChange: "RelationshipType"});
-            schema2.SMO_AddPropertyType({Idenifying: "KNOWS", newProperty: {key: "context", value: "string"}, whatToChange: "RelationshipType"});
+            schema.SMO_AddPropertyType({Idenifying: "KNOWS", newProperty: {key: "strength", value: "number"}, whatType: "RelationshipType"});
+            schema2.SMO_AddPropertyType({Idenifying: "KNOWS", newProperty: {key: "context", value: "string"}, whatType: "RelationshipType"});
             bidirectionalSync(doc, doc2);
             const props = schema.transformToJSONFullSchema().relationshipTypes.KNOWS.properties;
             expect(props.strength).toBeDefined();
@@ -341,8 +341,8 @@ describe("Sequential Evolution - basic", () => {
         });
         test("Drop Property from NodeType Concurrent", () => {
             bidirectionalSync(doc, doc2);
-            schema.SMO_DropPropertyType({Idenifying: "Person", propertyKey: "firstName", whatToChange: "NodeType"});
-            schema2.SMO_DropPropertyType({Idenifying: "Person", propertyKey: "lastName", whatToChange: "NodeType"});
+            schema.SMO_DropPropertyType({Idenifying: "Person", propertyKey: "firstName", whatType: "NodeType"});
+            schema2.SMO_DropPropertyType({Idenifying: "Person", propertyKey: "lastName", whatType: "NodeType"});
             bidirectionalSync(doc, doc2);
             const props = schema.transformToJSONFullSchema().nodeTypes.Person.properties;
             expect(props.firstName).toBeUndefined();
@@ -350,8 +350,8 @@ describe("Sequential Evolution - basic", () => {
         });
         test("Drop Property from RelationshipType Concurrent", () => {
             bidirectionalSync(doc, doc2);
-            schema.SMO_DropPropertyType({Idenifying: "KNOWS", propertyKey: "since", whatToChange: "RelationshipType"});
-            schema2.SMO_DropPropertyType({Idenifying: "KNOWS", propertyKey: "since", whatToChange: "RelationshipType"});
+            schema.SMO_DropPropertyType({Idenifying: "KNOWS", propertyKey: "since", whatType: "RelationshipType"});
+            schema2.SMO_DropPropertyType({Idenifying: "KNOWS", propertyKey: "since", whatType: "RelationshipType"});
             bidirectionalSync(doc, doc2);
             const props = schema.transformToJSONFullSchema().relationshipTypes.KNOWS.properties;
             expect(props.since).toBeUndefined();
@@ -362,9 +362,9 @@ describe("Sequential Evolution - basic", () => {
             const tags2 = schema2.getPropertyTypeTags("Message", "mood", "NodeType");
             
             const transformerMap = { "happy": "10", "sad": "0", "neutral": "5", "default": "-1" }   
-            schema.SMO_ChangePropertyType({Idenifying: "Message", propertyKey: "mood", oldTags: tags, newPropertyType: "number", defaultVal: {default: -1, transformerMap: transformerMap}, whatToChange: "NodeType"});
+            schema.SMO_ChangePropertyType({Idenifying: "Message", propertyKey: "mood", oldTags: tags, newPropertyType: "number", defaultVal: {default: -1, transformerMap: transformerMap}, whatType: "NodeType"});
             
-            schema2.SMO_ChangePropertyType({Idenifying: "Message", propertyKey: "mood", oldTags: tags2, newPropertyType: "string", defaultVal: {default: "0"}, whatToChange: "NodeType"});
+            schema2.SMO_ChangePropertyType({Idenifying: "Message", propertyKey: "mood", oldTags: tags2, newPropertyType: "string", defaultVal: {default: "0"}, whatType: "NodeType"});
             
             bidirectionalSync(doc, doc2);
             
@@ -377,8 +377,8 @@ describe("Sequential Evolution - basic", () => {
             bidirectionalSync(doc, doc2);
             const tags = schema.getPropertyTypeTags("KNOWS", "since", "RelationshipType");
             const tags2 = schema2.getPropertyTypeTags("KNOWS", "since", "RelationshipType");
-            schema.SMO_ChangePropertyType({Idenifying: "KNOWS", propertyKey: "since", oldTags: tags, newPropertyType: "number", defaultVal: {default: 2000}, whatToChange: "RelationshipType"});
-            schema2.SMO_ChangePropertyType({Idenifying: "KNOWS", propertyKey: "since", oldTags: tags2, newPropertyType: "date", defaultVal: {default: new Date("2000-01-01")}, whatToChange: "RelationshipType"});
+            schema.SMO_ChangePropertyType({Idenifying: "KNOWS", propertyKey: "since", oldTags: tags, newPropertyType: "number", defaultVal: {default: 2000}, whatType: "RelationshipType"});
+            schema2.SMO_ChangePropertyType({Idenifying: "KNOWS", propertyKey: "since", oldTags: tags2, newPropertyType: "date", defaultVal: {default: new Date("2000-01-01")}, whatType: "RelationshipType"});
             bidirectionalSync(doc, doc2);
             
             const mergedProps = schema.transformToJSONFullSchema().relationshipTypes.KNOWS.properties.since.activeTypes;
