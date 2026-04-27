@@ -44,7 +44,8 @@ describe('Does addNode add a node correctly to the graph?', () => {
         schemaGraph.addNode({ doc: graph, nodeId: '1', type: 'TEST', props: initialProps, policy: 'ADD_WINS', color });
         expect(graph.getMap('pg_n_1').size).toBeGreaterThan(0);
         schemaGraph.getVisibleNodes(graph).forEach(node => {
-            const props = schemaGraph.getNodeProps(graph, node.id);
+            const props = schemaGraph.getNodeProps(graph, node.id) ?? {};
+            expect(props).not.toBe(undefined);
             expect(props['testString']).toBe('hello');
             expect(props['testNumber']).toBe(42);
             expect(props['testBoolean']).toBe(true);
@@ -143,12 +144,14 @@ describe('Does addNode add a node correctly to the graph?', () => {
         // should have a combination of both updates -- my decision
         expect(schemaGraph.getVisibleNodes(graph)).toHaveLength(1);
         expect(schemaGraph.getVisibleNodes(graph2)).toHaveLength(1);
-        expect(schemaGraph.getNodeProps(graph, '1').testNumber).toBe(2);
-        expect(schemaGraph.getNodeProps(graph2, '1').testNumber).toBe(2);
+        const props1 = schemaGraph.getNodeProps(graph, '1') ?? {};
+        const props2 = schemaGraph.getNodeProps(graph2, '1') ?? {};
+        expect(props1.testNumber).toBe(2);
+        expect(props2.testNumber).toBe(2);
         // it is Hi2 because the id is the tie breaker!
-        expect(schemaGraph.getNodeProps(graph, '1').testString).toBe('Hi2');
-        expect(schemaGraph.getNodeProps(graph2, '1').testString).toBe('Hi2');
-        expect(schemaGraph.getNodeProps(graph, '1').testBoolean).toBe(false);
-        expect(schemaGraph.getNodeProps(graph2, '1').testBoolean).toBe(false);
+        expect(props1.testString).toBe('Hi2');
+        expect(props2.testString).toBe('Hi2');
+        expect(props1.testBoolean).toBe(false);
+        expect(props2.testBoolean).toBe(false);
     });
 });

@@ -1,5 +1,5 @@
 import { Schema_v1 } from '../1_Schema_CRDT/Schema/schema_v1';
-import { whatType, PropertyLensMap, dataTypes } from '../0_Types/types';
+import { whatType, PropertyLensMap, dataTypes } from '../0_Meta/types';
 import { SchemaError } from '../1_Schema_CRDT/0_Helper/SchemaError';
 
 // first DRAFT

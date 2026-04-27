@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
 import { SchemaError } from '../0_Helper/SchemaError';
-import { dataTypes,defaultVal,whatType } from '../../0_Types/types';
+import { dataTypes,defaultVal,whatType } from '../../0_Meta/types';
 import { getOrThrow } from '../0_Helper/SchemaError';
 
 

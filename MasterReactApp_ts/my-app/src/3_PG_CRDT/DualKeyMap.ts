@@ -1,5 +1,6 @@
 import * as Y from 'yjs';
 import { GrowOnlyCounter } from '../Helper/YJS_helper/moreComplexTypes';
+import { PropertyStoreObeject } from '../0_Meta/types';
 
 /**
  * A wrapper around Y.Map that implements the "Dual-Key Register" pattern.
@@ -25,13 +26,17 @@ export class DualKeyMap {
             this.map.set(key, value);
             return;
         }
-
-        const initKey = `init_${key}`;
-        
-        if (value instanceof Date) {
-            this.map.set(initKey, value.toISOString());
+        if (value instanceof PropertyStoreObeject) {
+            this.map.set(key, value);
             return;
         }
+
+        const initKey = `init_${key}`;
+        // through the Lens it will be always a string
+        // if (value instanceof Date) {
+        //     this.map.set(initKey, value.toISOString());
+        //     return;
+        // }
         this.map.set(initKey, value);
     }
 

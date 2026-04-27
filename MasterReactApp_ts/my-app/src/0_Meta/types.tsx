@@ -30,9 +30,14 @@ export interface PropertyLensMap {
     transformerMap?: Record<string, string>; // The automated mapping dictionary e.g.: { "sad": "0", "happy": "10", "default": "-1" }
 }
 
-export type PropertyStoreObeject = {
+export class PropertyStoreObeject {
     value: dataTypes;
     writeType: dataTypes;
+
+    constructor(value: dataTypes, writeType: dataTypes) {
+        this.value = value;
+        this.writeType = writeType;
+    }
 }
 
 

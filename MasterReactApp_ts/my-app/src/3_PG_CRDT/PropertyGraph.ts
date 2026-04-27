@@ -107,11 +107,11 @@ export class PropertyGraph {
     /**
      * Add a node.
      * @param doc    - The shared Yjs document.
-     * @param nodeId - Stable identifier (must be unique within the doc).
-     * @param type  - Human-readable type label (e.g. "Person", "Movie").
-     * @param props  - Initial property values.
+     * @param nodeId - Stable unique identifier.
+     * @param type  - Type definition of the node - not queriable, just defines the "class" of the node.
+     * @param props  - properties of the node
      * @param policy - Conflict resolution policy (default: OBSERVED_REMOVE).
-     * @param color  - Optional display colour for UI renderers.
+     * @param color  - Optional display colour for UI renderers. (No importance for the PG.)
      */
     addNode({
         doc,
@@ -131,7 +131,7 @@ export class PropertyGraph {
         this.validator.validateNodeAdd(type, props);
 
         doc.transact(() => {
-            // Persist policy permanently (must survive node deletion)
+            // CRITICAL: persist policy permanently (must survive node deletion)
             this.getNodesPolicies(doc).set(nodeId, policy);
 
             if (policy === 'ADD_WINS') {
@@ -141,7 +141,6 @@ export class PropertyGraph {
             }
 
             const nodeMap = doc.getMap(`pg_n_${nodeId}`);
-            // Structural metadata
             nodeMap.set('__type', type);
             nodeMap.set('__policy', policy);
             if (color) nodeMap.set('__color', color);
@@ -161,10 +160,12 @@ export class PropertyGraph {
     updateNode({
         doc,
         nodeId,
+        tags, // do I make updates tag bound ... ? unsure yet
         props,
     }: {
         doc: Y.Doc;
         nodeId: NodeId;
+        tags?: string[];
         props: NodeProps;
     }): void {
         if (!this.isNodeAlive(nodeId, doc)) {
@@ -249,9 +250,9 @@ export class PropertyGraph {
         return visible;
     }
 
-    getNodeProps(doc: Y.Doc, nodeId: NodeId): NodeProps {
+    getNodeProps(doc: Y.Doc, nodeId: NodeId): NodeProps | undefined {
         if (!this.isNodeAlive(nodeId, doc)) {
-            throw new Error(`PropertyGraph: Node "${nodeId}" not found or already removed.`);
+            return undefined
         }
         const nodeMap = doc.getMap(`pg_n_${nodeId}`);
         return new DualKeyMap(nodeMap).getAll();
@@ -267,7 +268,7 @@ export class PropertyGraph {
      * invisible automatically — no explicit edge deletion required for
      * Observed-Remove nodes.
      *
-     * @param edgeId - Optional stable ID (useful for tests / idempotency). A UUID is generated if omitted.
+     * @param edgeId - if not provided, a UUID is generated.
      */
     addEdge({
         doc,
