@@ -1,5 +1,5 @@
 import { Schema_v1 } from "../Schema/schema_v1";
-import { SchemaError } from "../0_Helper/SchemaError";
+import { SchemaError } from "../../0_Meta/ErrorDefinition";
 import { bon19SchemaDef } from "../ExperimentHelper/Bon19_Schema";
 
 describe("Sequential Schema Tests", () => {

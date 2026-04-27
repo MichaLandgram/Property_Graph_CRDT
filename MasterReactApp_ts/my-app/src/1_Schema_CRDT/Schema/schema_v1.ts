@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
-import { SchemaError } from '../0_Helper/SchemaError';
+import { SchemaError } from '../../0_Meta/ErrorDefinition';
 import { dataTypes,defaultVal,whatType } from '../../0_Meta/types';
-import { getOrThrow } from '../0_Helper/SchemaError';
+import { getOrThrow } from '../../0_Meta/ErrorDefinition';
 
 
 // 

@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
 import { ORSetRegistry } from './ORSetRegistry';
 import { DualKeyMap } from './DualKeyMap';
-import { getOrThrow } from '../1_Schema_CRDT/0_Helper/SchemaError';
+import { getOrThrow } from '../0_Meta/ErrorDefinition';
 
 // Core Types
 
