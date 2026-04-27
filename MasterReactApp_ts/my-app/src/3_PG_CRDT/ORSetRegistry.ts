@@ -14,7 +14,7 @@ import * as Y from 'yjs';
  * - Entry is "alive" if at least one of its tags is NOT in tombstones.
  * - Concurrent creates merge: both tags survive (because they're separate keys).
  * - Remove tombstones ALL currently observed tags.
- * - Updates to a tombstoned tag are ignored.
+ * - QUESTION: should we block updates to the wrong TAG?
  */
 export class ORSetRegistry {
     private doc: Y.Doc;

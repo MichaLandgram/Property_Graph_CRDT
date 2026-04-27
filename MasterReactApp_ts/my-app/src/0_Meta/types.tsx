@@ -1,12 +1,31 @@
-// Node Id Type
+// Unique Identifiers for Nodes and Edges
 export type NodeId = string;
-// Node Label
-export type labelTypes = string;
+export type EdgeId = string;
+// Policy Types - and Mapping to the corresponding label type - REMOVE_WINS is not only included for downwards compatibility
+export type Policy = "ADD_WINS" | "OBSERVED_REMOVE" | "REMOVE_WINS";
 
-// Edge Label
-export type edgeLabelTypes = string;
+// Property Types 
+export type NodeProps = Record<string, any>;
+export type EdgeProps = Record<string, any>;
 
-// Minimal interface for grow-only counters (matches Yjs counters we use)
+// Visible Node and Edge Types (only the data that is needed for the visualization)
+export type VisibleNode = {
+    id: NodeId;
+    type: string;
+    label?: string[];
+    policy: Policy;
+    color?: string;
+    props: NodeProps;
+};
+
+export type VisibleEdge = {
+    id: EdgeId;
+    type: string;
+    sourceId: NodeId;
+    targetId: NodeId;
+    props: EdgeProps;
+};
+
 
 
 export type PrimitiveData = 'string' | 'number' | 'boolean' | 'date';
@@ -30,42 +49,25 @@ export interface PropertyLensMap {
     transformerMap?: Record<string, string>; // The automated mapping dictionary e.g.: { "sad": "0", "happy": "10", "default": "-1" }
 }
 
-export class PropertyStoreObeject {
-    value: dataTypes;
-    writeType: dataTypes;
+export type whatType = "NodeType" | "RelationshipType";
 
-    constructor(value: dataTypes, writeType: dataTypes) {
-        this.value = value;
-        this.writeType = writeType;
-    }
+export type defaultVal = {
+    default: number | string | boolean | Date;
+    transformerMap?: Record<string, string>;
 }
 
 
-// // Data Types
-// export type dataTypes = 
-//   | string 
-//   | number 
-//   | boolean 
-//   | Date 
-//   | Counter
-//   | Y.Map<dataTypes>      // Add this
-//   | Y.Array<dataTypes>;   // Add this
-//   // | Vector 
-//   // | Point;
-
-
-// export type Point = {
-//     x: number;
-//     y: number;
-//     z?: number;
-// };
-
-// Policy Types - and Mapping to the corresponding label type - REMOVE_WINS is not only included for downwards compatibility
-export type Policy = "ADD_WINS" | "OBSERVED_REMOVE" | "REMOVE_WINS";
 
 
 
 
+
+
+/* 
+*
+* OLD TYPES - DEPRECATED - DO NOT USE mainly to be able to use the first IDEAS
+* 
+*/
 export type XYPosition = {
     x: number;
     y: number;
@@ -79,15 +81,15 @@ export type AlwaysNodeData = {
     color: string;
 }
 
+export type labelTypes = string;
+export type edgeLabelTypes = string;
+
 // Edge Types
 export type EdgeData = {
     placeholder: string;
     label: edgeLabelTypes;
 }
 
-export type EdgeId = `${NodeId}+${NodeId}`
-
-/* Helper Types */
 export type boolKeys = "notNull" | "nullable";
 
 export type addUpdateTag = "add" | "update";
@@ -99,9 +101,3 @@ export type AllowedConnectivity = Record<labelTypes, Record<labelTypes, edgeLabe
 export type AllowedNodeProperties = Record<labelTypes, Record<boolKeys, Record<string, dataTypes>>>;
 
 
-export type whatType = "NodeType" | "RelationshipType";
-
-export type defaultVal = {
-    default: number | string | boolean | Date;
-    transformerMap?: Record<string, string>;
-}
