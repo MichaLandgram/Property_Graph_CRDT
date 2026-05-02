@@ -131,8 +131,8 @@ describe("Sequential Evolution - basic", () => {
                 age: {name: 'age', activeTypes: { '1': {value: 'number', default: undefined} }}});
         });
         test("Add Property to RelationshipType", () => {
-            schema.SMO_AddPropertyType({Idenifying: "KNOWS", newProperty: {key: "since", value: "string"}, whatType: "RelationshipType"});
-            expect(schema.getRelationshipTypeJSON("KNOWS").properties).toEqual(
+            schema.SMO_AddPropertyType({Idenifying: "HATES", newProperty: {key: "since", value: "string"}, whatType: "RelationshipType"});
+            expect(schema.getRelationshipTypeJSON("HATES").properties).toEqual(
                 {since: {name: 'since', activeTypes: { '1': {value: 'string', default: undefined} }}});
         });
         test("Drop Property from NodeType", () => {
