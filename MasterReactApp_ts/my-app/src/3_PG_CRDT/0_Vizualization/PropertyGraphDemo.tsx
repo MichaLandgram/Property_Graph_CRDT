@@ -3,6 +3,7 @@ import * as Y from 'yjs';
 import { PropertyGraph, VisibleNode, VisibleEdge } from '../PropertyGraph';
 import { VisGraphCanvas } from './VisGraphCanvas';
 import { seedBon19Graph } from './bon19Graph';
+import { seedBon19GraphExtendet } from './bon19Graph_extendet';
 
 const pg = new PropertyGraph();
 
@@ -74,7 +75,7 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
     }, [doc]);
 
     useEffect(() => {
-        seedBon19Graph(doc, pg);
+        seedBon19GraphExtendet(doc, pg);
         refresh();
         doc.on('update', refresh);
         return () => doc.off('update', refresh);
@@ -255,7 +256,7 @@ export const PropertyGraphDemo: React.FC<PropertyGraphDemoProps> = ({ doc }) => 
 
                     <div style={{ padding: '18px 20px 10px', borderBottom: `1px solid ${BORDER}` }}>
                         <h2 style={{ margin: 0, color: selectedNode ? BLUE : GREEN, fontSize: 16 }}>
-                            {selectedNode ? '🔵 Node' : '🔗 Edge'}:&nbsp;
+                            {selectedNode ? 'Node' : 'Edge'}:&nbsp;
                             <span style={{ color: BRIGHT }}>{selectedNode ? selectedNode.type : selectedEdge?.type}</span>
                         </h2>
                         {selectedNode && (

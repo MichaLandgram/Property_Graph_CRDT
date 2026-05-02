@@ -64,7 +64,8 @@ export const VisGraphCanvas: React.FC<VisGraphCanvasProps> = ({
     const { networkNodes, networkEdges } = useMemo(() => {
         const networkNodes = nodes.map(n => ({
             id: n.id,
-            label: n.type || n.id.slice(0, 8),
+            // label in this case is the "naming" of the node in the PG View. It does not resemble the label set a node has.
+            label: n.id,
             color: { background: n.fill || generateColor(n.type || n.id), border: '#ffffff' },
             font: { color: '#ffffff', size: 16, face: 'monospace' },
             shape: 'circle',

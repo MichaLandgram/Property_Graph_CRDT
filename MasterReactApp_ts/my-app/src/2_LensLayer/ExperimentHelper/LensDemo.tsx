@@ -4,7 +4,7 @@ import { PropertyGraph, VisibleNode, VisibleEdge } from '../../3_PG_CRDT/Propert
 import { SchemaLensEngine } from '../SchemaLensEngine';
 import { Schema_v1 } from '../../1_Schema_CRDT/Schema/schema_v1';
 import { VisGraphCanvas } from '../../3_PG_CRDT/0_Vizualization/VisGraphCanvas';
-import { seedBon19Graph } from '../../3_PG_CRDT/0_Vizualization/bon19Graph';
+import { seedBon19GraphExtendet } from '../../3_PG_CRDT/0_Vizualization/bon19Graph_extendet';
 
 
 const DARK   = '#0d1117';
@@ -80,7 +80,7 @@ export const LensGraphView: React.FC<LensGraphViewProps> = ({ pgDoc, schemaDoc, 
     }, [pgDoc, engine]);
 
     useEffect(() => {
-        seedBon19Graph(pgDoc, pg);
+        seedBon19GraphExtendet(pgDoc, pg);
         refresh();
         pgDoc.on('update', refresh);
         schemaDoc.on('update', refresh);
