@@ -4,6 +4,7 @@ import './App.css';
 import { Schema_v1 } from './1_Schema_CRDT/Schema/schema_v1';
 import { baseSchema } from './1_Schema_CRDT/ExperimentHelper/baseSchema';
 import { bon19SchemaDef } from './1_Schema_CRDT/ExperimentHelper/Bon19_Schema';
+import { bon19SchemaExt, bon19SchemaExtendet } from './1_Schema_CRDT/ExperimentHelper/Bon19_Schema_extendet'
 import { LiveSchemaDemo } from './1_Schema_CRDT/ExperimentHelper/LiveSchemaDemo';
 import { LivePGDemo } from './3_PG_CRDT/0_Vizualization/LivePGDemo';
 import { LiveLensDemo } from './2_LensLayer/ExperimentHelper/LiveLensDemo';
@@ -20,7 +21,7 @@ function App() {
     // Schema CRDT docs
     const sd1 = new Y.Doc(); sd1.clientID = 1;
     const sd2 = new Y.Doc(); sd2.clientID = 2;
-    const s1 = new Schema_v1(bon19SchemaDef, sd1);
+    const s1 = new Schema_v1(bon19SchemaExt, sd1);
     const s2 = new Schema_v1({ nodes: [], relationships: [] }, sd2);
 
     // Property Graph docs
