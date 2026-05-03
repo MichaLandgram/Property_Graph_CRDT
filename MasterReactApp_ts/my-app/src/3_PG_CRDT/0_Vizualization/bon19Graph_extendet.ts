@@ -31,9 +31,9 @@ export function seedBon19GraphExtendet(doc: Y.Doc, pg: PropertyGraph): void {
             type: 'Person',
             color: '#3fb950',
             props: {
-                firstName: 'Harry',
-                lastName:  'Hacker',
-                labels:    'resident, citizen',
+                firstName: { value: 'Harry', writeType: 'string' },
+                lastName:  { value: 'Hacker', writeType: 'string' },
+                labels:    { value: 'resident, citizen', writeType: 'string' },
             },
         },
         {
@@ -129,10 +129,18 @@ export function seedBon19GraphExtendet(doc: Y.Doc, pg: PropertyGraph): void {
         { edgeId: 'msg3-msg2-reply', sourceId: 'msg3', targetId: 'msg2', type: 'REPLY_OF', props: {} },
         { edgeId: 'msg2-msg1-reply', sourceId: 'msg2', targetId: 'msg2', type: 'REPLY_OF', props: {} },
 
-        // containerOf: Message -> Forum
+        // CONTAINER_OF: Message -> Forum
         { edgeId: 'msg1-F1-co', sourceId: 'msg1', targetId: 'F1', type: 'CONTAINER_OF', props: {} },
         { edgeId: 'msg2-F1-co', sourceId: 'msg2', targetId: 'F1', type: 'CONTAINER_OF', props: {} },
         { edgeId: 'msg3-F1-co', sourceId: 'msg3', targetId: 'F1', type: 'CONTAINER_OF', props: {} },
+
+        // //HAS_MEMBER: Forum -> Person
+        // { edgeId: 'F1-p1-hm', sourceId: 'F1', targetId: 'p1', type: 'HAS_MEMBER', props: {} },
+        // { edgeId: 'F1-p2-hm', sourceId: 'F1', targetId: 'p2', type: 'HAS_MEMBER', props: {} },
+        // { edgeId: 'F1-p3-hm', sourceId: 'F1', targetId: 'p3', type: 'HAS_MEMBER', props: {} },
+
+        //HAS_MODERATOR: Forum -> Person
+        { edgeId: 'F1-p1-hmod', sourceId: 'F1', targetId: 'p1', type: 'HAS_MODERATOR', props: {} },
 
     ];
 

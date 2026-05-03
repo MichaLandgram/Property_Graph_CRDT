@@ -7,7 +7,10 @@ export const bon19SchemaExt: SchemaDefinition = {
             labels: ['resident', 'citizen'],
             properties: {
                 firstName: 'string',
-                lastName: 'string'
+                lastName: 'string',
+                isBlocked: 'boolean',
+                age: 'number',
+                gender: 'string'   
             }
         },
         {
@@ -62,16 +65,16 @@ export const bon19SchemaExt: SchemaDefinition = {
                 date: 'string'
             }
         },
+        // {
+        //     identifyingEdge: 'HAS_MEMBER',
+        //     sourceNodeLabel: 'Forum',
+        //     targetNodeLabel: 'Person',
+        //     properties: {
+        //         creationDate: 'date'
+        //     }  
+        // },
         {
-            identifyingEdge: 'hasMemeber',
-            sourceNodeLabel: 'Forum',
-            targetNodeLabel: 'Person',
-            properties: {
-                creationDate: 'date'
-            }  
-        },
-        {
-            identifyingEdge: 'hasModerator',
+            identifyingEdge: 'HAS_MODERATOR',
             sourceNodeLabel: 'Forum',
             targetNodeLabel: 'Person',
             properties: {
@@ -79,7 +82,7 @@ export const bon19SchemaExt: SchemaDefinition = {
             }  
         },
         {
-            identifyingEdge: 'containerOf',
+            identifyingEdge: 'CONTAINER_OF',
             sourceNodeLabel: 'Forum',
             targetNodeLabel: 'Message',
             properties: {}  
