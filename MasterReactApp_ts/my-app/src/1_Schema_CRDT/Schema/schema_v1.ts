@@ -2,12 +2,12 @@ import * as Y from 'yjs';
 import { SchemaError } from '../../0_Meta/ErrorDefinition';
 import { dataTypes,defaultVal,whatType } from '../../0_Meta/types';
 import { getOrThrow } from '../../0_Meta/ErrorDefinition';
+import { v4 as uuidv4 } from 'uuid';
 
 
 // 
 // We have as root the Y.Doc named SchemaCRDT, it contains the:
 // 1. NodeTypes - containing the NodeTypes.
-        // 
 // 2. RelationshipTypes - containing the RelationshipTypes.
 
 export interface SchemaDefinition {
@@ -24,6 +24,7 @@ export interface SchemaDefinition {
     }>;
 }
 
+
 /**
  * Defines a schema for a graph database.
  * @param schemaDef A optional schema definition to start from in a JSON format.
@@ -33,6 +34,7 @@ export class Schema_v1 {
     private doc: Y.Doc;
     private nodeTypes: Y.Map<any>;
     private relationshipTypes: Y.Map<any>;
+    private labels: Y.Map<any>;
 
     public get yjsDoc(): Y.Doc {
         return this.doc;
@@ -43,6 +45,7 @@ export class Schema_v1 {
         this.doc = doc || new Y.Doc();
         this.nodeTypes = this.doc.getMap('nodeTypes');
         this.relationshipTypes = this.doc.getMap('relationshipTypes');
+        this.labels = this.doc.getMap('labels');
 
         if (schemaDef) {
             this.doc.transact(() => {
@@ -55,10 +58,15 @@ export class Schema_v1 {
             });
         }
     }
-    /*
-        NODETYPE Basic Operations
-        add, drop, update, get
-    */
+
+
+    /**
+     * Adds a new node type to the schema.
+     * @param IdenifyingType - The identifying type of the node type.
+     * @param labels - The labels of the node type. A set of uuids.
+     * @param properties - The properties of the node type.
+     * @param defa - The default values of the properties.
+     */
     private addNodeType({ IdenifyingType, labels, properties, defa }: {IdenifyingType: string, labels: string[], properties: any, defa?: any}) {
         // cannot readd node types
         if (this.nodeTypes.has(IdenifyingType)) {
@@ -68,8 +76,21 @@ export class Schema_v1 {
         const propertiesMap = new Y.Map<any>();
 
         const labelsMap = new Y.Map<string>();
+
         labels.forEach(label => {
-            labelsMap.set(label, label);
+            let foundUuid: string | null = null;
+            this.labels.forEach((labelObj: Y.Map<any>, uuid: string) => {
+                if (labelObj.get('name') === label) {
+                    foundUuid = uuid;
+                }
+            });
+            if (!foundUuid) {
+                foundUuid = uuidv4();
+                const labelObj = new Y.Map<any>();
+                labelObj.set('name', label);
+                this.labels.set(foundUuid, labelObj);
+            }
+            labelsMap.set(foundUuid, foundUuid);
         });
 
         for (const [key, value] of Object.entries(properties)) {
@@ -96,7 +117,21 @@ export class Schema_v1 {
     }
     public getNodeTypeJSON(IdenifyingType: string) {
         const nodeType = getOrThrow(this.nodeTypes.get(IdenifyingType), 'Node type not found');
-        return nodeType.toJSON();
+        const rawJson = nodeType.toJSON();
+        
+        // Project labels
+        const resolvedLabels: Record<string, string> = {};
+        for (const uuid of Object.keys(rawJson.labels || {})) {
+            const labelObj = this.labels.get(uuid);
+            if (labelObj) {
+                const name = labelObj.get('name');
+                if (name) resolvedLabels[name] = name;
+            }
+        }
+        rawJson.labels = resolvedLabels;
+
+
+        return rawJson;
     }
 
     /**
@@ -107,8 +142,12 @@ export class Schema_v1 {
         this.nodeTypes.forEach((nodeTypeMap: any) => {
             const labelsMap = nodeTypeMap.get('labels');
             if (labelsMap) {
-                labelsMap.forEach((label: string) => {
-                    allLabels.add(label);
+                labelsMap.forEach((uuid: string) => {
+                    const labelObj = this.labels.get(uuid);
+                    if (labelObj) {
+                        const name = labelObj.get('name');
+                        if (name) allLabels.add(name);
+                    }
                 });
             }
         });
@@ -153,7 +192,19 @@ export class Schema_v1 {
             throw new Error('Node type labels not found');
         }
         labels.forEach(label => {
-            labelsMap.set(label, label);
+            let foundUuid: string | null = null;
+            this.labels.forEach((labelObj: Y.Map<any>, uuid: string) => {
+                if (labelObj.get('name') === label) {
+                    foundUuid = uuid;
+                }
+            });
+            if (!foundUuid) {
+                foundUuid = uuidv4();
+                const labelObj = new Y.Map<any>();
+                labelObj.set('name', label);
+                this.labels.set(foundUuid, labelObj);
+            }
+            labelsMap.set(foundUuid, foundUuid);
         });
     }
 
@@ -307,22 +358,25 @@ export class Schema_v1 {
             Type = this.getRelationshipType(Idenifying);
         }
         const properties = getOrThrow(Type.get('properties'), 'Properties not found');
+        console.log(properties.get(oldPropertyKey), whatType, oldPropertyKey, properties.toJSON());
         const valueMap = getOrThrow(properties.get(oldPropertyKey), 'Property not found');
         this.doc.transact(() => {
             valueMap.set('name', newPropertyKey);
         });
     }
 
-    public SMO_renameLabel({Idenifying, oldLabel, newLabel, whatType}: {Idenifying: string, oldLabel: string, newLabel: string, whatType: whatType } ) {
-        let Type;
-        if (whatType === "NodeType") {
-            Type = this.getNodeType(Idenifying);
-            const labels = getOrThrow(Type.get('labels'), 'Labels not found');
-            this.doc.transact(() => {
-                labels.set(newLabel, newLabel);
+    public SMO_renameLabel(oldLabel: string, newLabel: string) {
+        let found = false;
+        this.doc.transact(() => {
+            this.labels.forEach((labelObj: Y.Map<any>) => {
+                if (labelObj.get('name') === oldLabel) {
+                    labelObj.set('name', newLabel);
+                    found = true;
+                }
             });
-        } else if (whatType === "RelationshipType") {
-            // do we support this? or do we just do a you have to add a new relationship type?
+        });
+        if (!found) {
+            throw new SchemaError('Label does not exist');
         }
     }
 
