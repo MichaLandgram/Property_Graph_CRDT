@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import * as Y from 'yjs';
-import { Schema_v1 } from '../../1_Schema_CRDT/Schema/schema_v1';
+import { Schema_v1 } from '../../1_Schema_CRDT/Schema_v1/schema_v1';
 import { SchemaLensEngine } from '../SchemaLensEngine';
 import { LensGraphView } from './LensDemo';
 

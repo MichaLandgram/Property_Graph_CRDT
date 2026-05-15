@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import * as Y from 'yjs';
 import './App.css';
-import { Schema_v1 } from './1_Schema_CRDT/Schema/schema_v1';
+import { Schema_v1 } from './1_Schema_CRDT/Schema_v1/schema_v1';
 import { baseSchema } from './1_Schema_CRDT/ExperimentHelper/baseSchema';
 import { bon19SchemaDef } from './1_Schema_CRDT/ExperimentHelper/Bon19_Schema';
 import { bon19SchemaExt, bon19SchemaExtendet } from './1_Schema_CRDT/ExperimentHelper/Bon19_Schema_extendet'

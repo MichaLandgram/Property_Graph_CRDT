@@ -5,10 +5,21 @@ import { getOrThrow } from '../../0_Meta/ErrorDefinition';
 import { v4 as uuidv4 } from 'uuid';
 
 
-// 
-// We have as root the Y.Doc named SchemaCRDT, it contains the:
-// 1. NodeTypes - containing the NodeTypes.
-// 2. RelationshipTypes - containing the RelationshipTypes.
+/**
+ * SCHEMA CRDT INTERFACE
+ * 
+ * ROOT we do have a Y.Doc named - will be the same for the whole architecture. Combining SCHEMA and DATA in one Y.Doc
+ * in it there are three maps:
+ *  - nodeTypes 
+ *  - relationshipTypes
+ *  - labels
+ *  
+ *  Labels does save all active distinct labels. - distinct via uuids, a name can appear in multiple objects.
+ *  NodeTypes does save all active distinct NodeTypes.
+ *  RelationshipTypes does save all active distinct RelationshipTypes.
+ *  
+ *  
+ */
 
 export interface SchemaDefinition {
     nodes: Array<{
@@ -23,7 +34,6 @@ export interface SchemaDefinition {
         properties: Record<string, string>;
     }>;
 }
-
 
 /**
  * Defines a schema for a graph database.
@@ -46,7 +56,7 @@ export class Schema_v1 {
         this.nodeTypes = this.doc.getMap('nodeTypes');
         this.relationshipTypes = this.doc.getMap('relationshipTypes');
         this.labels = this.doc.getMap('labels');
-
+        // initialize schema with schema definition
         if (schemaDef) {
             this.doc.transact(() => {
                 schemaDef.nodes?.forEach(node => {
@@ -59,83 +69,124 @@ export class Schema_v1 {
         }
     }
 
+    /* ------------------------------------------------------------
+    *   LABEL FUNCTIONS
+    ------------------------------------------------------------- */
 
     /**
-     * Adds a new node type to the schema.
-     * @param IdenifyingType - The identifying type of the node type.
-     * @param labels - The labels of the node type. A set of uuids.
-     * @param properties - The properties of the node type.
-     * @param defa - The default values of the properties.
+     * CREATE -------------------
+     * Finds or creates a label in the schema.
+     * @param label - The label to find or create.
+     * @returns The uuid of the found or created label.
      */
-    private addNodeType({ IdenifyingType, labels, properties, defa }: {IdenifyingType: string, labels: string[], properties: any, defa?: any}) {
-        // cannot readd node types
-        if (this.nodeTypes.has(IdenifyingType)) {
-            throw new SchemaError('Type already exists');
+    private createLabel(label: string): string {
+        let foundUuid = this.findLabel(label);
+        if (!foundUuid) {
+            foundUuid = uuidv4();
+            const labelObj = new Y.Map<any>();
+            labelObj.set('name', label);
+            this.labels.set(foundUuid, labelObj);
         }
-        const nodeTypeMap = new Y.Map<any>();
-        const propertiesMap = new Y.Map<any>();
-
-        const labelsMap = new Y.Map<string>();
-
-        labels.forEach(label => {
-            let foundUuid: string | null = null;
-            this.labels.forEach((labelObj: Y.Map<any>, uuid: string) => {
-                if (labelObj.get('name') === label) {
-                    foundUuid = uuid;
-                }
-            });
-            if (!foundUuid) {
-                foundUuid = uuidv4();
-                const labelObj = new Y.Map<any>();
-                labelObj.set('name', label);
-                this.labels.set(foundUuid, labelObj);
-            }
-            labelsMap.set(foundUuid, foundUuid);
-        });
-
-        for (const [key, value] of Object.entries(properties)) {
-            const valueMap = new Y.Map<any>();
-            const activeTypes = new Y.Map<any>();
-            activeTypes.set(this.doc.clientID.toString(), {value: value, default: defa});
-            valueMap.set('activeTypes', activeTypes);
-            valueMap.set('name', key);
-            propertiesMap.set(key, valueMap);
-        }
-
-        this.doc.transact(() => {
-            nodeTypeMap.set('labels', labelsMap);
-            nodeTypeMap.set('properties', propertiesMap);
-            this.nodeTypes.set(IdenifyingType, nodeTypeMap);
-        });
-    }
-    private dropNodeType(IdenifyingType: string) {
-        this.nodeTypes.delete(IdenifyingType);
-    }
-    private getNodeType(IdenifyingType: string) {
-        const nodeType = getOrThrow(this.nodeTypes.get(IdenifyingType), 'Node type not found');
-        return nodeType;
-    }
-    public getNodeTypeJSON(IdenifyingType: string) {
-        const nodeType = getOrThrow(this.nodeTypes.get(IdenifyingType), 'Node type not found');
-        const rawJson = nodeType.toJSON();
-        
-        // Project labels
-        const resolvedLabels: Record<string, string> = {};
-        for (const uuid of Object.keys(rawJson.labels || {})) {
-            const labelObj = this.labels.get(uuid);
-            if (labelObj) {
-                const name = labelObj.get('name');
-                if (name) resolvedLabels[name] = name;
-            }
-        }
-        rawJson.labels = resolvedLabels;
-
-
-        return rawJson;
+        return foundUuid;
     }
 
     /**
-     * Dynamically extracts all active distinct labels currently surviving in the CRDT schema.
+     * DROP ----------------
+     * DROP label(s if multiple with the same name exsist. Based on observed removal.)
+     * cascadingly delete any labels out of nodeTypes. (SEE: cascadingLabelDeletions)
+     * cascadingly delete relationshipTypes that use that labes as source or target
+     * 
+     * @param label - the label name. 
+    */
+    public dropLabel(label: string) {
+        // find all labels with the given name
+        let founduuids: Array<string> = [];
+        this.labels.forEach((labelObj: Y.Map<any>, uuid: string) => {
+            if (labelObj.get('name') === label) {
+                founduuids.push(uuid);
+            }
+        });
+        if (!founduuids) {
+            console.log('Label does not exist: ' + label);
+            return; // label does not exist - we just ignore the request.
+        } 
+
+        founduuids.forEach((uuid: string) => {
+            this.labels.delete(uuid); 
+        });
+        this.cascadingLabelDeletions(founduuids);
+    }
+
+    /**
+     * HELPER / DROP
+     * Cascadingly delete any labels out of nodeTypes
+     * cascadingly delete relationshipTypes that use that labes as source or target
+     * @param uuids - the uuids of the labels to delete.
+     */
+    private cascadingLabelDeletions(uuids: Array<string>) {
+        this.nodeTypes.forEach((nodeTypeMap: Y.Map<any>) => {
+            const labelsMap = nodeTypeMap.get('labels');
+            if (labelsMap) {
+                labelsMap.forEach((uuid: string) => {
+                    if (uuids.includes(uuid)) {
+                        labelsMap.delete(uuid);
+                    }
+                });
+            }
+        });
+        // TODO cascading deletion of relationshipTypes that used that label as source or target label.
+    }
+
+    /** 
+     * RENAME ------------------
+     * @param oldName - the old name of the label.
+     * @param newName - the new name of the label.
+     * @throws SchemaError if the label does not exist.
+     */
+    public renameLabel(oldName: string, newName: string) {
+        // find all labels with the given name
+        const founduuids: Array<string> = this.findAllLabelUuids(oldName);
+
+        if (!founduuids) {
+            throw new SchemaError('Non-exsistant Label for Rename: ' + oldName);
+        } 
+        // update the name of the label
+        founduuids.forEach((uuid: string) => {
+            this.labels.get(uuid).set('name', newName);
+        });
+        // CASCADING RENAME: NodeTypes and RelationshipTypes are by design independent of the label name - they just reference the label by uuid!
+    }
+
+    /**
+     * SPLIT LABEL -----------------------
+     * Splits a label into two labels.
+     * @param oldLabel - the old label name.
+     * @param newLabel1 - the new label name.
+     * @param newLabel2 - the new label name.
+     * @throws SchemaError if the old label does not exist.
+     * @throws SchemaError if the one of the new labels already exist.
+     */
+    private splitLabel(oldName: string, newLabel1: string, newLabel2: string) {
+        // TODO
+        
+    }
+
+    /** 
+     * UNION label ---------------------------
+     * @param Oldlabel1
+     * @param Oldlabel2 
+     * @param newLabel
+     * @throws SchemaError if one of the old label names does not exist 
+     * @throws if new label name does already exsist
+     */
+    private unionLabel(oldLabel1: string, oldLabel2: string, newLabel: string) {
+        // TODO
+    }
+
+    /**
+     * HELPER / READ -----------------
+     * Dynamically extracts all active distinct labels currently exsisting in the CRDT schema.
+     * @returns A set of active distinct labels currently exsisting in the CRDT schema.
      */
     public getAllNodeLabels(): Set<string> {
         const allLabels = new Set<string>();
@@ -154,6 +205,102 @@ export class Schema_v1 {
         return allLabels;
     }
 
+    /**
+     * finds all labels to a given label name
+     * @param name - the name of the label.
+     * @returns The uuid of the found label.
+     */
+    private labelExists(name: string): string | null {
+        let foundUuid: string | null = null;
+        this.labels.forEach((labelObj: Y.Map<any>, uuid: string) => {
+            // returns first label found (multiple uniqe id can have the same name if added concurrently! - that is wanted!)
+            if (labelObj.get('name') === name) {
+                foundUuid = uuid;
+            }
+        });
+        return foundUuid;
+    }
+
+    /**
+     * find all uuids for a given label name
+     * @param name - the name of the label.
+     * @returns The uuids of the found labels.
+     */
+    private findAllLabelUuids(name: string): Array<string> {
+        let founduuids: Array<string> = [];
+        this.labels.forEach((labelObj: Y.Map<any>, uuid: string) => {
+            if (labelObj.get('name') === name) {
+                founduuids.push(uuid);
+            }
+        });
+        return founduuids;
+    }
+
+    /* ------------------------------------------------------------
+    *   NODE TYPE FUNCTIONS
+    ------------------------------------------------------------- */
+
+    /**
+     * Adds a new node type to the schema.
+     * @param IdenifyingType - The identifying type of the node type.
+     * @param labels - The labels of the node type. A set of label names.
+     * @param properties - The properties of the node type.
+     * @param defa - The default values of the properties.
+     */
+    private addNodeType({ IdenifyingType, labels, properties, defa }: {IdenifyingType: string, labels: string[], properties: any, defa?: any}) {
+        // cannot readd node types
+        if (this.nodeTypes.has(IdenifyingType)) {
+            throw new SchemaError('Type already exists');
+        }
+        const nodeTypeMap = new Y.Map<any>();
+        const propertiesMap = new Y.Map<any>();
+        const labelsMap = new Y.Map<string>();
+
+        labels.forEach(label => {
+            const foundUuid = this.findOrCreateLabel(label);
+            labelsMap.set(foundUuid, foundUuid);
+        });
+
+        for (const [key, value] of Object.entries(properties)) {
+            const valueMap = new Y.Map<any>();
+            const activeTypes = new Y.Map<any>();
+            activeTypes.set(this.doc.clientID.toString(), {value: value, default: defa});
+            valueMap.set('activeTypes', activeTypes);
+            valueMap.set('name', key);
+            propertiesMap.set(key, valueMap);
+        }
+
+        this.doc.transact(() => {
+            nodeTypeMap.set('labels', labelsMap);
+            nodeTypeMap.set('properties', propertiesMap);
+            this.nodeTypes.set(IdenifyingType, nodeTypeMap);
+        });
+    }
+
+    /**
+     * Drops a node type from the schema.
+     * @param IdenifyingType - The identifying type of the node type.
+     */
+    public dropNodeType(IdenifyingType: string) {
+        this.nodeTypes.delete(IdenifyingType);
+    }
+
+    /**
+     * Retrieves a node type from the schema.
+     * @param IdenifyingType - The identifying type of the node type.
+     * @returns The node type.
+     */
+    private getNodeType(IdenifyingType: string) {
+        const nodeType = getOrThrow(this.nodeTypes.get(IdenifyingType), 'Node type not found');
+        return nodeType;
+    }
+    
+    /**
+     * Updates the properties of a node type.
+     * @param IdenifyingType - The identifying type of the node type.
+     * @param properties - The properties to update.
+     * @param defa - The default values of the properties.
+     */
     private updateNodeProps(IdenifyingType: string, properties: any, defa?: any) {
         const nodeTypeMap = this.nodeTypes.get(IdenifyingType);
         if (!nodeTypeMap) {
@@ -182,6 +329,12 @@ export class Schema_v1 {
             }
         }
     }
+
+    /**
+     * Updates the labels of a node type.
+     * @param IdenifyingType - The identifying type of the node type.
+     * @param labels - The labels to update.
+     */
     private updateNodeLabels(IdenifyingType: string, labels: string[]) {
         const nodeTypeMap = this.nodeTypes.get(IdenifyingType);
         if (!nodeTypeMap) {
@@ -326,9 +479,9 @@ export class Schema_v1 {
 
 
 
-/*  
-                Schema Modification Operations
-*/
+    /*  
+                    Schema Modification Operations
+    */
 
     // CREATE 
     public SMO_addNodeType(IdenifyingType: string, labels: string[], properties: any) {
@@ -339,6 +492,10 @@ export class Schema_v1 {
         this.addRelationshipType({ IdenifyingEdge, sourceNodeLabel, targetNodeLabel, properties });
     }
 
+    public SMO_createLabel(label: string) {
+        this.findOrCreateLabel(label);   
+    }
+
     // DROP
     public SMO_dropNodeType(IdenifyingType: string) {
         this.dropNodeType(IdenifyingType);
@@ -346,6 +503,10 @@ export class Schema_v1 {
 
     public SMO_dropRelationshipType(IdenifyingEdge: string) {
         this.deleteRelationshipType(IdenifyingEdge);
+    }
+
+    public SMO_dropLabel(label: string) {
+        this.dropLabel(label);   
     }
 
     // RENAME
@@ -470,6 +631,35 @@ export class Schema_v1 {
         }
 
         return survivingTypes[0];
+    }
+
+    /* ------------------------------------------------------------
+    *   TEST HELPERS
+    ------------------------------------------------------------- */
+
+    /**
+     * TEST HELPER
+     * Retrieves a node type from the schema as a JSON object. 
+     * @param IdenifyingType - The identifying type of the node type.
+     * @returns The node type as a JSON object.
+     */
+    public getNodeTypeJSON(IdenifyingType: string) {
+        const nodeType = getOrThrow(this.nodeTypes.get(IdenifyingType), 'Node type not found');
+        const rawJson = nodeType.toJSON();
+        
+        // Project labels
+        const resolvedLabels: Record<string, string> = {};
+        for (const uuid of Object.keys(rawJson.labels || {})) {
+            const labelObj = this.labels.get(uuid);
+            if (labelObj) {
+                const name = labelObj.get('name');
+                if (name) resolvedLabels[name] = name;
+            }
+        }
+        rawJson.labels = resolvedLabels;
+
+
+        return rawJson;
     }
 
 }

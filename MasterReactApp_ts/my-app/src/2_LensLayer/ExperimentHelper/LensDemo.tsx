@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import * as Y from 'yjs';
 import { PropertyGraph, VisibleNode, VisibleEdge } from '../../3_PG_CRDT/PropertyGraph';
 import { SchemaLensEngine } from '../SchemaLensEngine';
-import { Schema_v1 } from '../../1_Schema_CRDT/Schema/schema_v1';
+import { Schema_v1 } from '../../1_Schema_CRDT/Schema_v1/schema_v1';
 import { VisGraphCanvas } from '../../3_PG_CRDT/0_Vizualization/VisGraphCanvas';
 import { seedBon19GraphExtendet } from '../../3_PG_CRDT/0_Vizualization/bon19Graph_extendet';
 

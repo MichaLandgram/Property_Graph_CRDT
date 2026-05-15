@@ -1,5 +1,5 @@
 import { bon19SchemaDef } from "../ExperimentHelper/Bon19_Schema";
-import { Schema_v1 } from "../Schema/schema_v1"
+import { Schema_v1 } from "../Schema_v1/schema_v1"
 import { SchemaError } from "../../0_Meta/ErrorDefinition";
 import { getDoc } from "../../Helper/YJS_helper/creator";
 

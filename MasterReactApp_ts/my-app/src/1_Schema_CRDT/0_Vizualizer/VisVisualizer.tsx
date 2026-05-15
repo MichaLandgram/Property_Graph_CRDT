@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
-import { SchemaDefinition, Schema_v1 } from '../Schema/schema_v1';
+import { SchemaDefinition, Schema_v1 } from '../Schema_v1/schema_v1';
 import { Network } from 'vis-network';
 
 const generateColor = (str: string) => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import * as Y from 'yjs';
-import { Schema_v1, SchemaDefinition } from '../Schema/schema_v1';
+import { Schema_v1, SchemaDefinition } from '../Schema_v1/schema_v1';
 import { VisVisualizer } from '../0_Vizualizer/VisVisualizer';
 
 const ConnectedClient: React.FC<{ doc: Y.Doc, title: string, schemaModel: Schema_v1 }> = ({ doc, title, schemaModel }) => {

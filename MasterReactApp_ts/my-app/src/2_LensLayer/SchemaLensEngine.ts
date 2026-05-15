@@ -1,4 +1,4 @@
-import { Schema_v1 } from '../1_Schema_CRDT/Schema/schema_v1';
+import { Schema_v1 } from '../1_Schema_CRDT/Schema_v1/schema_v1';
 import { whatType, PropertyLensMap, dataTypes } from '../0_Meta/types';
 import { SchemaError } from '../0_Meta/ErrorDefinition';
 

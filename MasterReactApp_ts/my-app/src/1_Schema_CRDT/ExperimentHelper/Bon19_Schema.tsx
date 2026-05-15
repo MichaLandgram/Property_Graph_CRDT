@@ -1,4 +1,4 @@
-import { Schema_v1, SchemaDefinition } from "../Schema/schema_v1";
+import { Schema_v1, SchemaDefinition } from "../Schema_v1/schema_v1";
 
 export const bon19SchemaDef: SchemaDefinition = {
     nodes: [
